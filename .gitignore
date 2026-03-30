@@ -8,7 +8,7 @@ maps.tar.gz
 __pycache__
 
 # Mypy cache files
-__mypy_cache__
+.mypy_cache
 
 # VS Code settings
 .vscode
