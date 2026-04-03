@@ -35,7 +35,8 @@ class HubMetadata(BaseModel):
                 data['max_drones'] = int(attrs['max_drones'])
             except ValueError:
                 raise ValueError(
-                    f'max_drones must be an integer, got {attrs["max_drones"]!r}'
+                    'max_drones must be an integer, got '
+                    f'{attrs["max_drones"]!r}'
                 )
 
         return cls(**data)
@@ -58,7 +59,7 @@ class Hub(BaseModel):
 
         attrs: dict[str, str] = {}
         if attrs_str:
-            for pair in attrs_str.split(','):
+            for pair in attrs_str.split(' '):
                 key, sep, value = pair.strip().partition('=')
                 if not sep:
                     raise ValueError(

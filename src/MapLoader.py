@@ -65,9 +65,33 @@ class MapLoader(BaseModel):
 
         if not self._result.ok:
             for err in self._result.errors:
-                self._logger.error(str(err))
+                self._logger.error(f'{err}')
+
+        if not self._result.ok:
+            raise ValueError(
+                f'Failed to load map from {self.filepath!r} with '
+                f'{len(self._result.errors)} error(s)'
+            )
 
         return super().model_post_init(context)
+
+    def _check_map_validity(self) -> None:
+        start_hubs = [
+            hub for hub in self._result.hubs if hub.type == 'start_hub'
+        ]
+        end_hubs = [
+            hub for hub in self._result.hubs if hub.type == 'end_hub'
+        ]
+        if not start_hubs:
+            self._result.errors.append(ParseError(
+                0, '',
+                'Map must contain at least one start_hub'
+            ))
+        if not end_hubs:
+            self._result.errors.append(ParseError(
+                0, '',
+                'Map must contain at least one end_hub'
+            ))
 
     def _load(self) -> None:
         with open(self.filepath, 'r') as f:
@@ -84,6 +108,8 @@ class MapLoader(BaseModel):
 
         self._parse_connections(lines, index)
 
+        self._check_map_validity()
+
     def _strip_comments(self, data: str) -> list[tuple[int, str]]:
         result: list[tuple[int, str]] = []
         for lineno, raw in enumerate(data.splitlines(), start=1):
@@ -92,7 +118,11 @@ class MapLoader(BaseModel):
                 result.append((lineno, cleaned))
         return result
 
-    def _parse_nb_drones(self, lines: list[tuple[int, str]], index: int) -> int:
+    def _parse_nb_drones(
+                self,
+                lines: list[tuple[int, str]],
+                index: int
+            ) -> int:
         lineno, line = lines[index]
         match = self._RE_NB_DRONES.match(line)
         if not match:
@@ -112,8 +142,6 @@ class MapLoader(BaseModel):
             try:
                 hub = Hub.from_str(line)
                 self._result.hubs.append(hub)
-            except ValueError as e:
-                self._result.errors.append(ParseError(lineno, line, str(e)))
             except ValidationError as e:
                 for err in e.errors():
                     loc = ' → '.join(str(_loc) for _loc in err['loc'])
@@ -121,10 +149,16 @@ class MapLoader(BaseModel):
                     self._result.errors.append(ParseError(
                         lineno, line, f'[{loc}] {msg}'
                     ))
+            except ValueError as e:
+                self._result.errors.append(ParseError(lineno, line, str(e)))
             index += 1
         return index
 
-    def _parse_connections(self, lines: list[tuple[int, str]], index: int) -> None:
+    def _parse_connections(
+                self,
+                lines: list[tuple[int, str]],
+                index: int
+            ) -> None:
         while index < len(lines):
             lineno, line = lines[index]
             if not self._RE_CONNECTION.match(line):
