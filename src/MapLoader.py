@@ -1,62 +1,138 @@
-from pydantic import BaseModel, Field, PrivateAttr
-from .Hub import Hub
+from .errors import (
+    FileNotFoundError as _FileNotFoundError,
+    PermissionError as _PermissionError,
+    NotAFileError,
+    ParseError
+)
+from pydantic import BaseModel, Field, PrivateAttr, ValidationError
+from dataclasses import dataclass, field
+from .utils import Color, Logger
 from typing import ClassVar
+from .Hub import Hub
 import re
+
+
+@dataclass
+class ParseResult:
+    nb_drones: int = 0
+    hubs: list[Hub] = field(default_factory=list)
+    errors: list[ParseError] = field(default_factory=list)
+
+    @property
+    def ok(self) -> bool:
+        return len(self.errors) == 0
 
 
 class MapLoader(BaseModel):
     filepath: str = Field()
+    verbose: bool = Field(default=False)
 
-    nb_drones: int = PrivateAttr(0)
-    hubs: list[Hub] = PrivateAttr([])
-    REGEX_NUMBER_DRONES: ClassVar[re.Pattern[str]] = re.compile(
-        r"nb_drones: [0-9]+"
-    )
-    REGEX_HUB: ClassVar[re.Pattern[str]] = re.compile(
-        r"(start_hub:|end_hub:|hub:)"
-    )
-    REGEX_CONNECTION: ClassVar[re.Pattern[str]] = re.compile(
-        r"connection: "
-    )
+    _RE_NB_DRONES: ClassVar[re.Pattern] = re.compile(r'^nb_drones:\s*(\d+)$')
+    _RE_HUB: ClassVar[re.Pattern] = re.compile(r'^(start_hub|end_hub|hub):')
+    _RE_CONNECTION: ClassVar[re.Pattern] = re.compile(r'^connection:\s*')
 
-    def model_post_init(self, context):
-        self.regex_number_drones = re.compile(r"nb_drones: [0-9]+")
-        return super().model_post_init(context)
+    _logger: Logger = PrivateAttr()
+    _result: ParseResult = PrivateAttr()
 
-    def _remove_comments(self, data: str) -> list[str]:
-        lines = data.splitlines()
+    @property
+    def nb_drones(self) -> int:
+        return self._result.nb_drones
 
-        return [
-            line.split('#')[0].strip()
-            for line in lines
-            if line.strip() and not line.strip().startswith('#')
-        ]
+    @property
+    def hubs(self) -> list[Hub]:
+        return self._result.hubs
 
-    def _get_number_drones(self, line: str) -> int:
-        matches: list[re.Match[str]] = list(
-            self.regex_number_drones.finditer(line)
+    @property
+    def errors(self) -> list[ParseError]:
+        return self._result.errors
+
+    def model_post_init(self, context) -> None:
+        self._logger = Logger(
+            ACTIVE=self.verbose,
+            name='MapLoader',
+            color=Color.CYAN
         )
+        self._result = ParseResult()
 
-        if len(matches) != 1:
-            raise ValueError("'nb_drones' could not be found!")
+        try:
+            self._load()
+        except FileNotFoundError:
+            raise _FileNotFoundError(self.filepath)
+        except PermissionError:
+            raise _PermissionError(self.filepath)
+        except IsADirectoryError:
+            raise NotAFileError(self.filepath)
 
-        nb_drones_raw: str = matches[0].group(0).split('nb_drones: ')[1]
-        nb_drones: int = int(nb_drones_raw)
+        if not self._result.ok:
+            for err in self._result.errors:
+                self._logger.error(str(err))
 
-        return (nb_drones)
+        return super().model_post_init(context)
 
     def _load(self) -> None:
         with open(self.filepath, 'r') as f:
-            lines: list[str] = self._remove_comments(f.read())
-            index: int = 0
+            raw: str = f.read()
 
-            self.nb_drones = self._get_number_drones(lines[index])
-            index += 1
+        lines: list[tuple[int, str]] = self._strip_comments(raw)
+        if not lines:
+            self._result.errors.append(ParseError(0, '', 'File is empty'))
+            return
 
-            while (index < len(lines) and re.search(self.REGEX_HUB, lines[index])):
-                self.hubs.append(Hub.from_str(lines[index]))
-                index += 1
+        index: int = 0
+        index = self._parse_nb_drones(lines, index)
+        index = self._parse_hubs(lines, index)
 
-            while (index < len(lines) and re.search(self.REGEX_CONNECTION, lines[index])):
-                # logic for connection parsing
+        self._parse_connections(lines, index)
+
+    def _strip_comments(self, data: str) -> list[tuple[int, str]]:
+        result: list[tuple[int, str]] = []
+        for lineno, raw in enumerate(data.splitlines(), start=1):
+            cleaned = raw.split('#')[0].strip()
+            if cleaned:
+                result.append((lineno, cleaned))
+        return result
+
+    def _parse_nb_drones(self, lines: list[tuple[int, str]], index: int) -> int:
+        lineno, line = lines[index]
+        match = self._RE_NB_DRONES.match(line)
+        if not match:
+            self._result.errors.append(ParseError(
+                lineno, line,
+                f'Expected \'nb_drones: <int>\', got {line!r}'
+            ))
+        else:
+            self._result.nb_drones = int(match.group(1))
+        return index + 1
+
+    def _parse_hubs(self, lines: list[tuple[int, str]], index: int) -> int:
+        while index < len(lines):
+            lineno, line = lines[index]
+            if not self._RE_HUB.match(line):
                 break
+            try:
+                hub = Hub.from_str(line)
+                self._result.hubs.append(hub)
+            except ValueError as e:
+                self._result.errors.append(ParseError(lineno, line, str(e)))
+            except ValidationError as e:
+                for err in e.errors():
+                    loc = ' → '.join(str(_loc) for _loc in err['loc'])
+                    msg = err.get('ctx', {}).get('error') or err['msg']
+                    self._result.errors.append(ParseError(
+                        lineno, line, f'[{loc}] {msg}'
+                    ))
+            index += 1
+        return index
+
+    def _parse_connections(self, lines: list[tuple[int, str]], index: int) -> None:
+        while index < len(lines):
+            lineno, line = lines[index]
+            if not self._RE_CONNECTION.match(line):
+                self._result.errors.append(ParseError(
+                    lineno, line,
+                    f'Unexpected line outside known sections: {line!r}'
+                ))
+
+            # TODO: add logic for parsing connectios
+
+            index += 1

@@ -7,7 +7,7 @@ install:
 	uv sync
 
 run:
-	$(UV_PY) -m src
+	$(UV_PY) -m src $(ARGS)
 
 debug:
 	$(UV_PY) -m src --debug
