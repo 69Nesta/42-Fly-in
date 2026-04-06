@@ -3,6 +3,7 @@ from .ArgsParser import ArgsParser
 from argparse import Namespace
 from .MapLoader import MapLoader
 from .utils import Logger, Color
+from .Graphics import Graphics
 import sys
 
 
@@ -19,13 +20,15 @@ def run() -> None:
         logger.log('Starting the program...')
 
         level: MapLoader = MapLoader(
-            filepath='maps/easy/01_linear_path.txt',
+            filepath=args.input,
             verbose=args.verbose
         )
 
-        # level
         for hub in level.hubs:
             print(hub.model_dump())
+
+        graphics: Graphics = Graphics(verbose=args.verbose)
+        graphics.run()
 
     except ValidationError as e:
         for error in e.errors():
