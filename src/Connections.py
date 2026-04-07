@@ -43,6 +43,11 @@ class Connection(BaseModel):
                 f'{raw_hub_a!r}, {raw_hub_b!r}'
             )
 
+        if hub_a == hub_b:
+            raise ValueError(
+                f'Connection cannot link a hub to itself: {hub_a.name!r}'
+            )
+
         _hubs: list[Hub] = [hub_a, hub_b]
         _hubs.sort(key=lambda h: h.name)
 

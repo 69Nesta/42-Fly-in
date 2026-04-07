@@ -5,7 +5,7 @@ from .errors import (
     ParseError
 )
 from pydantic import BaseModel, Field, PrivateAttr, ValidationError
-from .Connection import Connections, Connection
+from .Connections import Connections, Connection
 from dataclasses import dataclass, field
 from .utils import Color, Logger
 from typing import ClassVar
