@@ -30,7 +30,7 @@ class Graphics:
         pr.gui_set_style(pr.GuiControl.DEFAULT,
                          pr.GuiDefaultProperty.TEXT_SIZE, 30)
 
-    def get_virtual_mouse_position(self) -> pr.Vector3:
+    def get_virtual_mouse_position(self) -> pr.Vector2:
         mouse_pos = pr.get_mouse_position()
 
         self.logger.log(f"Mouse Position: {mouse_pos.x}, {mouse_pos.y}")
@@ -63,7 +63,8 @@ class Graphics:
             pr.clear_background(pr.BLACK)
             pr.begin_mode_3d(self.camera)
 
-            # pr.draw_circle_3d(pr.Vector3(0, 0, 0), 1.0, pr.Vector3(0, 0, 0), 0.0, pr.RED)
+            # pr.draw_circle_3d(pr.Vector3(0, 0, 0),
+            # 1.0, pr.Vector3(0, 0, 0), 0.0, pr.RED)
 
             pr.end_mode_3d()
 
@@ -77,4 +78,4 @@ class Graphics:
         tmp = "[Home]/[End] to add/remove 3D text layers"
         width = pr.measure_text(tmp, 10)
         pr.draw_text(tmp, self.window_width - 20 - width, 25, 10, pr.DARKGRAY)
-        pr.draw_fps(10, 10
+        pr.draw_fps(10, 10)

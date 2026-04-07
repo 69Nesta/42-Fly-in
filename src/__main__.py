@@ -3,7 +3,7 @@ from .ArgsParser import ArgsParser
 from argparse import Namespace
 from .MapLoader import MapLoader
 from .utils import Logger, Color
-from .Graphics import Graphics
+# from .Graphics import Graphics
 import sys
 
 
@@ -24,11 +24,16 @@ def run() -> None:
             verbose=args.verbose
         )
 
-        for hub in level.hubs:
+        print('\nHubs: ')
+        for hub in level.hubs.values():
             print(hub.model_dump())
 
-        graphics: Graphics = Graphics(verbose=args.verbose)
-        graphics.run()
+        print('\nConnections: ')
+        for connection in level.connections.get():
+            print(connection.model_dump())
+
+        # graphics: Graphics = Graphics(verbose=args.verbose)
+        # graphics.run()
 
     except ValidationError as e:
         for error in e.errors():
