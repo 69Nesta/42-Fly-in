@@ -54,7 +54,7 @@ class MapLoader(BaseModel):
 
     def model_post_init(self, context) -> None:
         self._logger = Logger(
-            ACTIVE=self.verbose,
+            print_log=self.verbose,
             name='MapLoader',
             color=Color.CYAN
         )

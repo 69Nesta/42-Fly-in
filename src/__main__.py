@@ -3,20 +3,21 @@ from .ArgsParser import ArgsParser
 from argparse import Namespace
 from .MapLoader import MapLoader
 from .utils import Logger, Color
-from .Graphics import Graphics
+from .renderer.Renderer import Renderer
 import sys
 
 
 def run() -> None:
+    logger: Logger = Logger(
+        print_log=False,
+        name='Main',
+        color=Color.MAGENTA
+    )
     try:
         args_parser: ArgsParser = ArgsParser()
         args: Namespace = args_parser.parse_args(sys.argv[1:])
 
-        logger: Logger = Logger(
-            ACTIVE=args.verbose,
-            name='Main',
-            color=Color.MAGENTA
-        )
+        logger.print_log = args.verbose
         logger.log('Starting the program...')
 
         level: MapLoader = MapLoader(
@@ -33,9 +34,9 @@ def run() -> None:
             print(connection.model_dump())
 
         print(f'\nNb drones: {level.nb_drones}')
-        graphics: Graphics = Graphics(verbose=args.verbose)
+        renderer: Renderer = Renderer(verbose=args.verbose)
         print('Entering main loop...')
-        graphics.run()
+        renderer.run()
 
     except ValidationError as e:
         for error in e.errors():

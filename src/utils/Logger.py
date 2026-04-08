@@ -7,11 +7,11 @@ class Logger(BaseModel):
     """Lightweight logger for console output.
 
     Attributes:
-        ACTIVE (bool): Whether logging is enabled.
+        print_log (bool): Whether logging is enabled.
         name (str): Name displayed in log messages.
         color (Color): Color used for the name tag.
     """
-    ACTIVE: bool = False
+    print_log: bool = False
     name: str = Field(..., description='The name of the logger')
     color: Color = Field(..., description='The color of the logger')
 
@@ -22,7 +22,7 @@ class Logger(BaseModel):
             message (str): Message to print.
             end (str | None): End character appended to the message.
         """
-        if (self.ACTIVE):
+        if (self.print_log):
             print(f'{self._get_format()} {message}', end=end)
 
     def error(self, message: str, end: str | None = '\n') -> None:

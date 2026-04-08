@@ -3,21 +3,34 @@ from pyray import (Mesh, Model, Vector3)
 import pyray as pr
 
 
+VERT = """
+"""
+
+FRAG = """
+
+"""
+
+
 class Galaxy:
+    cube: Mesh
+    skybox: Model
+    loc_time: int
+    
     def __init__(self) -> None:
-        self.cube: Mesh = pr.gen_mesh_cube(1.0, 1.0, 1.0)
-        self.skybox: Model = pr.load_model_from_mesh(self.cube)
+        self.cube = pr.gen_mesh_cube(1.0, 1.0, 1.0)
+        self.skybox = pr.load_model_from_mesh(self.cube)
 
         self.skybox.materials[0].shader = pr.load_shader(
-            'src/shaders/glsl/galaxy.vs',
-            'src/shaders/glsl/galaxy.fs'
+            'src/renderer/glsl/background.vs',
+            'src/renderer/glsl/background.fs'
         )
+        
         self.loc_time = pr.get_shader_location(
             self.skybox.materials[0].shader, 'time'
         )
 
     def update(self, time: float) -> None:
-        time_val = ffi.new("float[1]", [float(time)])
+        time_val = ffi.new('float[1]', [float(time)])
 
         pr.set_shader_value(
             self.skybox.materials[0].shader,
