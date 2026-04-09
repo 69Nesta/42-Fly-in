@@ -5,6 +5,7 @@ from .errors import (
     ParseError
 )
 from pydantic import BaseModel, Field, PrivateAttr, ValidationError
+from .Connections import Connections, Connection
 from dataclasses import dataclass, field
 from .utils import Color, Logger
 from typing import ClassVar
@@ -15,15 +16,16 @@ import re
 @dataclass
 class ParseResult:
     nb_drones: int = 0
-    hubs: list[Hub] = field(default_factory=list)
+    hubs: dict[str, Hub] = field(default_factory=dict)
     errors: list[ParseError] = field(default_factory=list)
+    connections: Connections = field(default_factory=Connections)
 
     @property
     def ok(self) -> bool:
         return len(self.errors) == 0
 
 
-class MapLoader(BaseModel):
+class LevelLoader(BaseModel):
     filepath: str = Field()
     verbose: bool = Field(default=False)
 
@@ -39,8 +41,12 @@ class MapLoader(BaseModel):
         return self._result.nb_drones
 
     @property
-    def hubs(self) -> list[Hub]:
+    def hubs(self) -> dict[str, Hub]:
         return self._result.hubs
+
+    @property
+    def connections(self) -> Connections:
+        return self._result.connections
 
     @property
     def errors(self) -> list[ParseError]:
@@ -48,11 +54,12 @@ class MapLoader(BaseModel):
 
     def model_post_init(self, context) -> None:
         self._logger = Logger(
-            ACTIVE=self.verbose,
-            name='MapLoader',
-            color=Color.CYAN
+            print_log=self.verbose,
+            name='LevelLoader',
+            color=Color.YELLOW
         )
         self._result = ParseResult()
+        self._logger.log(f'Loading level from {self.filepath!r}...')
 
         try:
             self._load()
@@ -73,14 +80,20 @@ class MapLoader(BaseModel):
                 f'{len(self._result.errors)} error(s)'
             )
 
+        self._logger.log(
+            f'Level loaded successfully with {self.nb_drones} drones, '
+            f'{len(self.hubs)} hubs and {len(self.connections.get())} '
+            'connections.'
+        )
+
         return super().model_post_init(context)
 
     def _check_map_validity(self) -> None:
         start_hubs = [
-            hub for hub in self._result.hubs if hub.type == 'start_hub'
+            hub for hub in self.hubs.values() if hub.type == 'start_hub'
         ]
         end_hubs = [
-            hub for hub in self._result.hubs if hub.type == 'end_hub'
+            hub for hub in self.hubs.values() if hub.type == 'end_hub'
         ]
         if not start_hubs:
             self._result.errors.append(ParseError(
@@ -137,11 +150,19 @@ class MapLoader(BaseModel):
     def _parse_hubs(self, lines: list[tuple[int, str]], index: int) -> int:
         while index < len(lines):
             lineno, line = lines[index]
-            if not self._RE_HUB.match(line):
+            if (not self._RE_HUB.match(line)
+               and self._RE_CONNECTION.match(line)):
                 break
             try:
                 hub = Hub.from_str(line)
-                self._result.hubs.append(hub)
+                if self.hubs.get(hub.name):
+                    self._result.errors.append(ParseError(
+                        lineno, line, 'Hub name must be unique, got duplicate'
+                        f' name {hub.name!r}'
+                    ))
+                self.hubs.update({
+                    hub.name: hub
+                })
             except ValidationError as e:
                 for err in e.errors():
                     loc = ' → '.join(str(_loc) for _loc in err['loc'])
@@ -167,6 +188,11 @@ class MapLoader(BaseModel):
                     f'Unexpected line outside known sections: {line!r}'
                 ))
 
-            # TODO: add logic for parsing connectios
+            try:
+                self._result.connections.add(
+                    Connection.from_str(line, self.hubs)
+                )
+            except ValueError as e:
+                self._result.errors.append(ParseError(lineno, line, str(e)))
 
             index += 1

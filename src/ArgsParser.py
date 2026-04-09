@@ -33,6 +33,13 @@ class ArgsParser(BaseModel):
         )
 
         self._parser.add_argument(
+            '--input', '-i',
+            help='Path to the input file',
+            type=str,
+            default='maps/easy/01_linear_path.txt'
+        )
+
+        self._parser.add_argument(
             '--verbose', '-v',
             help='Enable verbose logging',
             action='store_true'

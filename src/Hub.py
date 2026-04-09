@@ -1,9 +1,11 @@
 from pydantic import BaseModel, Field
-from typing import Literal
+from typing import Literal, cast
 from enum import Enum
 import re
 
+
 HubType = Literal['hub', 'start_hub', 'end_hub']
+
 
 HUB_PATTERN = re.compile(
     r'^(\w+):\s+(\w+)\s+(-?\d+)\s+(-?\d+)(?:\s+\[([^\]]*)\])?$'
@@ -71,7 +73,7 @@ class Hub(BaseModel):
         metadata = HubMetadata.from_attrs(attrs)
 
         return cls(
-            type=hub_type,
+            type=cast(HubType, hub_type),
             name=hub_name,
             x=int(x),
             y=int(y),
