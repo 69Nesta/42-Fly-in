@@ -21,7 +21,7 @@ class ConnectionRenderer:
         pass
 
     def draw(self) -> None:
-        for connection in self.level.connections.get():
+        for connection in self.level.connections.all:
             pr.draw_line_3d(
                 Vector3(connection.hubs[0].x, 0, connection.hubs[0].y),
                 Vector3(connection.hubs[1].x, 0, connection.hubs[1].y),

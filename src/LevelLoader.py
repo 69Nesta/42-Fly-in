@@ -8,8 +8,8 @@ from pydantic import BaseModel, Field, PrivateAttr, ValidationError
 from .Connections import Connections, Connection
 from dataclasses import dataclass, field
 from .utils import Color, Logger
+from .Hub import Hub, HubType
 from typing import ClassVar
-from .Hub import Hub
 import re
 
 
@@ -82,7 +82,7 @@ class LevelLoader(BaseModel):
 
         self._logger.log(
             f'Level loaded successfully with {self.nb_drones} drones, '
-            f'{len(self.hubs)} hubs and {len(self.connections.get())} '
+            f'{len(self.hubs)} hubs and {len(self.connections.all)} '
             'connections.'
         )
 
@@ -90,10 +90,10 @@ class LevelLoader(BaseModel):
 
     def _check_map_validity(self) -> None:
         start_hubs = [
-            hub for hub in self.hubs.values() if hub.type == 'start_hub'
+            hub for hub in self.hubs.values() if hub.type == HubType.START_HUB
         ]
         end_hubs = [
-            hub for hub in self.hubs.values() if hub.type == 'end_hub'
+            hub for hub in self.hubs.values() if hub.type == HubType.END_HUB
         ]
         if not start_hubs:
             self._result.errors.append(ParseError(

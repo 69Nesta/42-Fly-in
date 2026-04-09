@@ -20,11 +20,32 @@ class Connection(BaseModel):
     def current_load(self) -> int:
         return self._current_load
 
+    def cost(self, from_id: str) -> float:
+        from_hub: Hub = self.get_from_str(from_id)
+
+        if self.blocked:
+            return float('inf')
+        elif self.current_load >= self.capacity:
+            return float('inf')
+        else:
+            return self.get_other(from_hub).metadata.cost_multiplier()
+
     def get_other(self, hub: Hub) -> Hub:
         if self.hubs[0] != hub:
             return self.hubs[0]
         else:
             return self.hubs[1]
+
+    def get_from_str(self, id: str) -> Hub:
+        if self.hubs[0].name == id:
+            return self.hubs[0]
+        elif self.hubs[1].name == id:
+            return self.hubs[1]
+        else:
+            raise ValueError(
+                f'Connection does not link hub with id {id!r}: '
+                f'{self.hubs[0].name!r} <-> {self.hubs[1].name!r}'
+            )
 
     @classmethod
     def from_str(cls, line: str, hubs: dict[str, Hub]) -> 'Connection':
@@ -73,7 +94,9 @@ class Connections(BaseModel):
     _connections: list[Connection] = PrivateAttr([])
 
     def add(self, connection: Connection) -> list[Connection]:
-        if connection in self._connections:
+        if connection.hubs in [
+                    _connection.hubs for _connection in self._connections
+                ]:
             raise ValueError(
                 f'Connection between {connection.hubs[0].name!r} and '
                 f'{connection.hubs[1].name!r} already exists'
@@ -82,10 +105,11 @@ class Connections(BaseModel):
         self._connections.append(connection)
         return self._connections
 
-    def get(self) -> list[Connection]:
+    @property
+    def all(self) -> list[Connection]:
         return self._connections
 
-    def get_connection(self, hub: Hub) -> list[Connection]:
+    def get_from_hub(self, hub: Hub) -> list[Connection]:
         return [
             connection
             for connection in self._connections

@@ -1,10 +1,15 @@
 from pydantic import BaseModel, Field
-from typing import Literal, cast
+from typing import cast
 from enum import Enum
 import re
 
 
-HubType = Literal['hub', 'start_hub', 'end_hub']
+class HubType(Enum):
+    HUB = 'hub'
+    START_HUB = 'start_hub'
+    END_HUB = 'end_hub'
+
+# HubType = Literal['hub', 'start_hub', 'end_hub']
 
 
 HUB_PATTERN = re.compile(
@@ -23,6 +28,18 @@ class HubMetadata(BaseModel):
     zone: ZoneType = Field(default=ZoneType.NORMAL)
     color: str | None = Field(default=None, pattern=r'^[A-Za-z]+$')
     max_drones: int = Field(default=1, ge=0)
+
+    def cost_multiplier(self) -> float:
+        if self.zone == ZoneType.NORMAL:
+            return 1.0
+        elif self.zone == ZoneType.BLOCKED:
+            return float('inf')
+        elif self.zone == ZoneType.RESTRICTED:
+            return 2.0
+        elif self.zone == ZoneType.PRIORITY:
+            return 0.5
+        else:
+            return 1.0
 
     @classmethod
     def from_attrs(cls, attrs: dict[str, str]) -> 'HubMetadata':
@@ -79,3 +96,11 @@ class Hub(BaseModel):
             y=int(y),
             metadata=metadata,
         )
+
+    @property
+    def is_start(self) -> bool:
+        return self.type == HubType.START_HUB
+
+    @property
+    def is_end(self) -> bool:
+        return self.type == HubType.END_HUB

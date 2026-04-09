@@ -1,10 +1,11 @@
-from pydantic import ValidationError
-from .ArgsParser import ArgsParser
-from argparse import Namespace
-from .LevelLoader import LevelLoader
-from .Level import Level
-from .utils import Logger, Color
 from .renderer.CoreRenderer import CoreRenderer
+from pydantic import ValidationError
+from .LevelLoader import LevelLoader
+from .ArgsParser import ArgsParser
+from .utils import Logger, Color
+from argparse import Namespace
+from .Solver import Solver
+from .Level import Level
 import sys
 
 
@@ -30,6 +31,10 @@ def run() -> None:
             verbose=args.verbose
         )
 
+        _: Solver = Solver(
+            level=level
+        )
+
         renderer: CoreRenderer = CoreRenderer(
             level=level,
             verbose=args.verbose
@@ -44,8 +49,8 @@ def run() -> None:
                 logger.error(f"Error: {error['msg']}")
     except ValueError as e:
         logger.error(f'Error: {e.__cause__ or e}')
-    except Exception as e:
-        logger.error(f'Unexpected error: {e}')
+    # except Exception as e:
+    #     logger.error(f'Unexpected error: {e}')
 
 
 if __name__ == '__main__':

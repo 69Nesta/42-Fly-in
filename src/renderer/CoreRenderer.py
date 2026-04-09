@@ -1,6 +1,5 @@
 from ..utils import Logger, Color
 from ..Level import Level
-# from .Galaxy import Galaxy
 from .HubRenderer import HubRenderer
 from .ConnectionRenderer import ConnectionRenderer
 from pyray import Vector3
@@ -36,19 +35,19 @@ class CoreRenderer:
         pr.disable_cursor()
 
         self.camera = pr.Camera3D(
-            Vector3(10, 4, 10),
-            Vector3(0, 0, 0),
-            Vector3(0, 1, 0),
+            Vector3(10.0, 4.0, 10.0),
+            Vector3(0.0, 0.0, 0.0),
+            Vector3(0.0, 1.0, 0.0),
             60.0,
             pr.CameraProjection.CAMERA_PERSPECTIVE,
         )
+
         pr.gui_set_style(
             pr.GuiControl.DEFAULT, pr.GuiDefaultProperty.TEXT_SIZE, 30
         )
 
         self.hub_renderer = HubRenderer(self.level)
         self.connection_renderer = ConnectionRenderer(self.level)
-        # self.galaxy = Galaxy()
 
     def run(self) -> None:
         while not pr.window_should_close():
@@ -65,7 +64,6 @@ class CoreRenderer:
             # 3D scene
             pr.begin_mode_3d(self.camera)
 
-            # pr.draw_grid(20, 1.0)
             self.connection_renderer.draw()
             self.hub_renderer.draw()
 
@@ -80,7 +78,6 @@ class CoreRenderer:
             pr.end_drawing()
 
         self.logger.log('Closing renderer...')
-        # self.galaxy.unload()
         self.hub_renderer.unload()
         self.connection_renderer.unload()
         pr.close_window()

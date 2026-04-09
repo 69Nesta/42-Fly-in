@@ -30,11 +30,15 @@ class HubRenderer:
 
     def draw(self) -> None:
         for hub in self.level.hubs.values():
+            color: pr.Color = (
+                pr.RED if hub.is_start else pr.BLUE
+                if hub.is_end else pr.WHITE
+            )
             pr.draw_model(
                 self.hub_model,
                 Vector3(hub.x, 0.0, hub.y),
                 0.4,
-                pr.WHITE
+                color
             )
 
     def unload(self) -> None:
