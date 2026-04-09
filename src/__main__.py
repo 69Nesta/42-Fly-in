@@ -1,9 +1,10 @@
 from pydantic import ValidationError
 from .ArgsParser import ArgsParser
 from argparse import Namespace
-from .MapLoader import MapLoader
+from .LevelLoader import LevelLoader
+from .Level import Level
 from .utils import Logger, Color
-from .renderer.Renderer import Renderer
+from .renderer.CoreRenderer import CoreRenderer
 import sys
 
 
@@ -20,22 +21,19 @@ def run() -> None:
         logger.print_log = args.verbose
         logger.log('Starting the program...')
 
-        level: MapLoader = MapLoader(
+        loader: LevelLoader = LevelLoader(
             filepath=args.input,
             verbose=args.verbose
         )
+        level: Level = Level(
+            loader=loader,
+            verbose=args.verbose
+        )
 
-        print('\nHubs: ')
-        for hub in level.hubs.values():
-            print(hub.model_dump())
-
-        print('\nConnections: ')
-        for connection in level.connections.get():
-            print(connection.model_dump())
-
-        print(f'\nNb drones: {level.nb_drones}')
-        renderer: Renderer = Renderer(verbose=args.verbose)
-        print('Entering main loop...')
+        renderer: CoreRenderer = CoreRenderer(
+            level=level,
+            verbose=args.verbose
+        )
         renderer.run()
 
     except ValidationError as e:

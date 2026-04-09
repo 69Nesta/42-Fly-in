@@ -1,48 +1,62 @@
 from ..utils import Logger, Color
-from .Galaxy import Galaxy
+from ..Level import Level
+# from .Galaxy import Galaxy
+from .HubRenderer import HubRenderer
+from .ConnectionRenderer import ConnectionRenderer
+from pyray import Vector3
 import pyray as pr
 
 
-class Renderer:
+class CoreRenderer:
     SCREEN_W: int = 1280
     SCREEN_H: int = 720
 
+    logger: Logger
+    level: Level
+
     title: str
     camera: pr.Camera3D
-    galaxy: Galaxy
-    logger: Logger
 
-    def __init__(self, verbose: bool = False) -> None:
+    hub_renderer: HubRenderer
+    connection_renderer: ConnectionRenderer
+
+    def __init__(self, level: Level, verbose: bool = False) -> None:
         self.title = "Fly In"
         self.logger = Logger(
             print_log=verbose,
             name='Renderer',
             color=Color.CYAN
         )
+        self.logger.log('Initializing renderer...')
+
+        self.level = level
+        pr.set_trace_log_level(7)
         pr.init_window(self.SCREEN_W, self.SCREEN_H, self.title)
         pr.set_target_fps(60)
         pr.disable_cursor()
 
         self.camera = pr.Camera3D(
-            pr.Vector3(0, 4, 10),
-            pr.Vector3(0, 0, 0),
-            pr.Vector3(0, 1, 0),
-            45.0,
+            Vector3(10, 4, 10),
+            Vector3(0, 0, 0),
+            Vector3(0, 1, 0),
+            60.0,
             pr.CameraProjection.CAMERA_PERSPECTIVE,
         )
         pr.gui_set_style(
             pr.GuiControl.DEFAULT, pr.GuiDefaultProperty.TEXT_SIZE, 30
         )
 
-        self.galaxy = Galaxy()
+        self.hub_renderer = HubRenderer(self.level)
+        self.connection_renderer = ConnectionRenderer(self.level)
+        # self.galaxy = Galaxy()
 
     def run(self) -> None:
         while not pr.window_should_close():
             pr.update_camera(self.camera, pr.CameraMode.CAMERA_FREE)
-            time = pr.get_time()
 
             # Update
-            self.galaxy.update(time)
+            self.hub_renderer.update()
+            self.connection_renderer.update()
 
             # Clear and start drawing
             pr.begin_drawing()
@@ -51,32 +65,21 @@ class Renderer:
             # 3D scene
             pr.begin_mode_3d(self.camera)
 
-            # Draw skybox in skybox
-            self.galaxy.draw_3d()
-
-            pr.draw_grid(20, 1.0)
-            pr.draw_cube(
-                pr.Vector3(0, 0.5, 0),
-                1.0, 1.0, 1.0,
-                pr.Color(80, 180, 255, 255)
-            )
-            pr.draw_cube_wires(
-                pr.Vector3(0, 0.5, 0),
-                1.0, 1.0, 1.0, pr.WHITE
-            )
-            pr.draw_sphere(
-                pr.Vector3(3, 1, -2), 0.8, pr.Color(255, 120, 40, 255)
-            )
+            # pr.draw_grid(20, 1.0)
+            self.connection_renderer.draw()
+            self.hub_renderer.draw()
 
             pr.end_mode_3d()
 
             # 2D overlay
             pr.draw_fps(10, 10)
             pr.draw_text(
-                'WASD + souris = camera libre', 10, 40, 18, pr.RAYWHITE
+                'WASD + souris = camera libre', 10, 40, 14, pr.RAYWHITE
             )
 
             pr.end_drawing()
 
-        self.galaxy.unload()
+        self.logger.log('Closing renderer...')
+        # self.galaxy.unload()
+        self.hub_renderer.unload()
         pr.close_window()

@@ -25,7 +25,7 @@ class ParseResult:
         return len(self.errors) == 0
 
 
-class MapLoader(BaseModel):
+class LevelLoader(BaseModel):
     filepath: str = Field()
     verbose: bool = Field(default=False)
 
@@ -55,10 +55,11 @@ class MapLoader(BaseModel):
     def model_post_init(self, context) -> None:
         self._logger = Logger(
             print_log=self.verbose,
-            name='MapLoader',
-            color=Color.CYAN
+            name='LevelLoader',
+            color=Color.YELLOW
         )
         self._result = ParseResult()
+        self._logger.log(f'Loading level from {self.filepath!r}...')
 
         try:
             self._load()
@@ -78,6 +79,12 @@ class MapLoader(BaseModel):
                 f'Failed to load map from {self.filepath!r} with '
                 f'{len(self._result.errors)} error(s)'
             )
+
+        self._logger.log(
+            f'Level loaded successfully with {self.nb_drones} drones, '
+            f'{len(self.hubs)} hubs and {len(self.connections.get())} '
+            'connections.'
+        )
 
         return super().model_post_init(context)
 
