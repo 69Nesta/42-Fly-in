@@ -82,4 +82,5 @@ class CoreRenderer:
         self.logger.log('Closing renderer...')
         # self.galaxy.unload()
         self.hub_renderer.unload()
+        self.connection_renderer.unload()
         pr.close_window()

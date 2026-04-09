@@ -13,7 +13,7 @@ class ConnectionRenderer:
         self.logger = Logger(
             print_log=level.logger.print_log,
             name='ConnectionRenderer',
-            color=Color.GRAY
+            color=Color.BLUE
         )
         self.logger.log('Initializing hub renderer...')
 
