@@ -13,7 +13,7 @@ class ConnectionRenderer:
         self.logger = Logger(
             print_log=level.logger.print_log,
             name='ConnectionRenderer',
-            color=Color.GREEN
+            color=Color.GRAY
         )
         self.logger.log('Initializing hub renderer...')
 
@@ -29,6 +29,6 @@ class ConnectionRenderer:
             )
 
     def unload(self) -> None:
-        pass
-        # self.logger.log('Unloading hub renderer...')
+        self.logger.log('Unloading connection renderer...')
         # pr.unload_model(self.hub_model)
+        pass
