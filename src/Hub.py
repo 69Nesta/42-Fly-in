@@ -43,16 +43,13 @@ class HubMetadata(BaseModel):
         if self.zone == ZoneType.NORMAL:
             return 1
         elif self.zone == ZoneType.BLOCKED:
-            return -1
+            return 1
         elif self.zone == ZoneType.RESTRICTED:
             return 2
         elif self.zone == ZoneType.PRIORITY:
             return 1
         else:
             raise ValueError(f'Unknown zone type: {self.zone!r}')
-
-    def is_blocked(self) -> bool:
-        return self.zone == ZoneType.BLOCKED
 
     @classmethod
     def from_attrs(cls, attrs: dict[str, str]) -> 'HubMetadata':
@@ -112,19 +109,26 @@ class Hub(BaseModel):
             metadata=metadata,
         )
 
-    @property
+    def is_blocked(self) -> bool:
+        return self.metadata.zone == ZoneType.BLOCKED
+    
+    def is_priority(self) -> bool:
+        return self.metadata.zone == ZoneType.PRIORITY
+    
+    def is_restricted(self) -> bool:
+        return self.metadata.zone == ZoneType.RESTRICTED
+
     def is_start(self) -> bool:
         return self.type == HubType.START_HUB
 
-    @property
     def is_end(self) -> bool:
         return self.type == HubType.END_HUB
 
-    def __lt__(self, other):
+    def __lt__(self, other: 'Hub') -> bool:
         return self.name < other.name
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, Hub) and self.name == other.name
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.name)

@@ -13,7 +13,7 @@ class DroneModel:
     def draw(self, x: int, y: int) -> None:
         pr.draw_model(
             self.model,
-            Vector3(x, 0.0, y),
+            Vector3(x, 1.0, y),
             0.4,
             pr.YELLOW
         )

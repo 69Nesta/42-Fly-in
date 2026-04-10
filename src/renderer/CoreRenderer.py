@@ -2,6 +2,7 @@ from ..utils import Logger, Color
 from ..Level import Level
 from .HubRenderer import HubRenderer
 from .ConnectionRenderer import ConnectionRenderer
+from .DronesRenderer import DronesRenderer
 from pyray import Vector3
 import pyray as pr
 
@@ -18,6 +19,7 @@ class CoreRenderer:
 
     hub_renderer: HubRenderer
     connection_renderer: ConnectionRenderer
+    drones_renderer: DronesRenderer
 
     def __init__(self, level: Level, verbose: bool = False) -> None:
         self.title = "Fly In"
@@ -48,7 +50,7 @@ class CoreRenderer:
 
         self.hub_renderer = HubRenderer(self.level)
         self.connection_renderer = ConnectionRenderer(self.level)
-
+        self.drones_renderer = DronesRenderer(self.level)
     def run(self) -> None:
         while not pr.window_should_close():
             pr.update_camera(self.camera, pr.CameraMode.CAMERA_FREE)
@@ -56,6 +58,7 @@ class CoreRenderer:
             # Update
             self.hub_renderer.update()
             self.connection_renderer.update()
+            self.drones_renderer.update()
 
             # Clear and start drawing
             pr.begin_drawing()
@@ -66,7 +69,7 @@ class CoreRenderer:
 
             self.connection_renderer.draw()
             self.hub_renderer.draw()
-
+            self.drones_renderer.draw()
             pr.end_mode_3d()
 
             # 2D overlay
@@ -80,4 +83,5 @@ class CoreRenderer:
         self.logger.log('Closing renderer...')
         self.hub_renderer.unload()
         self.connection_renderer.unload()
+        self.drones_renderer.unload()
         pr.close_window()

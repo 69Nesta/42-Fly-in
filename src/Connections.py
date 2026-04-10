@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, PrivateAttr
 from .Hub import Hub, ZoneType
-from typing import Match
+from typing import Any, Match
 import re
 
 
@@ -13,18 +13,11 @@ class Connection(BaseModel):
     hubs: list[Hub] = Field()
     capacity: int = Field(default=1, ge=0)
     blocked: bool = Field(default=False)
-
-    _current_load: int = PrivateAttr(0)
-
-    @property
-    def current_load(self) -> int:
-        return self._current_load
-
-    def get_current_load(self) -> int:
-        return self._current_load
-
-    def is_full(self) -> bool:
-        return self._current_load >= self.capacity
+    
+    _hash: int = PrivateAttr()
+    def model_post_init(self, context: Any) -> None:
+        self._hash = hash(self.hubs[0].name) ^ hash(self.hubs[1].name)
+        return super().model_post_init(context)
 
     def get_travel_time(self, from_hub: Hub) -> int:
         return self.get_other(from_hub).metadata.get_travel_time()
@@ -32,15 +25,8 @@ class Connection(BaseModel):
     def get_weight(self, from_hub: Hub) -> float:
         return self.get_other(from_hub).metadata.get_weight()
 
-    # def cost(self, from_id: str) -> float:
-        # from_hub: Hub = self.get_from_str(from_id)
-
-        # if self.blocked:
-        #     return float('inf')
-        # elif self.current_load >= self.capacity:
-        #     return float('inf')
-        # else:
-        # return self.get_other(from_hub).metadata.get_travel_time()
+    def get_capacity(self) -> int:
+        return self.capacity
 
     def get_other(self, hub: Hub) -> Hub:
         if self.hubs[0] != hub:
@@ -100,6 +86,9 @@ class Connection(BaseModel):
             capacity=int(attrs.get('max_link_capacity', 1)),
             blocked=(hub_a or hub_b).metadata.zone == ZoneType.BLOCKED
         )
+        
+    def __hash__(self):
+        return self._hash
 
 
 class Connections(BaseModel):
@@ -120,6 +109,14 @@ class Connections(BaseModel):
     @property
     def all(self) -> list[Connection]:
         return self._connections
+    
+    def get_between(self, hub_a: Hub, hub_b: Hub) -> Connection:
+        for connection in self._connections:
+            if hub_a in connection.hubs and hub_b in connection.hubs:
+                return connection
+        raise ValueError(
+            f'No connection found between {hub_a.name!r} and {hub_b.name!r}'
+        )
 
     def get_from_hub(self, hub: Hub) -> list[Connection]:
         return [

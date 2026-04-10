@@ -28,9 +28,9 @@ class Level:
         self.nb_drones = loader.nb_drones
 
         for hub in self.hubs.values():
-            if hub.is_start:
+            if hub.is_start():
                 self.start_hub = hub
-            elif hub.is_end:
+            elif hub.is_end():
                 self.end_hub = hub
             if hasattr(self, 'start_hub') and hasattr(self, 'end_hub'):
                 break
@@ -52,8 +52,8 @@ class Level:
         for i in range(self.nb_drones):
             self.drones.append(Drone(
                 id=i,
-                x=0,
-                y=0
+                x=-1,
+                y=-1
             ))
         self.logger.log('Drones initialized successfully.')
 
