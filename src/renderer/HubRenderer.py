@@ -5,7 +5,6 @@ import pyray as pr
 
 
 class HubRenderer:
-    OFFSET: float = 1.5
     level: Level
     logger: Logger
 

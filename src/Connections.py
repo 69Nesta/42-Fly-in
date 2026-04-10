@@ -20,15 +20,27 @@ class Connection(BaseModel):
     def current_load(self) -> int:
         return self._current_load
 
-    def cost(self, from_id: str) -> float:
-        from_hub: Hub = self.get_from_str(from_id)
+    def get_current_load(self) -> int:
+        return self._current_load
 
-        if self.blocked:
-            return float('inf')
-        elif self.current_load >= self.capacity:
-            return float('inf')
-        else:
-            return self.get_other(from_hub).metadata.cost_multiplier()
+    def is_full(self) -> bool:
+        return self._current_load >= self.capacity
+
+    def get_travel_time(self, from_hub: Hub) -> int:
+        return self.get_other(from_hub).metadata.get_travel_time()
+
+    def get_weight(self, from_hub: Hub) -> float:
+        return self.get_other(from_hub).metadata.get_weight()
+
+    # def cost(self, from_id: str) -> float:
+        # from_hub: Hub = self.get_from_str(from_id)
+
+        # if self.blocked:
+        #     return float('inf')
+        # elif self.current_load >= self.capacity:
+        #     return float('inf')
+        # else:
+        # return self.get_other(from_hub).metadata.get_travel_time()
 
     def get_other(self, hub: Hub) -> Hub:
         if self.hubs[0] != hub:

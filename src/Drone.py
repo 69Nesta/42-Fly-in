@@ -9,26 +9,26 @@ class Drone:
     x: int = field()
     y: int = field()
 
-    history: list[Vector2] = field(default_factory=list)
+    path: list[tuple[Hub, int]] = field(default_factory=list)
 
-    def __post_init__(self):
-        self.history.append(Vector2(self.x, self.y))
+    # def __post_init__(self):
+    #     self.history.append(Vector2(self.x, self.y))
 
-    def move_by(self, dx: int, dy: int) -> None:
-        self.x += dx
-        self.y += dy
-        self.history.append(Vector2(self.x, self.y))
+    # def move_by(self, dx: int, dy: int) -> None:
+    #     self.x += dx
+    #     self.y += dy
+    #     self.history.append(Vector2(self.x, self.y))
 
-    def move_to(self, x: int, y: int) -> None:
-        self.x = x
-        self.y = y
-        self.history.append(Vector2(self.x, self.y))
+    # def move_to(self, x: int, y: int) -> None:
+    #     self.x = x
+    #     self.y = y
+    #     self.history.append(Vector2(self.x, self.y))
 
-    def move_to_hub(self, hub: Hub) -> None:
-        self.move_to(hub.x, hub.y)
+    # def move_to_hub(self, hub: Hub) -> None:
+    #     self.move_to(hub.x, hub.y)
 
     def get_position(self) -> Vector2:
         return Vector2(self.x, self.y)
 
-    def get_history(self) -> list[Vector2]:
-        return self.history
+    # def get_history(self) -> list[Vector2]:
+    #     return self.history

@@ -31,9 +31,10 @@ def run() -> None:
             verbose=args.verbose
         )
 
-        _: Solver = Solver(
+        solver: Solver = Solver(
             level=level
         )
+        solver.plan_all_drones()
 
         renderer: CoreRenderer = CoreRenderer(
             level=level,
