@@ -1,7 +1,6 @@
 from .utils import Logger, Color
 from .LevelLoader import LevelLoader
 from .Connections import Connections
-from pyray import Vector2
 from .Drone import Drone
 from .Hub import Hub
 
@@ -15,6 +14,7 @@ class Level:
     end_hub: Hub
     connections: Connections
     drones: list[Drone]
+    number_of_steps: int = 0
 
     def __init__(self, loader: LevelLoader, verbose: bool = False):
         self.logger = Logger(
@@ -46,6 +46,12 @@ class Level:
             raise ValueError(f'Hub with id {hub_id} not found')
         return self.hubs[hub_id]
 
+    def update_number_of_steps(self) -> None:
+        self.number_of_steps = max(
+            self.number_of_steps,
+            max((len(drone.path) for drone in self.drones), default=0)
+        )
+
     def init_drones(self) -> None:
         self.logger.log(f'Initializing {self.nb_drones} drones...')
         self.drones = []
@@ -56,10 +62,3 @@ class Level:
                 y=-1
             ))
         self.logger.log('Drones initialized successfully.')
-
-    # @property
-    # def connections(self) -> list[Connection]:
-    #     return self._connections.get()
-
-    # def get_connection(self, hub: Hub) -> list[Connection]:
-    #     return self._connections.get_connection(hub)

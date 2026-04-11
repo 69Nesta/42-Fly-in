@@ -1,6 +1,6 @@
+from pyray import Mesh, Model, Vector3
 from ..utils import Logger, Color
 from ..Level import Level
-from pyray import Mesh, Model, Vector3
 import pyray as pr
 
 
@@ -29,10 +29,17 @@ class HubRenderer:
 
     def draw(self) -> None:
         for hub in self.level.hubs.values():
-            color: pr.Color = (
-                pr.RED if hub.is_start else pr.BLUE
-                if hub.is_end else pr.WHITE
-            )
+            color: pr.Color
+            if hub.is_start():
+                color = pr.BLUE
+            elif hub.is_end():
+                color = pr.GREEN
+            elif hub.is_restricted():
+                color = pr.RED
+            elif hub.is_priority():
+                color = pr.YELLOW
+            else:
+                color = pr.GRAY
             pr.draw_model(
                 self.hub_model,
                 Vector3(hub.x, 0.0, hub.y),

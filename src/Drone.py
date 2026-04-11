@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from .Connections import Connection
 from pyray import Vector2
 from .Hub import Hub
 
@@ -9,7 +10,7 @@ class Drone:
     x: int = field()
     y: int = field()
 
-    path: list[tuple[Hub, int]] = field(default_factory=list)
+    path: list[tuple[Hub | Connection, int]] = field(default_factory=list)
 
     # def __post_init__(self):
     #     self.history.append(Vector2(self.x, self.y))

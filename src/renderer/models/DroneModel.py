@@ -1,4 +1,4 @@
-from pyray import Mesh, Model, Vector3
+from pyray import Mesh, Model, Vector3, Vector2
 import pyray as pr
 
 
@@ -14,6 +14,14 @@ class DroneModel:
         pr.draw_model(
             self.model,
             Vector3(x, 1.0, y),
+            0.4,
+            pr.YELLOW
+        )
+
+    def draw_from_vector(self, position: Vector2) -> None:
+        pr.draw_model(
+            self.model,
+            Vector3(position.x, 1.0, position.y),
             0.4,
             pr.YELLOW
         )

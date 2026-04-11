@@ -10,6 +10,7 @@ import heapq
 t_dist = dict[tuple[Hub, int], float]
 t_prev = dict[tuple[Hub, int], tuple[Hub, int]]
 t_heap_queue = list[tuple[float, Hub, int]]
+t_path = list[tuple[Hub | Connection, int]]
 
 
 class Solver():
@@ -36,31 +37,34 @@ class Solver():
         self.reset_reservations()
 
     def _hub_is_available(self, hub: Hub, t: int) -> bool:
-        return self.reservations[hub].get(t) is None
+        restriced_cond = True
+        if hub.is_restricted():
+            restriced_cond = self.reservations[hub].get(t - 1) is None
+        return self.reservations[hub].get(t) is None and restriced_cond
 
     def _connection_is_available(self, conn: Connection, t: int) -> bool:
         for dt in range(t, t + conn.get_travel_time(conn.hubs[0])):
-            if self.reservations_connection[conn].get(dt, 0) >= conn.get_capacity():
+            if (self.reservations_connection[conn].get(dt, 0) >=
+                    conn.get_capacity()):
                 return False
         return True
-    
-    def _apply_reservation(self, drone: Drone, path: list[tuple[Hub, int]]) -> None:
+
+    def _apply_reservation(self, drone: Drone, path: t_path) -> None:
         for i in range(len(path) - 1):
             node, t = path[i]
-            next_node, next_t = path[i + 1]
+            next_node, _ = path[i + 1]
 
+            if not isinstance(node, Hub) or not isinstance(next_node, Hub):
+                continue
             self.reservations[node][t] = drone
             if node != next_node:
                 conn = self.level.connections.get_between(node, next_node)
-                for dt in range(t + 1, next_t + 1):
+                for dt in range(t + 1, t + conn.get_travel_time(next_node)):
                     self.reservations_connection[conn][dt] = (
                         self.reservations_connection[conn].get(dt, 0) + 1
                     )
-    
-    def dijkstra_with_reservations(
-                self,
-                departure_time: int = 0
-            ) -> list[tuple[Hub, int]]:
+
+    def dijkstra_with_reservations(self, departure_time: int = 0) -> t_path:
         self.logger.log('Starting to solve...')
         dist: t_dist = defaultdict(lambda: float('inf'))
         prev: t_prev = {}
@@ -75,42 +79,40 @@ class Solver():
             if node == self.level.end_hub:
                 self.logger.log('Finished solving.')
                 return self._reconstruct_path(prev)
-            
 
             if cost > dist[(node, t)]:
                 continue
 
-            next_t = t + 1
-
+            wait_t: int = t + 1
             for conn in self.level.connections.get_from_hub(node):
-                neighbor = conn.get_other(node)
-                next_t = t + conn.get_travel_time(node)
+                neighbor: Hub = conn.get_other(node)
+                travel_time: int = conn.get_travel_time(node)
+                arrival_time: int = t + travel_time
 
                 if neighbor.is_blocked():
                     continue
 
-                travel_time: int = conn.get_travel_time(node)
-                arrival_time: int = t + travel_time
                 hub_cost: float = float(travel_time)
-                
                 if not neighbor.is_priority():
                     hub_cost += 0.5
-                
-                if self._hub_is_available(neighbor, arrival_time) and self._connection_is_available(conn, t):
-                    new_cost = cost + hub_cost
-                    if new_cost < dist[(neighbor, next_t)]:
-                        dist[(neighbor, next_t)] = new_cost
-                        prev[(neighbor, next_t)] = (node, t)
-                        heapq.heappush(pq, (new_cost, neighbor, next_t))
 
-            if self._hub_is_available(node, next_t):
-                dist[(node, next_t)] = cost + 1
-                prev[(node, next_t)] = (node, t)
-                heapq.heappush(pq, (cost + 1, node, next_t))
+                if (self._hub_is_available(neighbor, arrival_time)
+                   and self._connection_is_available(conn, t)):
+                    new_cost = cost + hub_cost
+                    if new_cost < dist[(neighbor, arrival_time)]:
+                        dist[(neighbor, arrival_time)] = new_cost
+                        prev[(neighbor, arrival_time)] = (node, t)
+                        heapq.heappush(pq, (new_cost, neighbor, arrival_time))
+
+            new_wait_cost: float = cost + 1
+            if new_wait_cost < dist[(node, wait_t)]:
+                dist[(node, wait_t)] = new_wait_cost
+                prev[(node, wait_t)] = (node, t)
+                heapq.heappush(pq, (new_wait_cost, node, wait_t))
 
         raise ValueError('No path found from start to end hub. !')
 
-    def _reconstruct_path(self, prev: t_prev) -> list[tuple[Hub, int]]:
+    def _reconstruct_path(self, prev: t_prev) -> t_path:
         states: Generator[tuple[Hub, int], None, None] = (
             (node, t) for (node, t) in prev if node == self.level.end_hub
         )
@@ -122,11 +124,18 @@ class Solver():
         except ValueError:
             raise ValueError('No path found from start to end hub.')
 
-        path = []
+        path: t_path = []
         state: tuple[Hub, int] | None = end_state
         while state is not None:
             path.append(state)
-            state = prev.get(state)
+            new_state: tuple[Hub, int] | None = prev.get(state)
+            if new_state is not None and new_state[1] + 1 != state[1]:
+                path.append((
+                    self.level.connections.get_between(state[0], new_state[0]),
+                    state[1] - 1
+                ))
+            # state = prev.get(state)
+            state = new_state
 
         path.reverse()
         return path
@@ -139,22 +148,20 @@ class Solver():
         self.reset_reservations()
 
         for drone in self.level.drones:
-            path = self.dijkstra_with_reservations()
-            # path = self.reconstruct_path(prev)
-            for node, t in path:
-                self.logger.log(
-                    f'Drone {drone.id} reserved {node.name} at time {t}.'
-                )
-
-            for node, timestep in path:
-                self.reservations[node][timestep] = drone
-            for i in range(len(path) - 1):
-                node, t = path[i]
-                next_node, next_t = path[i + 1]
-                if node != next_node:
-                    conn = self.level.connections.get_between(node, next_node)
-                    for dt in range(t + 1, next_t + 1):
-                        self.reservations_connection[conn][dt] = (
-                            self.reservations_connection[conn].get(dt, 0) + 1
-                        )
+            path: t_path = self.dijkstra_with_reservations(departure_time=0)
             drone.path = path
+
+            self._apply_reservation(drone, path)
+            for node, t in path:
+                if isinstance(node, Hub):
+                    self.logger.log(
+                        f'Drone {drone.id} reserved {node.name} at time {t}'
+                    )
+                if isinstance(node, Connection):
+                    self.logger.log(
+                        f'Drone {drone.id} reserved connection between '
+                        f'{node.hubs[0].name} and {node.hubs[1].name} '
+                        f'at time {t}'
+                    )
+
+        self.level.update_number_of_steps()

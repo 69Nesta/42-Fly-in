@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, PrivateAttr
 from .Hub import Hub, ZoneType
 from typing import Any, Match
+from pyray import Vector2
 import re
 
 
@@ -13,8 +14,9 @@ class Connection(BaseModel):
     hubs: list[Hub] = Field()
     capacity: int = Field(default=1, ge=0)
     blocked: bool = Field(default=False)
-    
+
     _hash: int = PrivateAttr()
+
     def model_post_init(self, context: Any) -> None:
         self._hash = hash(self.hubs[0].name) ^ hash(self.hubs[1].name)
         return super().model_post_init(context)
@@ -44,6 +46,11 @@ class Connection(BaseModel):
                 f'Connection does not link hub with id {id!r}: '
                 f'{self.hubs[0].name!r} <-> {self.hubs[1].name!r}'
             )
+
+    def calculate_middle_point(self) -> Vector2:
+        x = (self.hubs[0].x + self.hubs[1].x) / 2
+        y = (self.hubs[0].y + self.hubs[1].y) / 2
+        return Vector2(x, y)
 
     @classmethod
     def from_str(cls, line: str, hubs: dict[str, Hub]) -> 'Connection':
