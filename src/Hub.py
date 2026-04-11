@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import cast
+from typing import cast, Any
 from enum import Enum
 import re
 
@@ -53,7 +53,7 @@ class HubMetadata(BaseModel):
 
     @classmethod
     def from_attrs(cls, attrs: dict[str, str]) -> 'HubMetadata':
-        data: dict = {}
+        data: dict[str, Any] = {}
 
         if 'zone' in attrs:
             data['zone'] = attrs['zone']
@@ -61,7 +61,7 @@ class HubMetadata(BaseModel):
             data['color'] = attrs['color']
         if 'max_drones' in attrs:
             try:
-                data['max_drones'] = int(attrs['max_drones'])
+                data['max_drones'] = str(int(attrs['max_drones']))
             except ValueError:
                 raise ValueError(
                     'max_drones must be an integer, got '
@@ -77,8 +77,6 @@ class Hub(BaseModel):
     x: int = Field()
     y: int = Field()
     metadata: HubMetadata = Field(default_factory=HubMetadata)
-    # has_drone: bool = Field(default=False)
-    # connections: list['Connection'] = Field(default_factory=list)
 
     @classmethod
     def from_str(cls, line: str) -> 'Hub':
@@ -111,10 +109,10 @@ class Hub(BaseModel):
 
     def is_blocked(self) -> bool:
         return self.metadata.zone == ZoneType.BLOCKED
-    
+
     def is_priority(self) -> bool:
         return self.metadata.zone == ZoneType.PRIORITY
-    
+
     def is_restricted(self) -> bool:
         return self.metadata.zone == ZoneType.RESTRICTED
 

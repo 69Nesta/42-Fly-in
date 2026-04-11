@@ -51,6 +51,7 @@ class CoreRenderer:
         self.hub_renderer = HubRenderer(self.level)
         self.connection_renderer = ConnectionRenderer(self.level)
         self.drones_renderer = DronesRenderer(self.level)
+
     def run(self) -> None:
         while not pr.window_should_close():
             pr.update_camera(self.camera, pr.CameraMode.CAMERA_FREE)

@@ -93,8 +93,8 @@ class Connection(BaseModel):
             capacity=int(attrs.get('max_link_capacity', 1)),
             blocked=(hub_a or hub_b).metadata.zone == ZoneType.BLOCKED
         )
-        
-    def __hash__(self):
+
+    def __hash__(self) -> int:
         return self._hash
 
 
@@ -116,7 +116,7 @@ class Connections(BaseModel):
     @property
     def all(self) -> list[Connection]:
         return self._connections
-    
+
     def get_between(self, hub_a: Hub, hub_b: Hub) -> Connection:
         for connection in self._connections:
             if hub_a in connection.hubs and hub_b in connection.hubs:
