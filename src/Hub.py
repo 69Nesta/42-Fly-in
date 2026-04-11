@@ -1,10 +1,13 @@
 from pydantic import BaseModel, Field
-from typing import Literal, cast
+from typing import cast, Any
 from enum import Enum
 import re
 
 
-HubType = Literal['hub', 'start_hub', 'end_hub']
+class HubType(Enum):
+    HUB = 'hub'
+    START_HUB = 'start_hub'
+    END_HUB = 'end_hub'
 
 
 HUB_PATTERN = re.compile(
@@ -24,9 +27,33 @@ class HubMetadata(BaseModel):
     color: str | None = Field(default=None, pattern=r'^[A-Za-z]+$')
     max_drones: int = Field(default=1, ge=0)
 
+    def get_weight(self) -> float:
+        if self.zone == ZoneType.NORMAL:
+            return 1.0
+        elif self.zone == ZoneType.BLOCKED:
+            return float('inf')
+        elif self.zone == ZoneType.RESTRICTED:
+            return 2.0
+        elif self.zone == ZoneType.PRIORITY:
+            return 0.5
+        else:
+            raise ValueError(f'Unknown zone type: {self.zone!r}')
+
+    def get_travel_time(self) -> int:
+        if self.zone == ZoneType.NORMAL:
+            return 1
+        elif self.zone == ZoneType.BLOCKED:
+            return 1
+        elif self.zone == ZoneType.RESTRICTED:
+            return 2
+        elif self.zone == ZoneType.PRIORITY:
+            return 1
+        else:
+            raise ValueError(f'Unknown zone type: {self.zone!r}')
+
     @classmethod
     def from_attrs(cls, attrs: dict[str, str]) -> 'HubMetadata':
-        data: dict = {}
+        data: dict[str, Any] = {}
 
         if 'zone' in attrs:
             data['zone'] = attrs['zone']
@@ -34,7 +61,7 @@ class HubMetadata(BaseModel):
             data['color'] = attrs['color']
         if 'max_drones' in attrs:
             try:
-                data['max_drones'] = int(attrs['max_drones'])
+                data['max_drones'] = str(int(attrs['max_drones']))
             except ValueError:
                 raise ValueError(
                     'max_drones must be an integer, got '
@@ -79,3 +106,27 @@ class Hub(BaseModel):
             y=int(y),
             metadata=metadata,
         )
+
+    def is_blocked(self) -> bool:
+        return self.metadata.zone == ZoneType.BLOCKED
+
+    def is_priority(self) -> bool:
+        return self.metadata.zone == ZoneType.PRIORITY
+
+    def is_restricted(self) -> bool:
+        return self.metadata.zone == ZoneType.RESTRICTED
+
+    def is_start(self) -> bool:
+        return self.type == HubType.START_HUB
+
+    def is_end(self) -> bool:
+        return self.type == HubType.END_HUB
+
+    def __lt__(self, other: 'Hub') -> bool:
+        return self.name < other.name
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, Hub) and self.name == other.name
+
+    def __hash__(self) -> int:
+        return hash(self.name)

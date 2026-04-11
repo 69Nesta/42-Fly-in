@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, PrivateAttr
 from .Hub import Hub, ZoneType
-from typing import Match
+from typing import Any, Match
+from pyray import Vector2
 import re
 
 
@@ -14,17 +15,42 @@ class Connection(BaseModel):
     capacity: int = Field(default=1, ge=0)
     blocked: bool = Field(default=False)
 
-    _current_load: int = PrivateAttr(0)
+    _hash: int = PrivateAttr()
 
-    @property
-    def current_load(self) -> int:
-        return self._current_load
+    def model_post_init(self, context: Any) -> None:
+        self._hash = hash(self.hubs[0].name) ^ hash(self.hubs[1].name)
+        return super().model_post_init(context)
+
+    def get_travel_time(self, from_hub: Hub) -> int:
+        return self.get_other(from_hub).metadata.get_travel_time()
+
+    def get_weight(self, from_hub: Hub) -> float:
+        return self.get_other(from_hub).metadata.get_weight()
+
+    def get_capacity(self) -> int:
+        return self.capacity
 
     def get_other(self, hub: Hub) -> Hub:
         if self.hubs[0] != hub:
             return self.hubs[0]
         else:
             return self.hubs[1]
+
+    def get_from_str(self, id: str) -> Hub:
+        if self.hubs[0].name == id:
+            return self.hubs[0]
+        elif self.hubs[1].name == id:
+            return self.hubs[1]
+        else:
+            raise ValueError(
+                f'Connection does not link hub with id {id!r}: '
+                f'{self.hubs[0].name!r} <-> {self.hubs[1].name!r}'
+            )
+
+    def calculate_middle_point(self) -> Vector2:
+        x = (self.hubs[0].x + self.hubs[1].x) / 2
+        y = (self.hubs[0].y + self.hubs[1].y) / 2
+        return Vector2(x, y)
 
     @classmethod
     def from_str(cls, line: str, hubs: dict[str, Hub]) -> 'Connection':
@@ -68,12 +94,17 @@ class Connection(BaseModel):
             blocked=(hub_a or hub_b).metadata.zone == ZoneType.BLOCKED
         )
 
+    def __hash__(self) -> int:
+        return self._hash
+
 
 class Connections(BaseModel):
     _connections: list[Connection] = PrivateAttr([])
 
     def add(self, connection: Connection) -> list[Connection]:
-        if connection in self._connections:
+        if connection.hubs in [
+                    _connection.hubs for _connection in self._connections
+                ]:
             raise ValueError(
                 f'Connection between {connection.hubs[0].name!r} and '
                 f'{connection.hubs[1].name!r} already exists'
@@ -82,10 +113,19 @@ class Connections(BaseModel):
         self._connections.append(connection)
         return self._connections
 
-    def get(self) -> list[Connection]:
+    @property
+    def all(self) -> list[Connection]:
         return self._connections
 
-    def get_connection(self, hub: Hub) -> list[Connection]:
+    def get_between(self, hub_a: Hub, hub_b: Hub) -> Connection:
+        for connection in self._connections:
+            if hub_a in connection.hubs and hub_b in connection.hubs:
+                return connection
+        raise ValueError(
+            f'No connection found between {hub_a.name!r} and {hub_b.name!r}'
+        )
+
+    def get_from_hub(self, hub: Hub) -> list[Connection]:
         return [
             connection
             for connection in self._connections

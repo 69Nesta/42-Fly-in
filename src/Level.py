@@ -1,20 +1,24 @@
 from .utils import Logger, Color
 from .LevelLoader import LevelLoader
 from .Connections import Connections
+from .Drone import Drone
 from .Hub import Hub
 
 
 class Level:
     logger: Logger
-    loader: LevelLoader
 
     nb_drones: int
     hubs: dict[str, Hub]
+    start_hub: Hub
+    end_hub: Hub
     connections: Connections
+    drones: list[Drone]
+    number_of_steps: int = 0
 
     def __init__(self, loader: LevelLoader, verbose: bool = False):
         self.logger = Logger(
-            print_log=loader.verbose,
+            print_log=verbose,
             name='Level',
             color=Color.YELLOW
         )
@@ -22,3 +26,39 @@ class Level:
         self.hubs = loader.hubs
         self.connections = loader.connections
         self.nb_drones = loader.nb_drones
+
+        for hub in self.hubs.values():
+            if hub.is_start():
+                self.start_hub = hub
+            elif hub.is_end():
+                self.end_hub = hub
+            if hasattr(self, 'start_hub') and hasattr(self, 'end_hub'):
+                break
+        if not hasattr(self, 'start_hub'):
+            raise ValueError('No start hub found in the level')
+        if not hasattr(self, 'end_hub'):
+            raise ValueError('No end hub found in the level')
+
+        self.init_drones()
+
+    def get_hub(self, hub_id: str) -> Hub:
+        if hub_id not in self.hubs:
+            raise ValueError(f'Hub with id {hub_id} not found')
+        return self.hubs[hub_id]
+
+    def update_number_of_steps(self) -> None:
+        self.number_of_steps = max(
+            self.number_of_steps,
+            max((len(drone.path) for drone in self.drones), default=0)
+        )
+
+    def init_drones(self) -> None:
+        self.logger.log(f'Initializing {self.nb_drones} drones...')
+        self.drones = []
+        for i in range(self.nb_drones):
+            self.drones.append(Drone(
+                id=i,
+                x=-1,
+                y=-1
+            ))
+        self.logger.log('Drones initialized successfully.')

@@ -1,8 +1,8 @@
 from ..utils import Logger, Color
 from ..Level import Level
-# from .Galaxy import Galaxy
 from .HubRenderer import HubRenderer
 from .ConnectionRenderer import ConnectionRenderer
+from .DronesRenderer import DronesRenderer
 from pyray import Vector3
 import pyray as pr
 
@@ -19,6 +19,7 @@ class CoreRenderer:
 
     hub_renderer: HubRenderer
     connection_renderer: ConnectionRenderer
+    drones_renderer: DronesRenderer
 
     def __init__(self, level: Level, verbose: bool = False) -> None:
         self.title = "Fly In"
@@ -36,19 +37,20 @@ class CoreRenderer:
         pr.disable_cursor()
 
         self.camera = pr.Camera3D(
-            Vector3(10, 4, 10),
-            Vector3(0, 0, 0),
-            Vector3(0, 1, 0),
+            Vector3(10.0, 4.0, 10.0),
+            Vector3(0.0, 0.0, 0.0),
+            Vector3(0.0, 1.0, 0.0),
             60.0,
             pr.CameraProjection.CAMERA_PERSPECTIVE,
         )
+
         pr.gui_set_style(
             pr.GuiControl.DEFAULT, pr.GuiDefaultProperty.TEXT_SIZE, 30
         )
 
         self.hub_renderer = HubRenderer(self.level)
         self.connection_renderer = ConnectionRenderer(self.level)
-        # self.galaxy = Galaxy()
+        self.drones_renderer = DronesRenderer(self.level)
 
     def run(self) -> None:
         while not pr.window_should_close():
@@ -57,6 +59,7 @@ class CoreRenderer:
             # Update
             self.hub_renderer.update()
             self.connection_renderer.update()
+            self.drones_renderer.update()
 
             # Clear and start drawing
             pr.begin_drawing()
@@ -65,10 +68,9 @@ class CoreRenderer:
             # 3D scene
             pr.begin_mode_3d(self.camera)
 
-            # pr.draw_grid(20, 1.0)
             self.connection_renderer.draw()
             self.hub_renderer.draw()
-
+            self.drones_renderer.draw()
             pr.end_mode_3d()
 
             # 2D overlay
@@ -80,7 +82,7 @@ class CoreRenderer:
             pr.end_drawing()
 
         self.logger.log('Closing renderer...')
-        # self.galaxy.unload()
         self.hub_renderer.unload()
         self.connection_renderer.unload()
+        self.drones_renderer.unload()
         pr.close_window()

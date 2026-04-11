@@ -7,10 +7,13 @@ from .errors import (
 from pydantic import BaseModel, Field, PrivateAttr, ValidationError
 from .Connections import Connections, Connection
 from dataclasses import dataclass, field
+from typing import ClassVar, Any
 from .utils import Color, Logger
-from typing import ClassVar
-from .Hub import Hub
+from .Hub import Hub, HubType
 import re
+
+
+t_re = re.Pattern[str]
 
 
 @dataclass
@@ -29,9 +32,9 @@ class LevelLoader(BaseModel):
     filepath: str = Field()
     verbose: bool = Field(default=False)
 
-    _RE_NB_DRONES: ClassVar[re.Pattern] = re.compile(r'^nb_drones:\s*(\d+)$')
-    _RE_HUB: ClassVar[re.Pattern] = re.compile(r'^(start_hub|end_hub|hub):')
-    _RE_CONNECTION: ClassVar[re.Pattern] = re.compile(r'^connection:\s*')
+    _RE_NB_DRONES: ClassVar[t_re] = re.compile(r'^nb_drones:\s*(\d+)$')
+    _RE_HUB: ClassVar[t_re] = re.compile(r'^(start_hub|end_hub|hub):')
+    _RE_CONNECTION: ClassVar[t_re] = re.compile(r'^connection:\s*')
 
     _logger: Logger = PrivateAttr()
     _result: ParseResult = PrivateAttr()
@@ -52,7 +55,7 @@ class LevelLoader(BaseModel):
     def errors(self) -> list[ParseError]:
         return self._result.errors
 
-    def model_post_init(self, context) -> None:
+    def model_post_init(self, context: Any) -> None:
         self._logger = Logger(
             print_log=self.verbose,
             name='LevelLoader',
@@ -82,7 +85,7 @@ class LevelLoader(BaseModel):
 
         self._logger.log(
             f'Level loaded successfully with {self.nb_drones} drones, '
-            f'{len(self.hubs)} hubs and {len(self.connections.get())} '
+            f'{len(self.hubs)} hubs and {len(self.connections.all)} '
             'connections.'
         )
 
@@ -90,10 +93,10 @@ class LevelLoader(BaseModel):
 
     def _check_map_validity(self) -> None:
         start_hubs = [
-            hub for hub in self.hubs.values() if hub.type == 'start_hub'
+            hub for hub in self.hubs.values() if hub.type == HubType.START_HUB
         ]
         end_hubs = [
-            hub for hub in self.hubs.values() if hub.type == 'end_hub'
+            hub for hub in self.hubs.values() if hub.type == HubType.END_HUB
         ]
         if not start_hubs:
             self._result.errors.append(ParseError(
