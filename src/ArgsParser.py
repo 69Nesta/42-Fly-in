@@ -40,6 +40,13 @@ class ArgsParser(BaseModel):
         )
 
         self._parser.add_argument(
+            '--output', '-o',
+            help='Path to the output file',
+            type=str,
+            default='output.txt'
+        )
+
+        self._parser.add_argument(
             '--verbose', '-v',
             help='Enable verbose logging',
             action='store_true'
