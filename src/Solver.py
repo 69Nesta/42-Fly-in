@@ -1,5 +1,5 @@
+from collections import defaultdict, deque
 from .Connections import Connection
-from collections import defaultdict
 from .utils import Logger, Color
 from typing import Generator
 from .Level import Level
@@ -29,11 +29,6 @@ class Solver():
         self.logger.log('Initializing solver...')
         self.level.connections.get_from_hub(self.level.start_hub)
 
-        for connection in self.level.connections.all:
-            self.logger.log(
-                f'Connection: {connection.hubs[0].name} <-> '
-                f'{connection.hubs[1].name}'
-            )
         self.reset_reservations()
 
     def _hub_is_available(self, hub: Hub, t: int) -> bool:
@@ -64,8 +59,26 @@ class Solver():
                         self.reservations_connection[conn].get(dt, 0) + 1
                     )
 
+    def _static_path_exists(self) -> bool:
+        seen: set[Hub] = {self.level.start_hub}
+        queue: deque[Hub] = deque([self.level.start_hub])
+
+        while queue:
+            hub = queue.popleft()
+            if hub == self.level.end_hub:
+                return True
+
+            for conn in self.level.connections.get_from_hub(hub):
+                other = conn.get_other(hub)
+                if other.is_blocked() or conn.blocked:
+                    continue
+                if other not in seen:
+                    seen.add(other)
+                    queue.append(other)
+
+        return False
+
     def dijkstra_with_reservations(self, departure_time: int = 0) -> t_path:
-        self.logger.log('Starting to solve...')
         dist: t_dist = defaultdict(lambda: float('inf'))
         prev: t_prev = {}
 
@@ -77,7 +90,6 @@ class Solver():
         while pq:
             cost, node, t = heapq.heappop(pq)
             if node == self.level.end_hub:
-                self.logger.log('Finished solving.')
                 return self._reconstruct_path(prev)
 
             if cost > dist[(node, t)]:
@@ -134,7 +146,6 @@ class Solver():
                     self.level.connections.get_between(state[0], new_state[0]),
                     state[1] - 1
                 ))
-            # state = prev.get(state)
             state = new_state
 
         path.reverse()
@@ -147,21 +158,15 @@ class Solver():
     def plan_all_drones(self) -> None:
         self.reset_reservations()
 
+        if not self._static_path_exists():
+            raise ValueError('No path found from start to end hub.')
+
+        self.logger.log('Planning paths for all drones...')
         for drone in self.level.drones:
             path: t_path = self.dijkstra_with_reservations(departure_time=0)
             drone.path = path
 
             self._apply_reservation(drone, path)
-            for node, t in path:
-                if isinstance(node, Hub):
-                    self.logger.log(
-                        f'Drone {drone.id} reserved {node.name} at time {t}'
-                    )
-                if isinstance(node, Connection):
-                    self.logger.log(
-                        f'Drone {drone.id} reserved connection between '
-                        f'{node.hubs[0].name} and {node.hubs[1].name} '
-                        f'at time {t}'
-                    )
 
+        self.logger.log('All drones planned successfully.')
         self.level.update_number_of_steps()
