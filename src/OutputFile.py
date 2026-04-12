@@ -5,6 +5,7 @@ from .errors import (
 )
 from collections import defaultdict
 from .Connections import Connection
+from .utils import Logger, Color
 from .Level import Level
 from .Hub import Hub
 import os
@@ -13,13 +14,21 @@ import os
 class OutputFile:
     filepath: str
     level: Level
-    lines: dict[int, list[str]] = defaultdict(list)
+    logger: Logger
+    lines: dict[int, list[str]]
 
     def __init__(self, filepath: str, level: Level) -> None:
         self.filepath = filepath
         self.level = level
+        self.logger = Logger(
+            print_log=level.logger.print_log,
+            name='OutputFile',
+            color=Color.BLUE
+        )
+        self.lines = defaultdict(list)
 
     def generate(self) -> None:
+        self.logger.log('Generating output file...')
         for step in range(self.level.number_of_steps):
             for drone in self.level.drones:
                 hub_or_conn = drone.get_step_at_time(step)
@@ -36,10 +45,13 @@ class OutputFile:
                     )
 
     def write(self) -> None:
-        try:
-            os.makedirs(os.path.dirname(self.filepath), exist_ok=True)
-        except FileNotFoundError:
-            pass
+        self.logger.log('Writing output file...')
+        directory = os.path.dirname(self.filepath)
+        if directory:
+            try:
+                os.makedirs(directory, exist_ok=True)
+            except PermissionError:
+                raise _PermissionError(self.filepath)
         try:
             with open(self.filepath, 'w') as f:
                 f.write(
@@ -47,6 +59,7 @@ class OutputFile:
                         ' '.join(line) for line in self.lines.values()
                     )
                 )
+                self.logger.log(f'Output file written to {self.filepath}')
         except FileNotFoundError:
             raise _FileNotFoundError(self.filepath)
         except PermissionError:
