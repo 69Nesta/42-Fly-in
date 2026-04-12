@@ -12,24 +12,18 @@ class Drone:
 
     path: list[tuple[Hub | Connection, int]] = field(default_factory=list)
 
-    # def __post_init__(self):
-    #     self.history.append(Vector2(self.x, self.y))
-
-    # def move_by(self, dx: int, dy: int) -> None:
-    #     self.x += dx
-    #     self.y += dy
-    #     self.history.append(Vector2(self.x, self.y))
-
-    # def move_to(self, x: int, y: int) -> None:
-    #     self.x = x
-    #     self.y = y
-    #     self.history.append(Vector2(self.x, self.y))
-
-    # def move_to_hub(self, hub: Hub) -> None:
-    #     self.move_to(hub.x, hub.y)
-
     def get_position(self) -> Vector2:
         return Vector2(self.x, self.y)
 
-    # def get_history(self) -> list[Vector2]:
-    #     return self.history
+    def get_step_at_time(self, t: int) -> Hub | Connection | None:
+        for idx, (step, step_t) in enumerate(self.path):
+            if step_t == t:
+                next_step: tuple[Hub | Connection, int] | None = (
+                    self.path[idx + 1] if idx + 1 < len(self.path) else None
+                )
+                if (next_step and isinstance(step, Hub)
+                   and isinstance(next_step[0], Hub)
+                   and next_step[0].is_start()):
+                    return None
+                return step
+        return None

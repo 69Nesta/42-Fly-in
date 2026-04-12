@@ -2,6 +2,7 @@ from .renderer.CoreRenderer import CoreRenderer
 from pydantic import ValidationError
 from .LevelLoader import LevelLoader
 from .ArgsParser import ArgsParser
+from .OutputFile import OutputFile
 from .utils import Logger, Color
 from argparse import Namespace
 from .Solver import Solver
@@ -26,6 +27,7 @@ def run() -> None:
             filepath=args.input,
             verbose=args.verbose
         )
+
         level: Level = Level(
             loader=loader,
             verbose=args.verbose
@@ -35,6 +37,13 @@ def run() -> None:
             level=level
         )
         solver.plan_all_drones()
+
+        output: OutputFile = OutputFile(
+            filepath=args.output,
+            level=level
+        )
+        output.generate()
+        output.write()
 
         renderer: CoreRenderer = CoreRenderer(
             level=level,
