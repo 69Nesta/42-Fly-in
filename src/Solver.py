@@ -27,7 +27,6 @@ class Solver():
             color=Color.GREEN
         )
         self.logger.log('Initializing solver...')
-        self.level.connections.get_from_hub(self.level.start_hub)
 
         self.reset_reservations()
 
@@ -65,12 +64,12 @@ class Solver():
 
         while queue:
             hub = queue.popleft()
-            if hub == self.level.end_hub:
+            if hub.is_end():
                 return True
 
             for conn in self.level.connections.get_from_hub(hub):
                 other = conn.get_other(hub)
-                if other.is_blocked() or conn.blocked:
+                if other.is_blocked():
                     continue
                 if other not in seen:
                     seen.add(other)

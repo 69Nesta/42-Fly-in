@@ -14,7 +14,7 @@ class Level:
     end_hub: Hub
     connections: Connections
     drones: list[Drone]
-    number_of_steps: int = 0
+    number_of_steps: int
 
     def __init__(self, loader: LevelLoader, verbose: bool = False):
         self.logger = Logger(
@@ -26,6 +26,7 @@ class Level:
         self.hubs = loader.hubs
         self.connections = loader.connections
         self.nb_drones = loader.nb_drones
+        self.number_of_steps = 0
 
         for hub in self.hubs.values():
             if hub.is_start():
