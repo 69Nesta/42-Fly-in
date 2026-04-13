@@ -27,3 +27,19 @@ class Drone:
                     return None
                 return step
         return None
+    
+    def get_position_at_step(self, step: int) -> Vector2:
+        for idx, (step_obj, step_t) in enumerate(self.path):
+            if step_t == step:
+                if isinstance(step_obj, Hub):
+                    return Vector2(step_obj.x, step_obj.y)
+                elif isinstance(step_obj, Connection):
+                    return step_obj.calculate_middle_point()
+        return self.get_position()
+
+    def get_first_position(self) -> Vector2:
+        if len(self.path) > 0:
+            step, _ = self.path[0]
+            if isinstance(step, Hub):
+                return Vector2(step.x, step.y)
+        return self.get_position()

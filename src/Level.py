@@ -59,13 +59,16 @@ class Level:
             max((len(drone.path) for drone in self.drones), default=0)
         )
 
-    def update_step(self, move: int) -> None:
+    def update_step(self, move: int) -> bool:
+        if self.current_step + move < 0 or self.current_step + move > self.number_of_steps:
+            return False
         self.current_step = min(
             max(0, self.current_step + move), self.number_of_steps
         )
         self.logger.log(
             f'Current step: {self.current_step}/{self.number_of_steps}'
         )
+        return True
 
     def get_current_step(self) -> int:
         return self.current_step

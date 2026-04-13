@@ -32,7 +32,7 @@ class EnvironementRenderer:
         self.bezier = Bezier(
             Vector2(-10, 0),
             Vector2(-5, 5),
-            math.pi / 2,
+            math.pi / 4,
             math.pi / 2,
             0.3
         )
