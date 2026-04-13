@@ -1,6 +1,5 @@
 from .renderer.CoreRenderer import CoreRenderer
 from pydantic import ValidationError
-from .LevelLoader import LevelLoader
 from .MapSelector import MapSelector
 from .ArgsParser import ArgsParser
 from .OutputFile import OutputFile
@@ -26,17 +25,12 @@ def run() -> None:
 
         map_path: str
         if not args.input:
-            map_path = MapSelector('maps').ask()
+            map_path = MapSelector(args.maps_dir).ask()
         else:
             map_path = args.input
 
-        loader: LevelLoader = LevelLoader(
-            filepath=map_path,
-            verbose=args.verbose
-        )
-
         level: Level = Level(
-            loader=loader,
+            map_path=map_path,
             verbose=args.verbose
         )
 
