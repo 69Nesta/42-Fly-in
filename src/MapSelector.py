@@ -34,15 +34,25 @@ class MapSelector:
 
     def ask(self) -> str:
         folders: list[str] = list(self.maps.keys())
-        selected: str = questionary.select(
+        if not folders:
+            raise ValueError('No map folders available.')
+
+        selected = questionary.select(
             "Pick a folder:",
             choices=folders
         ).ask()
+        if selected is None:
+            raise ValueError('Folder selection was cancelled or unavailable.')
 
         files: list[str] = self.maps[selected]
-        file: str = questionary.select(
+        if not files:
+            raise ValueError(f'No map files available in folder {selected!r}.')
+
+        file = questionary.select(
             "Pick a map:",
             choices=files
         ).ask()
+        if file is None:
+            raise ValueError('Map selection was cancelled or unavailable.')
 
         return os.path.join(self.maps_dir, selected, file)

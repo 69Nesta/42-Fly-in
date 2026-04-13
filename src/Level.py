@@ -1,6 +1,6 @@
-from .utils import Logger, Color
 from .LevelLoader import LevelLoader
 from .Connections import Connections
+from .utils import Logger, Color
 from .Drone import Drone
 from .Hub import Hub
 
@@ -16,11 +16,15 @@ class Level:
     drones: list[Drone]
     number_of_steps: int
 
-    def __init__(self, loader: LevelLoader, verbose: bool = False):
+    def __init__(self, map_path: str, verbose: bool = False):
         self.logger = Logger(
             print_log=verbose,
             name='Level',
             color=Color.YELLOW
+        )
+        loader: LevelLoader = LevelLoader(
+            filepath=map_path,
+            verbose=verbose
         )
 
         self.hubs = loader.hubs
