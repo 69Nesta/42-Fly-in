@@ -1,6 +1,7 @@
 from .renderer.CoreRenderer import CoreRenderer
 from pydantic import ValidationError
 from .LevelLoader import LevelLoader
+from .MapSelector import MapSelector
 from .ArgsParser import ArgsParser
 from .OutputFile import OutputFile
 from .utils import Logger, Color
@@ -23,8 +24,14 @@ def run() -> None:
         logger.print_log = args.verbose
         logger.log('Starting the program...')
 
+        map_path: str
+        if not args.input:
+            map_path = MapSelector('maps').ask()
+        else:
+            map_path = args.input
+
         loader: LevelLoader = LevelLoader(
-            filepath=args.input,
+            filepath=map_path,
             verbose=args.verbose
         )
 

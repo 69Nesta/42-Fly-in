@@ -36,7 +36,14 @@ class ArgsParser(BaseModel):
             '--input', '-i',
             help='Path to the input file',
             type=str,
-            default='maps/easy/01_linear_path.txt'
+            default=None
+        )
+
+        self._parser.add_argument(
+            '--maps_dir', '-m',
+            help='Path to the maps directory',
+            type=str,
+            default='maps'
         )
 
         self._parser.add_argument(
