@@ -23,7 +23,7 @@ class MapSelector:
                     if folder not in self.maps:
                         self.maps[folder] = []
                     self.maps[folder].append(file)
-                    
+
     def _safe_load_maps(self) -> None:
         try:
             self._load_maps()
@@ -34,13 +34,15 @@ class MapSelector:
 
     def ask(self) -> str:
         folders: list[str] = list(self.maps.keys())
-        selected: str = questionary.select("Pick a folder:", choices=folders).ask()
+        selected: str = questionary.select(
+            "Pick a folder:",
+            choices=folders
+        ).ask()
 
         files: list[str] = self.maps[selected]
-        file: str = questionary.select("Pick a map:", choices=files).ask()
+        file: str = questionary.select(
+            "Pick a map:",
+            choices=files
+        ).ask()
 
         return os.path.join(self.maps_dir, selected, file)
-
-if __name__ == '__main__':
-    selector = MapSelector('maps')
-    print(selector.ask())
