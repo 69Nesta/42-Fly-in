@@ -42,7 +42,7 @@ class HubRenderer:
                 color = pr.GRAY
             pr.draw_model(
                 self.hub_model,
-                Vector3(hub.x, 0.0, hub.y),
+                Vector3(hub.x, 3.0, hub.y),
                 0.4,
                 color
             )

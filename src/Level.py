@@ -15,6 +15,7 @@ class Level:
     connections: Connections
     drones: list[Drone]
     number_of_steps: int
+    current_step: int
 
     def __init__(self, map_path: str, verbose: bool = False):
         self.logger = Logger(
@@ -31,6 +32,7 @@ class Level:
         self.connections = loader.connections
         self.nb_drones = loader.nb_drones
         self.number_of_steps = 0
+        self.current_step = 0
 
         for hub in self.hubs.values():
             if hub.is_start():
@@ -56,6 +58,17 @@ class Level:
             self.number_of_steps,
             max((len(drone.path) for drone in self.drones), default=0)
         )
+
+    def update_step(self, move: int) -> None:
+        self.current_step = min(
+            max(0, self.current_step + move), self.number_of_steps
+        )
+        self.logger.log(
+            f'Current step: {self.current_step}/{self.number_of_steps}'
+        )
+
+    def get_current_step(self) -> int:
+        return self.current_step
 
     def init_drones(self) -> None:
         self.logger.log(f'Initializing {self.nb_drones} drones...')

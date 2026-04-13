@@ -1,8 +1,10 @@
-from ..utils import Logger, Color
-from ..Level import Level
-from .HubRenderer import HubRenderer
+from .EnvironementRenderer import EnvironementRenderer
 from .ConnectionRenderer import ConnectionRenderer
 from .DronesRenderer import DronesRenderer
+from .HubRenderer import HubRenderer
+from .UIRenderer import UIRenderer
+from ..utils import Logger, Color
+from ..Level import Level
 from pyray import Vector3
 import pyray as pr
 
@@ -20,6 +22,7 @@ class CoreRenderer:
     hub_renderer: HubRenderer
     connection_renderer: ConnectionRenderer
     drones_renderer: DronesRenderer
+    ui_renderer: UIRenderer
 
     def __init__(self, level: Level, verbose: bool = False) -> None:
         self.title = "Fly In"
@@ -48,40 +51,43 @@ class CoreRenderer:
             pr.GuiControl.DEFAULT, pr.GuiDefaultProperty.TEXT_SIZE, 30
         )
 
+        self.environement_renderer = EnvironementRenderer(self.level)
         self.hub_renderer = HubRenderer(self.level)
         self.connection_renderer = ConnectionRenderer(self.level)
         self.drones_renderer = DronesRenderer(self.level)
+        self.ui_renderer = UIRenderer(self.level, self.SCREEN_W, self.SCREEN_H)
 
     def run(self) -> None:
         while not pr.window_should_close():
+            time: float = pr.get_time()
             pr.update_camera(self.camera, pr.CameraMode.CAMERA_FREE)
 
             # Update
+            self.environement_renderer.update(time)
             self.hub_renderer.update()
             self.connection_renderer.update()
             self.drones_renderer.update()
+            self.ui_renderer.update()
 
             # Clear and start drawing
             pr.begin_drawing()
-            pr.clear_background(pr.BLACK)
+            pr.clear_background(pr.RAYWHITE)
 
             # 3D scene
             pr.begin_mode_3d(self.camera)
-
+            self.environement_renderer.draw()
             self.connection_renderer.draw()
             self.hub_renderer.draw()
             self.drones_renderer.draw()
             pr.end_mode_3d()
 
             # 2D overlay
-            pr.draw_fps(10, 10)
-            pr.draw_text(
-                'WASD + souris = camera libre', 10, 40, 14, pr.RAYWHITE
-            )
+            self.ui_renderer.draw()
 
             pr.end_drawing()
 
         self.logger.log('Closing renderer...')
+        self.environement_renderer.unload()
         self.hub_renderer.unload()
         self.connection_renderer.unload()
         self.drones_renderer.unload()
