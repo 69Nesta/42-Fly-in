@@ -18,7 +18,7 @@ class DroneModel:
         self.model = pr.load_model('src/assets/models/boat.glb')
         self.frame_rate = frame_rate
         self.last_postion = start
-        
+
         self.init_animations()
 
     def init_animations(self) -> None:
@@ -43,6 +43,7 @@ class DroneModel:
             position,
             math.radians(current_rot),
             math.radians(rotation),
+            0.5
         )
 
         for i in range(number_of_frames):
@@ -55,7 +56,12 @@ class DroneModel:
                 rot
             ))
 
-    def back_to(self, position: Vector2, rotation: float, animation_time: int) -> None:
+    def back_to(
+                self,
+                position: Vector2,
+                rotation: float,
+                animation_time: int
+            ) -> None:
         self.move_to(position, rotation, animation_time)
 
     def set_position(self, position: Vector2, rotation: float = 0) -> None:

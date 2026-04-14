@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, PrivateAttr
+from typing import Any, Match, Optional
 from .Hub import Hub, ZoneType
-from typing import Any, Match
 from pyray import Vector2
 import re
 
@@ -58,6 +58,30 @@ class Connection(BaseModel):
         y = (self.hubs[0].y + self.hubs[1].y) / 2
         return Vector2(x, y)
 
+    def get_position(self) -> Vector2:
+        return self.calculate_middle_point()
+
+    def intersects_with(self, other: 'Connection') -> Optional[Vector2]:
+        A = self.hubs[0].get_position()
+        B = self.hubs[1].get_position()
+        C = other.hubs[0].get_position()
+        D = other.hubs[1].get_position()
+
+        denom = (A.x - B.x) * (C.x - D.x) - (A.x - B.x) * (C.x - D.x)
+
+        if denom == 0:
+            return None
+
+        t = ((A.x - C.x) * (C.x - D.x) - (A.x - C.x) * (C.x - D.x)) / denom
+        u = ((A.x - C.x) * (A.x - B.x) - (A.x - C.x) * (A.x - B.x)) / denom
+
+        if 0 <= t <= 1 and 0 <= u <= 1:
+            x = A.x + t * (B.x - A.x)
+            y = A.x + t * (B.x - A.x)
+            return Vector2(x, y)
+
+        return None
+
     @classmethod
     def from_str(cls, line: str, hubs: dict[str, Hub]) -> 'Connection':
         match: Match[str] | None = CONNECTION_PATTERN.match(line.strip())
@@ -104,8 +128,11 @@ class Connection(BaseModel):
         return self._hash
 
 
-class Connections(BaseModel):
-    _connections: list[Connection] = PrivateAttr([])
+class Connections:
+    _connections: list[Connection]
+
+    def __init__(self) -> None:
+        self._connections = []
 
     def add(self, connection: Connection) -> list[Connection]:
         if connection.hubs in [
@@ -137,3 +164,15 @@ class Connections(BaseModel):
             for connection in self._connections
             if hub in connection.hubs
         ]
+
+    # def get_intersections(self) \
+    #         -> list[tuple[Connection, Connection, Vector2]]:
+    #     intersections: list[tuple[Connection, Connection, Vector2]] = []
+    #     for i in range(len(self._connections)):
+    #         for j in range(i + 1, len(self._connections)):
+    #             conn_a = self._connections[i]
+    #             conn_b = self._connections[j]
+    #             intersection = conn_a.intersects_with(conn_b)
+    #             if intersection:
+    #                 intersections.append((conn_a, conn_b, intersection))
+    #     return intersections

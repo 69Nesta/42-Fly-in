@@ -1,6 +1,7 @@
 from .LevelLoader import LevelLoader
 from .Connections import Connections
 from .utils import Logger, Color
+from pyray import Vector2
 from .Drone import Drone
 from .Hub import Hub
 
@@ -60,7 +61,8 @@ class Level:
         )
 
     def update_step(self, move: int) -> bool:
-        if self.current_step + move < 0 or self.current_step + move > self.number_of_steps:
+        if (self.current_step + move < 0 or
+           self.current_step + move > self.number_of_steps):
             return False
         self.current_step = min(
             max(0, self.current_step + move), self.number_of_steps
@@ -79,7 +81,7 @@ class Level:
         for i in range(self.nb_drones):
             self.drones.append(Drone(
                 id=i,
-                x=-1,
-                y=-1
+                start_point=Vector2(-1, 0),
+                end_point=Vector2(self.end_hub.x + 1, self.end_hub.y)
             ))
         self.logger.log('Drones initialized successfully.')

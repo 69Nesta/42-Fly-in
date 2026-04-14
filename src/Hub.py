@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import cast, Any
+from pyray import Vector2
 from enum import Enum
 import re
 
@@ -121,6 +122,9 @@ class Hub(BaseModel):
 
     def is_end(self) -> bool:
         return self.type == HubType.END_HUB
+
+    def get_position(self) -> Vector2:
+        return Vector2(self.x, self.y)
 
     def __lt__(self, other: 'Hub') -> bool:
         return self.name < other.name

@@ -1,8 +1,8 @@
-from ..Connections import Connection
+# from ..Connections import Connection
 from ..utils import Logger, Color
 from .models import DroneModel
 from ..Level import Level
-from ..Hub import Hub
+# from ..Hub import Hub
 import pyray as pr
 
 
@@ -23,12 +23,11 @@ class DronesRenderer:
         )
         self.logger.log('Initializing drones renderer...')
 
-        # self.model = DroneModel()
         self.drones = []
         for drone in self.level.drones:
             self.drones.append(DroneModel(
                 frame_rate=60,
-                start=(drone.get_first_position(), 0)
+                start=(drone.get_position_at_step(0), 0)
             ))
 
     def update(self) -> None:
@@ -36,7 +35,9 @@ class DronesRenderer:
                 pr.is_key_pressed(pr.KeyboardKey.KEY_RIGHT)):
             if self.level.update_step(1):
                 for idx, drone in enumerate(self.drones):
-                    drone_pos = self.level.drones[idx].get_position_at_step(self.level.current_step)
+                    drone_pos = self.level.drones[idx].get_position_at_step(
+                        self.level.current_step
+                    )
                     drone.move_to(
                         position=drone_pos,
                         rotation=drone._get_angle_between_points(
@@ -49,8 +50,9 @@ class DronesRenderer:
                 pr.is_key_pressed(pr.KeyboardKey.KEY_LEFT)):
             if self.level.update_step(-1):
                 for idx, drone in enumerate(self.drones):
-                    drone_pos = self.level.drones[idx].get_position_at_step(self.level.current_step)
-                    
+                    drone_pos = self.level.drones[idx].get_position_at_step(
+                        self.level.current_step
+                    )
                     drone.back_to(
                         position=drone_pos,
                         rotation=drone._get_angle_between_points(
@@ -63,17 +65,6 @@ class DronesRenderer:
     def draw(self) -> None:
         for drone in self.drones:
             drone.draw()
-        # for drone in self.level.drones:
-        #     for step, step_index in drone.path:
-        #         if step_index == self.level.current_step:
-        #             if isinstance(step, Hub):
-        #                 self.model.draw(
-        #                     pr.Vector2(step.x, step.y)
-        #                 )
-        #             elif isinstance(step, Connection):
-        #                 self.model.draw(
-        #                     step.calculate_middle_point()
-        #                 )
 
     def unload(self) -> None:
         self.logger.log('Unloading drones renderer...')
