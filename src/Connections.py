@@ -62,22 +62,24 @@ class Connection(BaseModel):
         return self.calculate_middle_point()
 
     def intersects_with(self, other: 'Connection') -> Optional[Vector2]:
-        A = self.hubs[0].get_position()
-        B = self.hubs[1].get_position()
-        C = other.hubs[0].get_position()
-        D = other.hubs[1].get_position()
+        A: Vector2 = self.hubs[0].get_position()
+        B: Vector2 = self.hubs[1].get_position()
+        C: Vector2 = other.hubs[0].get_position()
+        D: Vector2 = other.hubs[1].get_position()
 
-        denom = (A.x - B.x) * (C.x - D.x) - (A.x - B.x) * (C.x - D.x)
+        denom: float = (A.x - B.x) * (C.y - D.y) - (A.y - B.y) * (C.x - D.x)
 
-        if denom == 0:
+        if abs(denom) < 1e-6:
             return None
 
-        t = ((A.x - C.x) * (C.x - D.x) - (A.x - C.x) * (C.x - D.x)) / denom
-        u = ((A.x - C.x) * (A.x - B.x) - (A.x - C.x) * (A.x - B.x)) / denom
+        t: float = \
+            ((A.x - C.x) * (C.y - D.y) - (A.y - C.y) * (C.x - D.x)) / denom
+        u: float = \
+            ((A.x - C.x) * (A.y - B.y) - (A.y - C.y) * (A.x - B.x)) / denom
 
         if 0 <= t <= 1 and 0 <= u <= 1:
-            x = A.x + t * (B.x - A.x)
-            y = A.x + t * (B.x - A.x)
+            x: float = A.x + t * (B.x - A.x)
+            y: float = A.y + t * (B.y - A.y)
             return Vector2(x, y)
 
         return None
@@ -130,9 +132,13 @@ class Connection(BaseModel):
 
 class Connections:
     _connections: list[Connection]
+    _intersections_cache: list[tuple[Connection, Connection, Vector2]]
 
     def __init__(self) -> None:
         self._connections = []
+        print('Calculating connections intersections...')
+        self._intersections_cache = self.calculate_intersections()
+        print(f'Found {len(self._intersections_cache)} intersections')
 
     def add(self, connection: Connection) -> list[Connection]:
         if connection.hubs in [
@@ -165,14 +171,18 @@ class Connections:
             if hub in connection.hubs
         ]
 
-    # def get_intersections(self) \
-    #         -> list[tuple[Connection, Connection, Vector2]]:
-    #     intersections: list[tuple[Connection, Connection, Vector2]] = []
-    #     for i in range(len(self._connections)):
-    #         for j in range(i + 1, len(self._connections)):
-    #             conn_a = self._connections[i]
-    #             conn_b = self._connections[j]
-    #             intersection = conn_a.intersects_with(conn_b)
-    #             if intersection:
-    #                 intersections.append((conn_a, conn_b, intersection))
-    #     return intersections
+    def get_intersections(self) \
+            -> list[tuple[Connection, Connection, Vector2]]:
+        return self._intersections_cache
+
+    def calculate_intersections(self) \
+            -> list[tuple[Connection, Connection, Vector2]]:
+        intersections: list[tuple[Connection, Connection, Vector2]] = []
+        for i in range(len(self._connections)):
+            for j in range(i + 1, len(self._connections)):
+                conn_a = self._connections[i]
+                conn_b = self._connections[j]
+                intersection = conn_a.intersects_with(conn_b)
+                if intersection:
+                    intersections.append((conn_a, conn_b, intersection))
+        return intersections

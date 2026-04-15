@@ -1,5 +1,8 @@
 from ..utils import Logger, Color
+from .RayCast import RayCast, t_RayCastValues
 from ..Level import Level
+from ..Hub import Hub
+from pyray import Ray
 import pyray as pr
 
 
@@ -8,20 +11,39 @@ class UIRenderer:
     logger: Logger
     width: int
     height: int
+    ray_cast: RayCast
 
-    def __init__(self, level: Level, width: int, height: int) -> None:
+    _current_hub: Hub | None
+
+    def __init__(
+                self,
+                level: Level,
+                width: int, height: int,
+                ray_cast: RayCast
+            ) -> None:
         self.level = level
         self.logger = Logger(
             print_log=level.logger.print_log,
             name='UIRenderer',
             color=Color.GREEN
         )
+
         self.logger.log('Initializing UI renderer...')
         self.width = width
         self.height = height
+        self.ray_cast = ray_cast
 
-    def update(self) -> None:
-        pass
+        self._current_hub = None
+
+    def update(self, ray: Ray) -> None:
+        object: t_RayCastValues | None = self.ray_cast.cast(ray)
+        self._current_hub = None
+
+        if object is None:
+            return
+
+        if isinstance(object, Hub):
+            self._current_hub = object
 
     def _draw_crosshair(self) -> None:
         pr.draw_rectangle(
@@ -37,6 +59,17 @@ class UIRenderer:
             pr.fade(pr.GRAY, 0.8)
         )
 
+    def _draw_current_hub(self) -> None:
+        if self._current_hub is not None:
+            pr.draw_text(
+                f'Current hub: {self._current_hub.name!r}',
+                10,
+                50,
+                20,
+                pr.RED
+            )
+        pass
+
     def _draw_step(self) -> None:
         pr.draw_text(
             f'STEP: {self.level.current_step} / {self.level.number_of_steps}',
@@ -51,6 +84,7 @@ class UIRenderer:
 
         self._draw_step()
         self._draw_crosshair()
+        self._draw_current_hub()
 
     def unload(self) -> None:
         self.logger.log('Unloading UI renderer...')

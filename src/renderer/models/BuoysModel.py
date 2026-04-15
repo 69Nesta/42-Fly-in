@@ -20,14 +20,22 @@ class BuoysModel:
         pass
 
     def draw(self) -> None:
-        pr.draw_model_ex(
-            self.model,
-            Vector3(1.0, 1.0, 1.0),
-            Vector3(0, 1, 0),
-            0,
-            Vector3(0.1, 0.1, 0.1),
-            pr.WHITE
-        )
+        for _, _, pos in self.level.connections.get_intersections():
+            print('intersection at', pos)
+            pr.draw_model(
+                self.model,
+                Vector3(pos.x, 0, pos.y),
+                1.0,
+                pr.RED
+            )
+        # pr.draw_model_ex(
+        #     self.model,
+        #     Vector3(1.0, 1.0, 1.0),
+        #     Vector3(0, 1, 0),
+        #     0,
+        #     Vector3(0.1, 0.1, 0.1),
+        #     pr.WHITE
+        # )
 
     def unload(self) -> None:
         pr.unload_model(self.model)
