@@ -1,20 +1,20 @@
 from ..utils import Logger, Color
 from ..Level import Level
 from ..Hub import Hub
-from ..Drone import Drone
+from .models import DroneModel
 from pyray import Model, Vector3, Ray, RayCollision, BoundingBox
 from typing import Any, Optional
 import pyray as pr
 
 
-t_RayCastValues = Hub | Drone
+t_RayCastValues = Hub | DroneModel
 
 
 class RayCast:
     level: Level
     logger: Logger
 
-    _entries: dict[tuple[Model, Vector3], t_RayCastValues]
+    _entries: dict[int, DroneModel]
     _entries_statics: dict[tuple[Model, Vector3, BoundingBox], t_RayCastValues]
 
     def __init__(self, level: Level) -> None:
@@ -31,15 +31,14 @@ class RayCast:
 
     def register(
                 self,
-                model: Model,
-                position: Vector3,
-                data: t_RayCastValues
+                ids: int,
+                model: DroneModel,
             ) -> None:
         self.logger.log(
-            f'Registering ray cast entry for {data!r} at {position}'
+            f'Registering ray cast entry for drone id : {ids!r}'
         )
         self._entries.update({
-            (model, position): data
+            ids: model
         })
 
     def register_static(
@@ -79,20 +78,20 @@ class RayCast:
         if best_col is not None:
             return best_value
 
-        for (entry, position), value in self._entries.items():
-            bounds = pr.get_mesh_bounding_box(entry.meshes[0])
-            bounds.min = pr.vector3_add(bounds.min, position)
-            bounds.max = pr.vector3_add(bounds.max, position)
+        for _, data in self._entries.items():
+            bounds = pr.get_mesh_bounding_box(data.model.meshes[0])
+            bounds.min = pr.vector3_add(bounds.min, data.get_position())
+            bounds.max = pr.vector3_add(bounds.max, data.get_position())
 
             if not pr.get_ray_collision_box(ray, bounds).hit:
                 continue
 
             col = pr.get_ray_collision_mesh(
-                ray, entry.meshes[0], entry.transform
+                ray, data.model.meshes[0], data.model.transform
             )
             if col.hit:
                 if best_col is None or col.distance < best_col.distance:
-                    best_value = value
+                    best_value = data
                     best_col = col
 
         return best_value

@@ -1,3 +1,4 @@
+from .models import DroneModel
 from ..utils import Logger, Color
 from .RayCast import RayCast, t_RayCastValues
 from ..Level import Level
@@ -19,7 +20,7 @@ class UIRenderer:
     height: int
     ray_cast: RayCast
 
-    _current_hub: Hub | None
+    _current_targeting: Hub | DroneModel | None
 
     def __init__(
                 self,
@@ -39,17 +40,19 @@ class UIRenderer:
         self.height = height
         self.ray_cast = ray_cast
 
-        self._current_hub = None
+        self._current_targeting = None
 
     def update(self, ray: Ray) -> None:
         object: t_RayCastValues | None = self.ray_cast.cast(ray)
-        self._current_hub = None
+        self._current_targeting = None
 
         if object is None:
             return
 
         if isinstance(object, Hub):
-            self._current_hub = object
+            self._current_targeting = object
+        elif isinstance(object, DroneModel):
+            self._current_targeting = object
 
     def _draw_crosshair(self) -> None:
         pr.draw_rectangle(
@@ -66,13 +69,22 @@ class UIRenderer:
         )
 
     def _draw_current_hub(self) -> None:
-        text_space: int = 25
-        width: int = 300
-        height: int = text_space * 6 + 15
-        left_align: int = self.width - width - 20
-        top_align: int = 20
+        text_space: int
+        width: int
+        height: int
+        left_align: int
+        top_align: int
 
-        if self._current_hub is not None:
+        if self._current_targeting is None:
+            return
+
+        if isinstance(self._current_targeting, Hub):
+            text_space = 25
+            width = 300
+            height = text_space * 6 + 15
+            left_align = self.width - width - 20
+            top_align = 20
+
             pr.draw_rectangle(
                 left_align - 10, top_align - 10,
                 width, height,
@@ -91,9 +103,9 @@ class UIRenderer:
                 20,
                 pr.BLUE
             )
-            pos = self._current_hub.get_position()
+            pos = self._current_targeting.get_position()
             pr.draw_text(
-                f'node: {truncate(self._current_hub.name, 15)} '
+                f'node: {truncate(self._current_targeting.name, 15)} '
                 f'({pos.x:.0f}, {pos.y:.0f})',
                 left_align,
                 top_align + text_space * 1,
@@ -101,34 +113,71 @@ class UIRenderer:
                 pr.BLUE
             )
             pr.draw_text(
-                f'zone: {self._current_hub.metadata.zone.name.capitalize()}',
+                'zone: '
+                f'{self._current_targeting.metadata.zone.name.capitalize()}',
                 left_align,
                 top_align + text_space * 2,
                 20,
                 pr.BLUE
             )
             pr.draw_text(
-                f'color: {self._current_hub.metadata.color}',
+                f'color: {self._current_targeting.metadata.color}',
                 left_align,
                 top_align + text_space * 3,
                 20,
                 pr.BLUE
             )
             pr.draw_text(
-                f'cost: {self._current_hub.metadata.get_travel_time()} turn',
+                f'cost: {self._current_targeting.metadata.get_travel_time()} '
+                'turn',
                 left_align,
                 top_align + text_space * 4,
                 20,
                 pr.BLUE
             )
-            reservation = self.level.reservations.get(self._current_hub, {})
+            reservation = self.level.reservations.get(
+                self._current_targeting, {}
+            )
             pr.draw_text(
                 f'load: {reservation.get(self.level.current_step, 0)} /'
-                f' {self._current_hub.metadata.max_drones}',
+                f' {self._current_targeting.metadata.max_drones}',
                 left_align,
                 top_align + text_space * 5,
                 20,
                 pr.BLUE
+            )
+        elif isinstance(self._current_targeting, DroneModel):
+            text_space = 25
+            width = 300
+            height = text_space * 2 + 15
+            left_align = self.width - width - 20
+            top_align = 20
+
+            pr.draw_rectangle(
+                left_align - 10, top_align - 10,
+                width, height,
+                pr.fade(pr.LIME, 0.5)
+            )
+            pr.draw_rectangle_lines(
+                left_align - 10, top_align - 10,
+                width, height,
+                pr.GREEN
+            )
+
+            pr.draw_text(
+                'Type: Drone',
+                left_align,
+                top_align + text_space * 0,
+                20,
+                pr.GREEN
+            )
+            position = self._current_targeting.get_position()
+            pr.draw_text(
+                f'position: ({position.x:.0f}, {position.z:.0f})',
+                left_align,
+                top_align + text_space * 1,
+                20,
+                pr.GREEN
             )
         pass
 

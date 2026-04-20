@@ -14,3 +14,5 @@ __pycache__
 # VS Code settings
 .vscode
 
+# for me
+.notes

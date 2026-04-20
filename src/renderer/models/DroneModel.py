@@ -74,14 +74,17 @@ class DroneModel:
     def _get_angle_between_points(p1: Vector2, p2: Vector2) -> float:
         return math.atan2(p2.y - p1.y, p2.x - p1.x) * (180 / math.pi)
 
+    def get_position(self) -> Vector3:
+        return Vector3(self.last_postion[0].x, 1.0, self.last_postion[0].y)
+
     def draw(self) -> None:
         if len(self.animations_pos) > 0:
             self.last_postion = self.animations_pos.pop(0)
-        position, rotation = self.last_postion
+        _, rotation = self.last_postion
 
         pr.draw_model_ex(
             self.model,
-            Vector3(position.x, 1.0, position.y),
+            self.get_position(),
             Vector3(0, 1, 0),
             rotation + 90,
             Vector3(0.1, 0.1, 0.1),

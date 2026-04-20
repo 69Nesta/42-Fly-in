@@ -58,7 +58,7 @@ class CoreRenderer:
         self.environement_renderer = EnvironementRenderer(self.level)
         self.hub_renderer = HubRenderer(self.level, self.ray_cast)
         self.connection_renderer = ConnectionRenderer(self.level)
-        self.drones_renderer = DronesRenderer(self.level)
+        self.drones_renderer = DronesRenderer(self.level, self.ray_cast)
         self.ui_renderer = UIRenderer(
             self.level,
             self.WIDTH, self.HEIGHT,

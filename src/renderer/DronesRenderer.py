@@ -1,6 +1,7 @@
 # from ..Connections import Connection
 from ..utils import Logger, Color
 from .models import DroneModel
+from .RayCast import RayCast
 from ..Level import Level
 # from ..Hub import Hub
 import pyray as pr
@@ -9,12 +10,13 @@ import pyray as pr
 class DronesRenderer:
     level: Level
     logger: Logger
+    raycast: RayCast
 
     model: DroneModel
     drones: list[DroneModel]
     current_step: int = 0
 
-    def __init__(self, level: Level) -> None:
+    def __init__(self, level: Level, ray_cast: RayCast) -> None:
         self.level = level
         self.logger = Logger(
             print_log=level.logger.print_log,
@@ -22,13 +24,16 @@ class DronesRenderer:
             color=Color.BRIGHT_YELLOW
         )
         self.logger.log('Initializing drones renderer...')
+        self.raycast = ray_cast
 
         self.drones = []
-        for drone in self.level.drones:
-            self.drones.append(DroneModel(
+        for ids, drone in enumerate(self.level.drones):
+            model: DroneModel = DroneModel(
                 frame_rate=60,
                 start=(drone.get_position_at_step(0), 0)
-            ))
+            )
+            self.drones.append(model)
+            self.raycast.register(ids, model)
 
     def update(self) -> None:
         if (pr.is_mouse_button_pressed(pr.MouseButton.MOUSE_BUTTON_LEFT) or
