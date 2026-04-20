@@ -18,7 +18,7 @@ class Level:
     number_of_steps: int
     current_step: int
 
-    reservations: dict[Hub, dict[int, Drone]]
+    reservations: dict[Hub, dict[int, int]]
     reservations_connection: dict[Connection, dict[int, int]]
 
     def __init__(self, map_path: str, verbose: bool = False):

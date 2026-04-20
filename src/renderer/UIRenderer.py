@@ -73,13 +73,6 @@ class UIRenderer:
         top_align: int = 20
 
         if self._current_hub is not None:
-            # pr.draw_text(
-            #     f': {self._current_hub.name!r}',
-            #     10,
-            #     50,
-            #     20,
-            #     pr.RED
-            # )
             pr.draw_rectangle(
                 left_align - 10, top_align - 10,
                 width, height,
@@ -130,7 +123,8 @@ class UIRenderer:
             )
             reservation = self.level.reservations.get(self._current_hub, {})
             pr.draw_text(
-                f'load: {reservation.get(self.level.current_step, )} / {self._current_hub.metadata.max_drones}',
+                f'load: {reservation.get(self.level.current_step, 0)} /'
+                f' {self._current_hub.metadata.max_drones}',
                 left_align,
                 top_align + text_space * 5,
                 20,
