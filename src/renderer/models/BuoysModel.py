@@ -1,5 +1,5 @@
 from ...Level import Level
-from pyray import Model, Mesh, Vector3
+from pyray import Model, Mesh
 import pyray as pr
 # import math
 
@@ -20,14 +20,15 @@ class BuoysModel:
         pass
 
     def draw(self) -> None:
-        for _, _, pos in self.level.connections.get_intersections():
-            print('intersection at', pos)
-            pr.draw_model(
-                self.model,
-                Vector3(pos.x, 0, pos.y),
-                1.0,
-                pr.RED
-            )
+        pass
+        # for _, _, pos in self.level.connections.get_intersections():
+        #     print('intersection at', pos)
+        #     pr.draw_model(
+        #         self.model,
+        #         Vector3(pos.x, 0, pos.y),
+        #         1.0,
+        #         pr.RED
+        #     )
         # pr.draw_model_ex(
         #     self.model,
         #     Vector3(1.0, 1.0, 1.0),

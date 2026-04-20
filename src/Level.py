@@ -4,6 +4,7 @@ from .utils import Logger, Color
 from pyray import Vector2
 from .Drone import Drone
 from .Hub import Hub
+from math import inf
 
 
 class Level:
@@ -20,6 +21,11 @@ class Level:
 
     reservations: dict[Hub, dict[int, int]]
     reservations_connection: dict[Connection, dict[int, int]]
+
+    min_pos: Vector2
+    max_pos: Vector2
+    height: int
+    width: int
 
     def __init__(self, map_path: str, verbose: bool = False):
         self.logger = Logger(
@@ -53,6 +59,23 @@ class Level:
             raise ValueError('No end hub found in the level')
 
         self.init_drones()
+
+    def _nodes_positions(self) -> None:
+        self.min_pos = Vector2(inf, inf)
+        self.max_pos = Vector2(-inf, -inf)
+
+        for hub in self.hubs.values():
+            if hub.x < self.min_pos.x:
+                self.min_pos.x = hub.x
+            if hub.x > self.max_pos.x:
+                self.max_pos.x = hub.x
+            if hub.y < self.min_pos.y:
+                self.min_pos.y = hub.y
+            if hub.y > self.max_pos.y:
+                self.max_pos.y = hub.y
+
+        self.width = int(self.max_pos.x - self.min_pos.x)
+        self.height = int(self.max_pos.y - self.min_pos.y)
 
     def get_hub(self, hub_id: str) -> Hub:
         if hub_id not in self.hubs:
