@@ -80,6 +80,7 @@ class Solver():
     def dijkstra_with_reservations(self, departure_time: int = 0) -> t_path:
         dist: t_dist = defaultdict(lambda: float('inf'))
         prev: t_prev = {}
+        visited: set[tuple[Hub, int]] = set()
 
         pq: t_heap_queue = [
             (0, self.level.start_hub, departure_time)
@@ -90,6 +91,10 @@ class Solver():
             cost, node, t = heapq.heappop(pq)
             if node == self.level.end_hub:
                 return self._reconstruct_path(prev)
+
+            if (node, t) in visited:
+                continue
+            visited.add((node, t))
 
             if cost > dist[(node, t)]:
                 continue
@@ -164,8 +169,10 @@ class Solver():
         for drone in self.level.drones:
             path: t_path = self.dijkstra_with_reservations(departure_time=0)
             drone.path = path
-
             self._apply_reservation(drone, path)
+            print(f'Planned path for drone {drone.id}')
 
         self.logger.log('All drones planned successfully.')
         self.level.update_number_of_steps()
+        self.level.reservations = self.reservations
+        self.level.reservations_connection = self.reservations_connection

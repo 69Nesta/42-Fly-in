@@ -6,6 +6,12 @@ from pyray import Ray
 import pyray as pr
 
 
+def truncate(text, max_length):
+    if len(text) > max_length:
+        return text[:max_length - 1] + "..."
+    return text
+
+
 class UIRenderer:
     level: Level
     logger: Logger
@@ -60,29 +66,103 @@ class UIRenderer:
         )
 
     def _draw_current_hub(self) -> None:
+        text_space: int = 25
+        width: int = 300
+        height: int = text_space * 6 + 15
+        left_align: int = self.width - width - 20
+        top_align: int = 20
+
         if self._current_hub is not None:
+            # pr.draw_text(
+            #     f': {self._current_hub.name!r}',
+            #     10,
+            #     50,
+            #     20,
+            #     pr.RED
+            # )
+            pr.draw_rectangle(
+                left_align - 10, top_align - 10,
+                width, height,
+                pr.fade(pr.SKYBLUE, 0.5)
+            )
+            pr.draw_rectangle_lines(
+                left_align - 10, top_align - 10,
+                width, height,
+                pr.BLUE
+            )
+
             pr.draw_text(
-                f'Current hub: {self._current_hub.name!r}',
-                10,
-                50,
+                'Type: Hub',
+                left_align,
+                top_align + text_space * 0,
                 20,
-                pr.RED
+                pr.BLUE
+            )
+            pos = self._current_hub.get_position()
+            pr.draw_text(
+                f'node: {truncate(self._current_hub.name, 15)} '
+                f'({pos.x:.0f}, {pos.y:.0f})',
+                left_align,
+                top_align + text_space * 1,
+                20,
+                pr.BLUE
+            )
+            pr.draw_text(
+                f'zone: {self._current_hub.metadata.zone.name.capitalize()}',
+                left_align,
+                top_align + text_space * 2,
+                20,
+                pr.BLUE
+            )
+            pr.draw_text(
+                f'color: {self._current_hub.metadata.color}',
+                left_align,
+                top_align + text_space * 3,
+                20,
+                pr.BLUE
+            )
+            pr.draw_text(
+                f'cost: {self._current_hub.metadata.get_travel_time()} turn',
+                left_align,
+                top_align + text_space * 4,
+                20,
+                pr.BLUE
+            )
+            reservation = self.level.reservations.get(self._current_hub, {})
+            pr.draw_text(
+                f'load: {reservation.get(self.level.current_step, )} / {self._current_hub.metadata.max_drones}',
+                left_align,
+                top_align + text_space * 5,
+                20,
+                pr.BLUE
             )
         pass
 
-    def _draw_step(self) -> None:
+    def _draw_state(self) -> None:
+        left_align: int = 20
+        top_align: int = 20
+        pr.draw_rectangle(
+            left_align - 10, top_align - 10,
+            200, 70,
+            pr.fade(pr.BLACK, 0.5)
+        )
+        pr.draw_rectangle_lines(
+            left_align - 10, top_align - 10,
+            200, 70,
+            pr.WHITE
+        )
+
+        pr.draw_fps(left_align, top_align)
         pr.draw_text(
             f'STEP: {self.level.current_step} / {self.level.number_of_steps}',
-            10,
-            30,
+            left_align,
+            top_align + 30,
             20,
-            pr.GRAY
+            pr.WHITE
         )
 
     def draw(self) -> None:
-        pr.draw_fps(10, 10)
-
-        self._draw_step()
+        self._draw_state()
         self._draw_crosshair()
         self._draw_current_hub()
 

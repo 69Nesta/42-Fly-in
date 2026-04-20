@@ -1,5 +1,5 @@
+from .Connections import Connections, Connection
 from .LevelLoader import LevelLoader
-from .Connections import Connections
 from .utils import Logger, Color
 from pyray import Vector2
 from .Drone import Drone
@@ -18,6 +18,9 @@ class Level:
     number_of_steps: int
     current_step: int
 
+    reservations: dict[Hub, dict[int, Drone]]
+    reservations_connection: dict[Connection, dict[int, int]]
+
     def __init__(self, map_path: str, verbose: bool = False):
         self.logger = Logger(
             print_log=verbose,
@@ -34,6 +37,8 @@ class Level:
         self.nb_drones = loader.nb_drones
         self.number_of_steps = 0
         self.current_step = 0
+        self.reservations = {}
+        self.reservations_connection = {}
 
         for hub in self.hubs.values():
             if hub.is_start():
