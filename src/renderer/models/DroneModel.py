@@ -99,10 +99,10 @@ class DroneModel:
         return math.atan2(p2.y - p1.y, p2.x - p1.x) * (180 / math.pi)
 
     def get_position(self) -> Vector3:
-        return Vector3(self.last_postion[0].x, 1.0, self.last_postion[0].y)
+        return Vector3(self.last_postion[0].x * 3, 0.77, self.last_postion[0].y * 3)
 
     def get_coll_position(self) -> Vector3:
-        return Vector3(self.last_postion[0].x, 1.15, self.last_postion[0].y)
+        return Vector3(self.last_postion[0].x * 3, 0.77 + .15, self.last_postion[0].y * 3)
 
     def draw(self) -> None:
         if len(self.animations_pos) > 0:
@@ -124,7 +124,7 @@ class DroneModel:
                 Vector3(0, 1, 0),
                 rotation,
                 Vector3(1, 1, 1),
-                pr.LIME
+                pr.WHITE
             )
             self.selected = False
 

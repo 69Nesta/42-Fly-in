@@ -109,7 +109,7 @@ class Level:
         for i in range(self.nb_drones):
             self.drones.append(Drone(
                 id=i,
-                start_point=Vector2(-1, 0),
-                end_point=Vector2(self.end_hub.x + 1, self.end_hub.y)
+                start_point=self.start_hub.get_position(),
+                end_point=self.end_hub.get_position()
             ))
         self.logger.log('Drones initialized successfully.')

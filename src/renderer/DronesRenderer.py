@@ -14,6 +14,7 @@ class DronesRenderer:
 
     drones: list[DroneModel]
     current_step: int = 0
+    ANNIMATION_DURATION: int = 500
 
     def __init__(self, level: Level, ray_cast: RayCast) -> None:
         self.level = level
@@ -49,7 +50,7 @@ class DronesRenderer:
                             drone.last_animation_pos()[0],
                             drone_pos
                         ),
-                        animation_time=300,
+                        animation_time=self.ANNIMATION_DURATION,
                     )
         elif (pr.is_mouse_button_pressed(pr.MouseButton.MOUSE_BUTTON_RIGHT) or
                 pr.is_key_pressed(pr.KeyboardKey.KEY_LEFT)):
@@ -64,7 +65,7 @@ class DronesRenderer:
                             drone.last_animation_pos()[0],
                             drone_pos
                         ),
-                        animation_time=300,
+                        animation_time=self.ANNIMATION_DURATION,
                     )
 
     def draw(self) -> None:

@@ -11,7 +11,7 @@ class HubRenderer:
     logger: Logger
     ray_cast: RayCast
 
-    hub_mesh: Mesh
+    # hub_mesh: Mesh
     hub_model: Model
 
     def __init__(self, level: Level, ray_cast: RayCast) -> None:
@@ -25,8 +25,8 @@ class HubRenderer:
         self.ray_cast = ray_cast
 
         # Create hub mesh
-        self.hub_mesh = pr.gen_mesh_sphere(0.2, 16, 16)
-        self.hub_model = pr.load_model_from_mesh(self.hub_mesh)
+        # self.hub_mesh = pr.gen_mesh_sphere(0.2, 16, 16)
+        self.hub_model = pr.load_model('src/assets/models/island.glb')
 
         for hub in self.level.hubs.values():
             self.ray_cast.register_static(
@@ -40,26 +40,26 @@ class HubRenderer:
 
     def draw(self) -> None:
         for hub in self.level.hubs.values():
-            color: pr.Color
-            if hub.is_start():
-                color = pr.BLUE
-            elif hub.is_end():
-                color = pr.GREEN
-            elif hub.is_restricted():
-                color = pr.RED
-            elif hub.is_priority():
-                color = pr.YELLOW
-            else:
-                color = pr.GRAY
+            # color: pr.Color
+            # if hub.is_start():
+            #     color = pr.BLUE
+            # elif hub.is_end():
+            #     color = pr.GREEN
+            # elif hub.is_restricted():
+            #     color = pr.RED
+            # elif hub.is_priority():
+            #     color = pr.YELLOW
+            # else:
+            #     color = pr.GRAY
             pr.draw_model(
                 self.hub_model,
                 self._calculate_position(hub),
-                1,
-                color
+                0.01,
+                pr.WHITE
             )
 
     def _calculate_position(self, hub: Hub) -> Vector3:
-        return Vector3(hub.x, 3.0, hub.y)
+        return Vector3(hub.x * 3, 0.82, hub.y * 3)
 
     def unload(self) -> None:
         self.logger.log('Unloading hub renderer...')

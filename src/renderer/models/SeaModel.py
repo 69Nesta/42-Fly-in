@@ -8,9 +8,9 @@ class SeaModel:
     color: Color
 
     def __init__(self) -> None:
-        self.mesh = pr.gen_mesh_plane(100, 100, 1, 1)
+        self.mesh = pr.gen_mesh_plane(10000, 10000, 1, 1)
         self.model = pr.load_model_from_mesh(self.mesh)
-        self.color = Color(117, 191, 204, 255)
+        self.color = Color(117, 191, 204, 100)
 
     def update(self, _: float) -> None:
         pass
@@ -18,9 +18,15 @@ class SeaModel:
     def draw(self) -> None:
         pr.draw_model(
             self.model,
-            Vector3(0, -0.5, 0),
+            Vector3(0, 0.8, 0),
             1.0,
             self.color
+        )
+        pr.draw_model(
+            self.model,
+            Vector3(0, -0.5, 0),
+            1.0,
+            pr.YELLOW
         )
 
     def unload(self) -> None:

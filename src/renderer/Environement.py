@@ -26,7 +26,7 @@ class Environment:
             color=Color.CYAN
         )
         self.level = level
-    
+
     def init_environment(self):
         self.logger.log('Initializing environment...')
         self.environment_height = self.level.height
