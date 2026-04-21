@@ -24,6 +24,7 @@ class UIRenderer:
     _current_targeting: Hub | DroneModel | None
     text_box_drone: TextBox
     text_box_hub: TextBox
+    text_box_state: TextBox
 
     def __init__(
                 self,
@@ -48,6 +49,15 @@ class UIRenderer:
         self.init_text_boxes()
 
     def init_text_boxes(self) -> None:
+        self.text_box_state = TextBox(
+            font_size=20,
+            text_color=pr.WHITE,
+            background_color=pr.fade(pr.BLACK, 0.5),
+            screen_width=self.width,
+            screen_height=self.height,
+            top_align=True,
+            left_align=True,
+        )
         self.text_box_drone = TextBox(
             font_size=20,
             text_color=pr.GREEN,
@@ -106,51 +116,41 @@ class UIRenderer:
             self.text_box_hub.draw([
                 'Type: Hub',
                 (
-                    f'node: {truncate(self._current_targeting.name, 15)} '
+                    f'Node: {truncate(self._current_targeting.name, 15)} '
                     f'({self._current_targeting.get_position().x:.0f}, '
                     f'{self._current_targeting.get_position().y:.0f})'
                 ),
                 (
-                    'zone: ' +
+                    'Zone: ' +
                     self._current_targeting.metadata.zone.name.capitalize()
                 ),
-                f'color: {self._current_targeting.metadata.color}',
-                f'cost: {cost} turn',
+                f'Color: {self._current_targeting.metadata.color}',
+                f'Cost: {cost} turn',
                 (
-                    f'load: {reservation.get(self.level.current_step, 0)} /'
+                    f'Load: {reservation.get(self.level.current_step, 0)} /'
                     f' {self._current_targeting.metadata.max_drones}'
                 )
             ])
         elif isinstance(self._current_targeting, DroneModel):
             self.text_box_drone.draw([
                 'Type: Drone',
-                f'id: D{self._current_targeting.get_id() + 1}',
-                f'position: ({self._current_targeting.get_position().x:.0f}, '
+                f'ID: D{self._current_targeting.get_id() + 1}',
+                f'Position: ({self._current_targeting.get_position().x:.0f}, '
                 f'{self._current_targeting.get_position().z:.0f})',
             ])
         pass
 
     def _draw_state(self) -> None:
-        left_align: int = 20
-        top_align: int = 20
-        pr.draw_rectangle(
-            left_align - 10, top_align - 10,
-            200, 70,
-            pr.fade(pr.BLACK, 0.5)
-        )
-        pr.draw_rectangle_lines(
-            left_align - 10, top_align - 10,
-            200, 70,
-            pr.WHITE
-        )
-
-        pr.draw_fps(left_align, top_align)
-        pr.draw_text(
-            f'STEP: {self.level.current_step} / {self.level.number_of_steps}',
-            left_align,
-            top_align + 30,
-            20,
-            pr.WHITE
+        self.text_box_state.draw([
+                f'FPS: {pr.get_fps()}',
+                (
+                    f'STEP: {self.level.current_step} / '
+                    f'{self.level.number_of_steps}'
+                )
+            ],
+            {
+                0: pr.GREEN
+            }
         )
 
     def draw(self) -> None:

@@ -55,7 +55,11 @@ class TextBox():
         self.out_x_space = out_x_space
         self.out_y_space = out_y_space
 
-    def draw(self, lines: list[str]) -> None:
+    def draw(
+                self,
+                lines: list[str],
+                color_option: dict[int, Color] = {}
+            ) -> None:
         max_line_length: int = max(
             [pr.measure_text(line, self.font_size) for line in lines]
         ) if len(lines) > 0 else 0
@@ -89,5 +93,5 @@ class TextBox():
                 left_align + self.in_x_space,
                 top_align + self.in_y_space + self.text_space * i,
                 self.font_size,
-                self.text_color
+                color_option.get(i, self.text_color)
             )
