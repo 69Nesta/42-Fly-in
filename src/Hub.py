@@ -1,5 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import cast, Any
+from .Enums import EColor
+from pyray import Vector2
 from enum import Enum
 import re
 
@@ -26,6 +28,12 @@ class HubMetadata(BaseModel):
     zone: ZoneType = Field(default=ZoneType.NORMAL)
     color: str | None = Field(default=None, pattern=r'^[A-Za-z]+$')
     max_drones: int = Field(default=1, ge=0)
+
+    def get_color(self) -> EColor:
+        if EColor.has_value(self.color):
+            return EColor(self.color)
+        else:
+            return EColor.NONE
 
     def get_weight(self) -> float:
         if self.zone == ZoneType.NORMAL:
@@ -121,6 +129,9 @@ class Hub(BaseModel):
 
     def is_end(self) -> bool:
         return self.type == HubType.END_HUB
+
+    def get_position(self) -> Vector2:
+        return Vector2(self.x, self.y)
 
     def __lt__(self, other: 'Hub') -> bool:
         return self.name < other.name

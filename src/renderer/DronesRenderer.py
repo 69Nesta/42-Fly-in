@@ -1,19 +1,21 @@
-from ..Connections import Connection
+# from ..Connections import Connection
 from ..utils import Logger, Color
 from .models import DroneModel
+from .RayCast import RayCast
 from ..Level import Level
-from ..Hub import Hub
+# from ..Hub import Hub
 import pyray as pr
 
 
 class DronesRenderer:
     level: Level
     logger: Logger
+    raycast: RayCast
 
-    model: DroneModel
+    drones: list[DroneModel]
     current_step: int = 0
 
-    def __init__(self, level: Level) -> None:
+    def __init__(self, level: Level, ray_cast: RayCast) -> None:
         self.level = level
         self.logger = Logger(
             print_log=level.logger.print_log,
@@ -21,36 +23,55 @@ class DronesRenderer:
             color=Color.BRIGHT_YELLOW
         )
         self.logger.log('Initializing drones renderer...')
+        self.raycast = ray_cast
 
-        self.model = DroneModel()
+        self.drones = []
+        for idx, drone in enumerate(self.level.drones):
+            model: DroneModel = DroneModel(
+                idx=idx,
+                frame_rate=60,
+                start=(drone.get_position_at_step(0), 0)
+            )
+            self.drones.append(model)
+            self.raycast.register(idx, model)
 
     def update(self) -> None:
         if (pr.is_mouse_button_pressed(pr.MouseButton.MOUSE_BUTTON_LEFT) or
                 pr.is_key_pressed(pr.KeyboardKey.KEY_RIGHT)):
-            self._update_step(1)
+            if self.level.update_step(1):
+                for idx, drone in enumerate(self.drones):
+                    drone_pos = self.level.drones[idx].get_position_at_step(
+                        self.level.current_step
+                    )
+                    drone.move_to(
+                        position=drone_pos,
+                        rotation=drone._get_angle_between_points(
+                            drone.last_animation_pos()[0],
+                            drone_pos
+                        ),
+                        animation_time=300,
+                    )
         elif (pr.is_mouse_button_pressed(pr.MouseButton.MOUSE_BUTTON_RIGHT) or
                 pr.is_key_pressed(pr.KeyboardKey.KEY_LEFT)):
-            self._update_step(-1)
-
-    def _update_step(self, move: int) -> None:
-        self.current_step = min(
-            max(0, self.current_step + move), self.level.number_of_steps
-        )
-        self.logger.log(
-            f'Current step: {self.current_step}/{self.level.number_of_steps}'
-        )
+            if self.level.update_step(-1):
+                for idx, drone in enumerate(self.drones):
+                    drone_pos = self.level.drones[idx].get_position_at_step(
+                        self.level.current_step
+                    )
+                    drone.back_to(
+                        position=drone_pos,
+                        rotation=drone._get_angle_between_points(
+                            drone.last_animation_pos()[0],
+                            drone_pos
+                        ),
+                        animation_time=300,
+                    )
 
     def draw(self) -> None:
-        for drone in self.level.drones:
-            for step, step_index in drone.path:
-                if step_index == self.current_step:
-                    if isinstance(step, Hub):
-                        self.model.draw(step.x, step.y)
-                    elif isinstance(step, Connection):
-                        self.model.draw_from_vector(
-                            step.calculate_middle_point()
-                        )
+        for drone in self.drones:
+            drone.draw()
 
     def unload(self) -> None:
         self.logger.log('Unloading drones renderer...')
-        self.model.unload()
+        for drone in self.drones:
+            drone.unload()

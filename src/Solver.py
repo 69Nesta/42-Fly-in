@@ -16,7 +16,7 @@ t_path = list[tuple[Hub | Connection, int]]
 class Solver():
     level: Level
     logger: Logger
-    reservations: dict[Hub, dict[int, Drone]]
+    reservations: dict[Hub, dict[int, int]]
     reservations_connection: dict[Connection, dict[int, int]]
 
     def __init__(self, level: Level) -> None:
@@ -33,8 +33,13 @@ class Solver():
     def _hub_is_available(self, hub: Hub, t: int) -> bool:
         restriced_cond = True
         if hub.is_restricted():
-            restriced_cond = self.reservations[hub].get(t - 1) is None
-        return self.reservations[hub].get(t) is None and restriced_cond
+            restriced_cond = (
+                self.reservations[hub].get(t - 1, 0) < hub.metadata.max_drones
+            )
+        return (
+            self.reservations[hub].get(t, 0) < hub.metadata.max_drones
+            and restriced_cond
+        )
 
     def _connection_is_available(self, conn: Connection, t: int) -> bool:
         for dt in range(t, t + conn.get_travel_time(conn.hubs[0])):
@@ -50,13 +55,22 @@ class Solver():
 
             if not isinstance(node, Hub) or not isinstance(next_node, Hub):
                 continue
-            self.reservations[node][t] = drone
+
+            self.reservations[node].update({
+                t: self.reservations[node].get(t, 0) + 1
+            })
+
             if node != next_node:
                 conn = self.level.connections.get_between(node, next_node)
                 for dt in range(t + 1, t + conn.get_travel_time(next_node)):
                     self.reservations_connection[conn][dt] = (
                         self.reservations_connection[conn].get(dt, 0) + 1
                     )
+        last_node, last_t = path[-1]
+        if isinstance(last_node, Hub):
+            self.reservations[last_node].update({
+                last_t: self.reservations[last_node].get(last_t, 0) + 1
+            })
 
     def _static_path_exists(self) -> bool:
         seen: set[Hub] = {self.level.start_hub}
@@ -80,6 +94,7 @@ class Solver():
     def dijkstra_with_reservations(self, departure_time: int = 0) -> t_path:
         dist: t_dist = defaultdict(lambda: float('inf'))
         prev: t_prev = {}
+        visited: set[tuple[Hub, int]] = set()
 
         pq: t_heap_queue = [
             (0, self.level.start_hub, departure_time)
@@ -90,6 +105,10 @@ class Solver():
             cost, node, t = heapq.heappop(pq)
             if node == self.level.end_hub:
                 return self._reconstruct_path(prev)
+
+            if (node, t) in visited:
+                continue
+            visited.add((node, t))
 
             if cost > dist[(node, t)]:
                 continue
@@ -164,8 +183,10 @@ class Solver():
         for drone in self.level.drones:
             path: t_path = self.dijkstra_with_reservations(departure_time=0)
             drone.path = path
-
             self._apply_reservation(drone, path)
+            print(f'Planned path for drone {drone.id}')
 
         self.logger.log('All drones planned successfully.')
         self.level.update_number_of_steps()
+        self.level.reservations = self.reservations
+        self.level.reservations_connection = self.reservations_connection

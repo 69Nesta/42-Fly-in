@@ -35,7 +35,9 @@ class MapSelector:
     def ask(self) -> str:
         folders: list[str] = list(self.maps.keys())
         if not folders:
-            raise ValueError('No map folders available.')
+            raise ValueError(
+                f'No map files were found under {self.maps_dir!r}.'
+            )
 
         selected = questionary.select(
             "Pick a folder:",
