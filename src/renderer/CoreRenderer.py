@@ -83,7 +83,7 @@ class CoreRenderer:
 
             # Clear and start drawing
             pr.begin_drawing()
-            pr.clear_background(pr.RAYWHITE)
+            pr.clear_background(pr.fade(pr.SKYBLUE, 0.1))
 
             # 3D scene
             pr.begin_mode_3d(self.camera)

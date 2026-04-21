@@ -12,7 +12,6 @@ class DronesRenderer:
     logger: Logger
     raycast: RayCast
 
-    model: DroneModel
     drones: list[DroneModel]
     current_step: int = 0
 
@@ -27,13 +26,14 @@ class DronesRenderer:
         self.raycast = ray_cast
 
         self.drones = []
-        for ids, drone in enumerate(self.level.drones):
+        for idx, drone in enumerate(self.level.drones):
             model: DroneModel = DroneModel(
+                idx=idx,
                 frame_rate=60,
                 start=(drone.get_position_at_step(0), 0)
             )
             self.drones.append(model)
-            self.raycast.register(ids, model)
+            self.raycast.register(idx, model)
 
     def update(self) -> None:
         if (pr.is_mouse_button_pressed(pr.MouseButton.MOUSE_BUTTON_LEFT) or

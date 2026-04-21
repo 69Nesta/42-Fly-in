@@ -8,18 +8,36 @@ t_drone_animation = tuple[Vector2, float]  # position, rotation
 
 
 class DroneModel:
+    idx: int
     model: Model
+    colliton_model: Model
     frame_rate: int
 
     animations_pos: list[t_drone_animation]
     last_postion: t_drone_animation
 
-    def __init__(self, frame_rate: int, start: t_drone_animation) -> None:
+    selected: bool
+
+    def __init__(
+                self,
+                idx: int,
+                frame_rate: int,
+                start: t_drone_animation
+            ) -> None:
+        self.idx = idx
         self.model = pr.load_model('src/assets/models/boat.glb')
+        self.colliton_model = pr.load_model_from_mesh(
+            pr.gen_mesh_cube(0.5, 0.4, 0.2)
+        )
         self.frame_rate = frame_rate
         self.last_postion = start
 
         self.init_animations()
+
+        self.selected = False
+
+    def get_id(self) -> int:
+        return self.idx
 
     def init_animations(self) -> None:
         self.animations_pos = []
@@ -29,6 +47,12 @@ class DroneModel:
             return self.animations_pos[-1]
         else:
             return self.last_postion
+
+    def is_selected(self) -> bool:
+        return self.selected
+
+    def update_selected(self, selected: bool) -> None:
+        self.selected = selected
 
     def move_to(
                 self,
@@ -77,6 +101,9 @@ class DroneModel:
     def get_position(self) -> Vector3:
         return Vector3(self.last_postion[0].x, 1.0, self.last_postion[0].y)
 
+    def get_coll_position(self) -> Vector3:
+        return Vector3(self.last_postion[0].x, 1.15, self.last_postion[0].y)
+
     def draw(self) -> None:
         if len(self.animations_pos) > 0:
             self.last_postion = self.animations_pos.pop(0)
@@ -90,6 +117,16 @@ class DroneModel:
             Vector3(0.1, 0.1, 0.1),
             pr.WHITE
         )
+        if self.is_selected():
+            pr.draw_model_wires_ex(
+                self.colliton_model,
+                self.get_coll_position(),
+                Vector3(0, 1, 0),
+                rotation,
+                Vector3(1, 1, 1),
+                pr.LIME
+            )
+            self.selected = False
 
     def unload(self) -> None:
         pr.unload_model(self.model)

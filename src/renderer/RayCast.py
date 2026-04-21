@@ -79,15 +79,17 @@ class RayCast:
             return best_value
 
         for _, data in self._entries.items():
-            bounds = pr.get_mesh_bounding_box(data.model.meshes[0])
-            bounds.min = pr.vector3_add(bounds.min, data.get_position())
-            bounds.max = pr.vector3_add(bounds.max, data.get_position())
+            bounds = pr.get_mesh_bounding_box(data.colliton_model.meshes[0])
+            bounds.min = pr.vector3_add(bounds.min, data.get_coll_position())
+            bounds.max = pr.vector3_add(bounds.max, data.get_coll_position())
 
             if not pr.get_ray_collision_box(ray, bounds).hit:
                 continue
 
+            position = data.get_coll_position()
+            transform = pr.matrix_translate(position.x, position.y, position.z)
             col = pr.get_ray_collision_mesh(
-                ray, data.model.meshes[0], data.model.transform
+                ray, data.colliton_model.meshes[0], transform
             )
             if col.hit:
                 if best_col is None or col.distance < best_col.distance:

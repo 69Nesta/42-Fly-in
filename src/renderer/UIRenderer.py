@@ -1,6 +1,7 @@
 from .models import DroneModel
 from ..utils import Logger, Color
 from .RayCast import RayCast, t_RayCastValues
+from .components import TextBox
 from ..Level import Level
 from ..Hub import Hub
 from pyray import Ray
@@ -21,6 +22,8 @@ class UIRenderer:
     ray_cast: RayCast
 
     _current_targeting: Hub | DroneModel | None
+    text_box_drone: TextBox
+    text_box_hub: TextBox
 
     def __init__(
                 self,
@@ -42,6 +45,28 @@ class UIRenderer:
 
         self._current_targeting = None
 
+        self.init_text_boxes()
+
+    def init_text_boxes(self) -> None:
+        self.text_box_drone = TextBox(
+            font_size=20,
+            text_color=pr.GREEN,
+            background_color=pr.fade(pr.LIME, 0.5),
+            screen_width=self.width,
+            screen_height=self.height,
+            top_align=True,
+            left_align=False,
+        )
+        self.text_box_hub = TextBox(
+            font_size=20,
+            text_color=pr.BLUE,
+            background_color=pr.fade(pr.SKYBLUE, 0.5),
+            screen_width=self.width,
+            screen_height=self.height,
+            top_align=True,
+            left_align=False,
+        )
+
     def update(self, ray: Ray) -> None:
         object: t_RayCastValues | None = self.ray_cast.cast(ray)
         self._current_targeting = None
@@ -53,6 +78,7 @@ class UIRenderer:
             self._current_targeting = object
         elif isinstance(object, DroneModel):
             self._current_targeting = object
+            object.update_selected(True)
 
     def _draw_crosshair(self) -> None:
         pr.draw_rectangle(
@@ -68,117 +94,40 @@ class UIRenderer:
             pr.fade(pr.GRAY, 0.8)
         )
 
-    def _draw_current_hub(self) -> None:
-        text_space: int
-        width: int
-        height: int
-        left_align: int
-        top_align: int
-
+    def _draw_current_target(self) -> None:
         if self._current_targeting is None:
             return
 
         if isinstance(self._current_targeting, Hub):
-            text_space = 25
-            width = 300
-            height = text_space * 6 + 15
-            left_align = self.width - width - 20
-            top_align = 20
-
-            pr.draw_rectangle(
-                left_align - 10, top_align - 10,
-                width, height,
-                pr.fade(pr.SKYBLUE, 0.5)
-            )
-            pr.draw_rectangle_lines(
-                left_align - 10, top_align - 10,
-                width, height,
-                pr.BLUE
-            )
-
-            pr.draw_text(
-                'Type: Hub',
-                left_align,
-                top_align + text_space * 0,
-                20,
-                pr.BLUE
-            )
-            pos = self._current_targeting.get_position()
-            pr.draw_text(
-                f'node: {truncate(self._current_targeting.name, 15)} '
-                f'({pos.x:.0f}, {pos.y:.0f})',
-                left_align,
-                top_align + text_space * 1,
-                20,
-                pr.BLUE
-            )
-            pr.draw_text(
-                'zone: '
-                f'{self._current_targeting.metadata.zone.name.capitalize()}',
-                left_align,
-                top_align + text_space * 2,
-                20,
-                pr.BLUE
-            )
-            pr.draw_text(
-                f'color: {self._current_targeting.metadata.color}',
-                left_align,
-                top_align + text_space * 3,
-                20,
-                pr.BLUE
-            )
-            pr.draw_text(
-                f'cost: {self._current_targeting.metadata.get_travel_time()} '
-                'turn',
-                left_align,
-                top_align + text_space * 4,
-                20,
-                pr.BLUE
-            )
-            reservation = self.level.reservations.get(
+            reservation: dict[int, int] = self.level.reservations.get(
                 self._current_targeting, {}
             )
-            pr.draw_text(
-                f'load: {reservation.get(self.level.current_step, 0)} /'
-                f' {self._current_targeting.metadata.max_drones}',
-                left_align,
-                top_align + text_space * 5,
-                20,
-                pr.BLUE
-            )
+            cost: int = self._current_targeting.metadata.get_travel_time()
+            self.text_box_hub.draw([
+                'Type: Hub',
+                (
+                    f'node: {truncate(self._current_targeting.name, 15)} '
+                    f'({self._current_targeting.get_position().x:.0f}, '
+                    f'{self._current_targeting.get_position().y:.0f})'
+                ),
+                (
+                    'zone: ' +
+                    self._current_targeting.metadata.zone.name.capitalize()
+                ),
+                f'color: {self._current_targeting.metadata.color}',
+                f'cost: {cost} turn',
+                (
+                    f'load: {reservation.get(self.level.current_step, 0)} /'
+                    f' {self._current_targeting.metadata.max_drones}'
+                )
+            ])
         elif isinstance(self._current_targeting, DroneModel):
-            text_space = 25
-            width = 300
-            height = text_space * 2 + 15
-            left_align = self.width - width - 20
-            top_align = 20
-
-            pr.draw_rectangle(
-                left_align - 10, top_align - 10,
-                width, height,
-                pr.fade(pr.LIME, 0.5)
-            )
-            pr.draw_rectangle_lines(
-                left_align - 10, top_align - 10,
-                width, height,
-                pr.GREEN
-            )
-
-            pr.draw_text(
+            self.text_box_drone.draw([
                 'Type: Drone',
-                left_align,
-                top_align + text_space * 0,
-                20,
-                pr.GREEN
-            )
-            position = self._current_targeting.get_position()
-            pr.draw_text(
-                f'position: ({position.x:.0f}, {position.z:.0f})',
-                left_align,
-                top_align + text_space * 1,
-                20,
-                pr.GREEN
-            )
+                f'id: D{self._current_targeting.get_id() + 1}',
+                f'position: ({self._current_targeting.get_position().x:.0f}, '
+                f'{self._current_targeting.get_position().z:.0f})',
+            ])
         pass
 
     def _draw_state(self) -> None:
@@ -207,7 +156,7 @@ class UIRenderer:
     def draw(self) -> None:
         self._draw_state()
         self._draw_crosshair()
-        self._draw_current_hub()
+        self._draw_current_target()
 
     def unload(self) -> None:
         self.logger.log('Unloading UI renderer...')
