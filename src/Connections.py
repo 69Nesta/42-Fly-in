@@ -132,13 +132,13 @@ class Connection(BaseModel):
 
 class Connections:
     _connections: list[Connection]
-    _intersections_cache: list[tuple[Connection, Connection, Vector2]]
+    # _intersections_cache: list[tuple[Connection, Connection, Vector2]]
 
     def __init__(self) -> None:
         self._connections = []
-        print('Calculating connections intersections...')
-        self._intersections_cache = self.calculate_intersections()
-        print(f'Found {len(self._intersections_cache)} intersections')
+        # print('Calculating connections intersections...')
+        # self._intersections_cache = self.calculate_intersections()
+        # print(f'Found {len(self._intersections_cache)} intersections')
 
     def add(self, connection: Connection) -> list[Connection]:
         if connection.hubs in [
@@ -171,9 +171,9 @@ class Connections:
             if hub in connection.hubs
         ]
 
-    def get_intersections(self) \
-            -> list[tuple[Connection, Connection, Vector2]]:
-        return self._intersections_cache
+    # def get_intersections(self) \
+    #         -> list[tuple[Connection, Connection, Vector2]]:
+    #     return self._intersections_cache
 
     def calculate_intersections(self) \
             -> list[tuple[Connection, Connection, Vector2]]:
