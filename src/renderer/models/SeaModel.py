@@ -18,16 +18,17 @@ class SeaModel:
     def draw(self) -> None:
         pr.draw_model(
             self.model,
-            Vector3(0, 0.8, 0),
+            Vector3(0, 0, 0),
             1.0,
             self.color
         )
-        pr.draw_model(
-            self.model,
-            Vector3(0, -0.5, 0),
-            1.0,
-            pr.YELLOW
-        )
+        # pr.draw_model(
+        #     self.model,
+        #     Vector3(0, -0.5, 0),
+        #     1.0,
+        #     pr.YELLOW
+        # )
+        pass
 
     def unload(self) -> None:
         pr.unload_model(self.model)

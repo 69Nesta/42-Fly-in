@@ -79,6 +79,8 @@ class DroneModel:
                 pos,
                 rot
             ))
+        if self.idx == 0:
+            print(f"Drone {self.idx} move to {position} with rotation {rotation} in {animation_time}ms ({number_of_frames} frames)")
 
     def back_to(
                 self,

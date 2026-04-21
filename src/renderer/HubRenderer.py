@@ -26,14 +26,15 @@ class HubRenderer:
 
         # Create hub mesh
         # self.hub_mesh = pr.gen_mesh_sphere(0.2, 16, 16)
-        self.hub_model = pr.load_model('src/assets/models/island.glb')
+        self.hub_model = pr.load_model('src/assets/models/island-2.glb')
 
         for hub in self.level.hubs.values():
-            self.ray_cast.register_static(
-                self.hub_model,
-                self._calculate_position(hub),
-                hub
-            )
+            # self.ray_cast.register_static(
+            #     self.hub_model,
+            #     self._calculate_position(hub),
+            #     hub
+            # )
+            pass
 
     def update(self) -> None:
         pass
@@ -59,7 +60,7 @@ class HubRenderer:
             )
 
     def _calculate_position(self, hub: Hub) -> Vector3:
-        return Vector3(hub.x * 3, 0.82, hub.y * 3)
+        return Vector3(hub.x * 3, 0.8, hub.y * 3)
 
     def unload(self) -> None:
         self.logger.log('Unloading hub renderer...')

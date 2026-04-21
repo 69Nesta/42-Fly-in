@@ -8,10 +8,11 @@ class HubModel:
     hub: Hub
 
     def __init__(self, hub: Hub) -> None:
-        self.model = pr.load_model('src/assets/models/island.glb')
+        self.hub = hub
+        self.model = pr.load_model('src/assets/models/island-2.glb')
 
     def get_position(self) -> Vector3:
-        return Vector3(self.hub.x, 1, self.hub.y)
+        return Vector3(self.hub.x, 0.8, self.hub.y)
 
     def draw(self) -> None:
         pr.draw_model_ex(
