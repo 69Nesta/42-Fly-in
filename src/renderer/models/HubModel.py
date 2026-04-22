@@ -7,9 +7,10 @@ class HubModel:
     model: Model
     hub: Hub
 
-    def __init__(self, hub: Hub) -> None:
+    def __init__(self, hub: Hub, model: Model) -> None:
         self.hub = hub
-        self.model = pr.load_model('src/assets/models/island-2.glb')
+        # self.model = pr.load_model('src/assets/models/island-2.glb')
+        self.model = model
 
     def get_position(self) -> Vector3:
         return Vector3(self.hub.x, 0.8, self.hub.y)
@@ -23,6 +24,8 @@ class HubModel:
             Vector3(0.1, 0.1, 0.1),
             pr.WHITE
         )
+        pass
 
     def unload(self) -> None:
-        pr.unload_model(self.model)
+        # pr.unload_model(self.model)
+        pass

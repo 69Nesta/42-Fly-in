@@ -4,6 +4,7 @@ from .models import DroneModel
 from .RayCast import RayCast
 from ..Level import Level
 # from ..Hub import Hub
+from pyray import Model
 import pyray as pr
 
 
@@ -11,6 +12,7 @@ class DronesRenderer:
     level: Level
     logger: Logger
     raycast: RayCast
+    drone_model: Model
 
     drones: list[DroneModel]
     current_step: int = 0
@@ -25,12 +27,14 @@ class DronesRenderer:
         )
         self.logger.log('Initializing drones renderer...')
         self.raycast = ray_cast
+        self.drone_model = pr.load_model('src/assets/models/bb8.glb')
 
         self.drones = []
         for idx, drone in enumerate(self.level.drones):
             model: DroneModel = DroneModel(
                 idx=idx,
                 frame_rate=60,
+                model=self.drone_model,
                 start=(drone.get_position_at_step(0), 0)
             )
             self.drones.append(model)
@@ -76,3 +80,4 @@ class DronesRenderer:
         self.logger.log('Unloading drones renderer...')
         for drone in self.drones:
             drone.unload()
+        pr.unload_model(self.drone_model)

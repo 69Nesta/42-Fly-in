@@ -22,12 +22,13 @@ class DroneModel:
                 self,
                 idx: int,
                 frame_rate: int,
+                model: Model,
                 start: t_drone_animation
             ) -> None:
         self.idx = idx
-        self.model = pr.load_model('src/assets/models/boat.glb')
+        self.model = model
         self.colliton_model = pr.load_model_from_mesh(
-            pr.gen_mesh_cube(0.5, 0.4, 0.2)
+            pr.gen_mesh_cube(0.55, 0.8, 0.55)
         )
         self.frame_rate = frame_rate
         self.last_postion = start
@@ -104,7 +105,7 @@ class DroneModel:
         return Vector3(self.last_postion[0].x * 3, 0.77, self.last_postion[0].y * 3)
 
     def get_coll_position(self) -> Vector3:
-        return Vector3(self.last_postion[0].x * 3, 0.77 + .15, self.last_postion[0].y * 3)
+        return Vector3(self.last_postion[0].x * 3, 0.77 + .4, self.last_postion[0].y * 3)
 
     def draw(self) -> None:
         if len(self.animations_pos) > 0:
@@ -131,4 +132,5 @@ class DroneModel:
             self.selected = False
 
     def unload(self) -> None:
-        pr.unload_model(self.model)
+        # pr.unload_model(self.model)
+        pr.unload_model(self.colliton_model)

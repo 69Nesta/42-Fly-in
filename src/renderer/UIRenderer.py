@@ -52,7 +52,7 @@ class UIRenderer:
         self.text_box_state = TextBox(
             font_size=20,
             text_color=pr.WHITE,
-            background_color=pr.fade(pr.BLACK, 0.5),
+            background_color=pr.fade(pr.GRAY, 0.2),
             screen_width=self.width,
             screen_height=self.height,
             top_align=True,
@@ -60,8 +60,8 @@ class UIRenderer:
         )
         self.text_box_drone = TextBox(
             font_size=20,
-            text_color=pr.GREEN,
-            background_color=pr.fade(pr.LIME, 0.5),
+            text_color=pr.ORANGE,
+            background_color=pr.fade(pr.ORANGE, 0.2),
             screen_width=self.width,
             screen_height=self.height,
             top_align=True,

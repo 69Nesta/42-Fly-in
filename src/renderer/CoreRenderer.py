@@ -36,7 +36,7 @@ class CoreRenderer:
         self.logger.log('Initializing renderer...')
 
         self.level = level
-        # pr.set_trace_log_level(7)
+        pr.set_trace_log_level(7)
         pr.init_window(self.WIDTH, self.HEIGHT, self.title)
         pr.set_target_fps(60)
         pr.disable_cursor()
@@ -82,8 +82,9 @@ class CoreRenderer:
             self.ui_renderer.update(ray)
 
             # Clear and start drawing
+            # pr.rl_set_clip_planes(0.1, 100000.0)
             pr.begin_drawing()
-            pr.clear_background(pr.fade(pr.SKYBLUE, 0.1))
+            pr.clear_background(pr.BLACK)
 
             # 3D scene
             pr.begin_mode_3d(self.camera)

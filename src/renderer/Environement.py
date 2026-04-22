@@ -31,7 +31,13 @@ class Environment:
         self.logger.log('Initializing environment...')
         self.environment_height = self.level.height
         self.environment_width = self.level.width
-        self.environment_map = [[EEnvironmentObject.EMPTY for _ in range(self.environment_width)] for _ in range(self.environment_height)]
+        self.environment_map = [
+            [
+                EEnvironmentObject.EMPTY
+                for _ in range(self.environment_width)
+            ]
+            for _ in range(self.environment_height)
+        ]
         for node in self.level.hubs.values():
             if node.is_start():
                 self.environment_map[node.y][node.x] = EEnvironmentObject.START_NODE
