@@ -52,7 +52,7 @@ class DroneModel:
     def is_selected(self) -> bool:
         return self.selected
 
-    def update_selected(self, selected: bool) -> None:
+    def set_selected(self, selected: bool) -> None:
         self.selected = selected
 
     def move_to(
@@ -81,7 +81,11 @@ class DroneModel:
                 rot
             ))
         if self.idx == 0:
-            print(f"Drone {self.idx} move to {position} with rotation {rotation} in {animation_time}ms ({number_of_frames} frames)")
+            print(
+                f"Drone {self.idx} move to {position} with rotation "
+                f"{rotation} in {animation_time}ms ({number_of_frames} "
+                "frames)"
+            )
 
     def back_to(
                 self,
@@ -102,10 +106,10 @@ class DroneModel:
         return math.atan2(p2.y - p1.y, p2.x - p1.x) * (180 / math.pi)
 
     def get_position(self) -> Vector3:
-        return Vector3(self.last_postion[0].x * 3, 0.77, self.last_postion[0].y * 3)
+        return Vector3(self.last_postion[0].x * 3, 1.1, self.last_postion[0].y * 3)
 
     def get_coll_position(self) -> Vector3:
-        return Vector3(self.last_postion[0].x * 3, 0.77 + .4, self.last_postion[0].y * 3)
+        return Vector3(self.last_postion[0].x * 3, 1.1 + .4, self.last_postion[0].y * 3)
 
     def draw(self) -> None:
         if len(self.animations_pos) > 0:

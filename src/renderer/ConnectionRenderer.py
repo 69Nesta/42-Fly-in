@@ -23,8 +23,8 @@ class ConnectionRenderer:
     def draw(self) -> None:
         for connection in self.level.connections.all:
             pr.draw_line_3d(
-                Vector3(connection.hubs[0].x * 3, 0.83, connection.hubs[0].y*3),
-                Vector3(connection.hubs[1].x * 3, 0.83, connection.hubs[1].y*3),
+                Vector3(connection.hubs[0].x * 3, 1.1, connection.hubs[0].y*3),
+                Vector3(connection.hubs[1].x * 3, 1.1, connection.hubs[1].y*3),
                 pr.RED
             )
 

@@ -1,4 +1,4 @@
-from .EnvironementRenderer import EnvironementRenderer
+from .EnvironmentRenderer import EnvironmentRenderer
 from .ConnectionRenderer import ConnectionRenderer
 from .DronesRenderer import DronesRenderer
 from .HubRenderer import HubRenderer
@@ -55,7 +55,7 @@ class CoreRenderer:
 
         self.ray_cast = RayCast(self.level)
 
-        self.environement_renderer = EnvironementRenderer(self.level)
+        self.environment_renderer = EnvironmentRenderer(self.level)
         self.hub_renderer = HubRenderer(self.level, self.ray_cast)
         self.connection_renderer = ConnectionRenderer(self.level)
         self.drones_renderer = DronesRenderer(self.level, self.ray_cast)
@@ -72,7 +72,7 @@ class CoreRenderer:
             pr.update_camera(self.camera, pr.CameraMode.CAMERA_FREE)
 
             # Update
-            self.environement_renderer.update(time)
+            self.environment_renderer.update(time)
             self.hub_renderer.update()
             self.connection_renderer.update()
             self.drones_renderer.update()
@@ -88,7 +88,7 @@ class CoreRenderer:
 
             # 3D scene
             pr.begin_mode_3d(self.camera)
-            self.environement_renderer.draw()
+            self.environment_renderer.draw()
             self.connection_renderer.draw()
             self.hub_renderer.draw()
             self.drones_renderer.draw()
@@ -100,7 +100,7 @@ class CoreRenderer:
             pr.end_drawing()
 
         self.logger.log('Closing renderer...')
-        self.environement_renderer.unload()
+        self.environment_renderer.unload()
         self.hub_renderer.unload()
         self.connection_renderer.unload()
         self.drones_renderer.unload()

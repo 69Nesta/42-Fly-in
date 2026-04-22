@@ -59,6 +59,7 @@ class Level:
             raise ValueError('No end hub found in the level')
 
         self.init_drones()
+        self._nodes_positions()
 
     def _nodes_positions(self) -> None:
         self.min_pos = Vector2(inf, inf)

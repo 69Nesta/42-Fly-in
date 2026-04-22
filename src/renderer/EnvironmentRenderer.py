@@ -1,21 +1,26 @@
 from ..utils import Logger, Color
 from ..Level import Level
 from .SkyBox import SkyBox
+from .Environment import Environment
+from .models import PlatformModel
 
-from pyray import Model, Mesh
-import pyray as pr
+# from pyray import Model, Mesh
+# import pyray as pr
 
 
-class EnvironementRenderer:
+class EnvironmentRenderer:
     level: Level
     logger: Logger
 
     # sea: SeaModel
 
-    mesh: Mesh
-    model: Model
+    # mesh: Mesh
+    # model: Model
     skybox: SkyBox
     # buoys: BuoysModel
+    environment: Environment
+
+    platform: PlatformModel
 
     def __init__(self, level: Level) -> None:
         self.level = level
@@ -27,9 +32,11 @@ class EnvironementRenderer:
         self.logger.log('Initializing drones renderer...')
 
         # self.sea = SeaModel()
-        self.mesh = pr.gen_mesh_cube(0.2, 0.2, 0.5)
-        self.model = pr.load_model_from_mesh(self.mesh)
+        # self.mesh = pr.gen_mesh_cube(0.2, 0.2, 0.5)
+        # self.model = pr.load_model_from_mesh(self.mesh)
         self.skybox = SkyBox()
+        self.environment = Environment(self.level)
+        self.platform = PlatformModel(self.environment)
         # self.buoys = BuoysModel(self.level)
 
     def update(self, time: float) -> None:
@@ -41,8 +48,10 @@ class EnvironementRenderer:
         # self.sea.draw()
         # self.buoys.draw()
         self.skybox.draw_3d()
+        self.platform.draw()
 
     def unload(self) -> None:
         self.logger.log('Unloading drones renderer...')
         # self.sea.unload()
         self.skybox.unload()
+        self.platform.unload()
