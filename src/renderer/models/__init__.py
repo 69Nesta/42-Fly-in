@@ -1,14 +1,12 @@
-from .DroneModel import DroneModel
-from .SeaModel import SeaModel
-from .BuoysModel import BuoysModel
-from .HubModel import HubModel
+from .CollisionModel import CollisionModel
 from .PlatformModel import PlatformModel
+from .DroneModel import DroneModel
+from .HubModel import HubModel
 
 
 __all__: list[str] = [
+    'CollisionModel',
+    'PlatformModel',
     'DroneModel',
-    'BuoysModel',
-    'SeaModel',
     'HubModel',
-    'PlatformModel'
 ]

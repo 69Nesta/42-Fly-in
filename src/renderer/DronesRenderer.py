@@ -38,7 +38,7 @@ class DronesRenderer:
                 start=(drone.get_position_at_step(0), 0)
             )
             self.drones.append(model)
-            self.raycast.register_drone(idx, model)
+            self.raycast.register(model)
 
     def update(self) -> None:
         if (pr.is_mouse_button_pressed(pr.MouseButton.MOUSE_BUTTON_LEFT) or
