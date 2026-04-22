@@ -32,7 +32,7 @@ class HubRenderer:
         for hub in self.level.hubs.values():
             model = HubModel(hub, self.node_model)
             self.nodes.append(model)
-            self.ray_cast.register_hub(model)
+            self.ray_cast.register(model)
             pass
 
     def update(self) -> None:

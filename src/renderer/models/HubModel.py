@@ -1,29 +1,29 @@
+from .CollisionModel import CollisionModel
 from pyray import Model, Vector3
 from ...Hub import Hub
 import pyray as pr
 
 
-class HubModel:
+class HubModel(CollisionModel):
     model: Model
-    colliton_model: Model
+    collision_model: Model
     hub: Hub
-    is_selected: bool
 
     def __init__(self, hub: Hub, model: Model) -> None:
+        super().__init__()
         self.hub = hub
         self.model = model
-        self.colliton_model = pr.load_model_from_mesh(
+        self.collision_model = pr.load_model_from_mesh(
             pr.gen_mesh_cube(1, 0.1, 1)
         )
-        self.is_selected = False
 
-    def set_selected(self, selected: bool) -> None:
-        self.is_selected = selected
+    def get_collision_model(self) -> Model:
+        return self.collision_model
 
     def get_position(self) -> Vector3:
         return Vector3(self.hub.x * 3, 1, self.hub.y * 3)
 
-    def get_coll_position(self) -> Vector3:
+    def get_collision_position(self) -> Vector3:
         return Vector3(self.hub.x * 3, 1.05, self.hub.y * 3)
 
     def draw(self) -> None:
@@ -38,15 +38,15 @@ class HubModel:
         if self.is_selected:
             self.is_selected = False
             pr.draw_model_wires_ex(
-                self.colliton_model,
-                self.get_coll_position(),
-                Vector3(0, 1, 0),
-                0,
+                self.collision_model,
+                self.get_collision_position(),
+                self.get_collision_rotation_axis(),
+                self.get_collision_rotation(),
                 Vector3(1, 1, 1),
                 pr.WHITE
             )
         pass
 
     def unload(self) -> None:
-        pr.unload_model(self.colliton_model)
+        pr.unload_model(self.collision_model)
         pass

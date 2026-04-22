@@ -1,6 +1,6 @@
-from .models import DroneModel, HubModel
+from .models import DroneModel, HubModel, CollisionModel
 from ..utils import Logger, Color
-from .RayCast import RayCast, t_RayCastValues
+from .RayCast import RayCast
 from .components import TextBox
 from ..Level import Level
 from ..Hub import Hub
@@ -78,7 +78,7 @@ class UIRenderer:
         )
 
     def update(self, ray: Ray) -> None:
-        object: t_RayCastValues | None = self.ray_cast.cast(ray)
+        object: CollisionModel | None = self.ray_cast.cast(ray)
         self._current_targeting = None
 
         if object is None:
@@ -86,10 +86,8 @@ class UIRenderer:
 
         if isinstance(object, HubModel):
             self._current_targeting = object
-            object.set_selected(True)
         elif isinstance(object, DroneModel):
             self._current_targeting = object
-            object.set_selected(True)
 
     def _draw_crosshair(self) -> None:
         pr.draw_rectangle(

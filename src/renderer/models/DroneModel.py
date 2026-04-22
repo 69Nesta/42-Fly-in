@@ -1,3 +1,4 @@
+from .CollisionModel import CollisionModel
 from pyray import Model, Vector3, Vector2
 from ...utils import Bezier
 import pyray as pr
@@ -7,16 +8,14 @@ import math
 t_drone_animation = tuple[Vector2, float]  # position, rotation
 
 
-class DroneModel:
+class DroneModel(CollisionModel):
     idx: int
     model: Model
-    colliton_model: Model
+    collision_model: Model
     frame_rate: int
 
     animations_pos: list[t_drone_animation]
     last_postion: t_drone_animation
-
-    selected: bool
 
     def __init__(
                 self,
@@ -25,17 +24,16 @@ class DroneModel:
                 model: Model,
                 start: t_drone_animation
             ) -> None:
+        super().__init__()
         self.idx = idx
         self.model = model
-        self.colliton_model = pr.load_model_from_mesh(
+        self.collision_model = pr.load_model_from_mesh(
             pr.gen_mesh_cube(0.55, 0.8, 0.55)
         )
         self.frame_rate = frame_rate
         self.last_postion = start
 
         self.init_animations()
-
-        self.selected = False
 
     def get_id(self) -> int:
         return self.idx
@@ -48,12 +46,6 @@ class DroneModel:
             return self.animations_pos[-1]
         else:
             return self.last_postion
-
-    def is_selected(self) -> bool:
-        return self.selected
-
-    def set_selected(self, selected: bool) -> None:
-        self.selected = selected
 
     def move_to(
                 self,
@@ -106,10 +98,27 @@ class DroneModel:
         return math.atan2(p2.y - p1.y, p2.x - p1.x) * (180 / math.pi)
 
     def get_position(self) -> Vector3:
-        return Vector3(self.last_postion[0].x * 3, 1.1, self.last_postion[0].y * 3)
+        return Vector3(
+            self.last_postion[0].x * 3,
+            1.1,
+            self.last_postion[0].y * 3
+        )
 
-    def get_coll_position(self) -> Vector3:
-        return Vector3(self.last_postion[0].x * 3, 1.1 + .4, self.last_postion[0].y * 3)
+    def get_collision_position(self) -> Vector3:
+        return Vector3(
+            self.last_postion[0].x * 3,
+            1.1 + .4,
+            self.last_postion[0].y * 3
+        )
+
+    def get_collision_model(self) -> Model:
+        return self.collision_model
+
+    def get_collision_rotation_axis(self) -> Vector3:
+        return Vector3(0, 1, 0)
+
+    def get_collision_rotation(self) -> float:
+        return self.last_postion[1]
 
     def draw(self) -> None:
         if len(self.animations_pos) > 0:
@@ -124,17 +133,17 @@ class DroneModel:
             Vector3(0.1, 0.1, 0.1),
             pr.WHITE
         )
-        if self.is_selected():
+        if self.is_selected:
+            self.is_selected = False
             pr.draw_model_wires_ex(
-                self.colliton_model,
-                self.get_coll_position(),
+                self.collision_model,
+                self.get_collision_position(),
                 Vector3(0, 1, 0),
                 rotation,
                 Vector3(1, 1, 1),
                 pr.WHITE
             )
-            self.selected = False
 
     def unload(self) -> None:
         # pr.unload_model(self.model)
-        pr.unload_model(self.colliton_model)
+        pr.unload_model(self.collision_model)
