@@ -104,9 +104,11 @@ class Environment:
             )
 
     def calculate_2d_position(self, x: int, y: int) -> Vector2:
+        normalized_x = x - self.level.min_pos.x
+        normalized_y = y - self.level.min_pos.y
         return Vector2(
-            x * self.SCALE + self.PADDING_X,
-            y * self.SCALE + self.PADDING_Y
+            normalized_x * self.SCALE + self.PADDING_X,
+            normalized_y * self.SCALE + self.PADDING_Y
         )
 
     def calculate_2d_position_vec(self, vec: Vector2) -> Vector2:
