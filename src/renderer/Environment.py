@@ -11,19 +11,20 @@ class EEnvironmentObject(Enum):
     START_NODE = 1
     NODE = 2
     END_NODE = 3
-    LIGHT_SQUARE = 4
-    LOOT_BOX = 5
-    TURRET_CANNON = 6
-    TURRET_GUN = 7
-    TURRET_GUN_DOUBLE = 8
+    # LIGHT_SQUARE = 4
+    # LOOT_BOX = 5
+    # TURRET_CANNON = 6
+    # TURRET_GUN = 7
+    # TURRET_GUN_DOUBLE = 8
+    BLOCKED_NODE = 9
 
 
 object_weights: dict[EEnvironmentObject, float] = {
-    EEnvironmentObject.LIGHT_SQUARE: 0.2,
-    EEnvironmentObject.LOOT_BOX: 0,
-    EEnvironmentObject.TURRET_CANNON: 0,
-    EEnvironmentObject.TURRET_GUN: 0,
-    EEnvironmentObject.TURRET_GUN_DOUBLE: 0
+    # EEnvironmentObject.LIGHT_SQUARE: 0.2,
+    # EEnvironmentObject.LOOT_BOX: 0,
+    # EEnvironmentObject.TURRET_CANNON: 0,
+    # EEnvironmentObject.TURRET_GUN: 0,
+    # EEnvironmentObject.TURRET_GUN_DOUBLE: 0
 }
 
 
@@ -61,8 +62,8 @@ class Environment:
         )
 
         self.init_environment()
-        # self.init_environment_map()
-        # self.pre_fill_environment_map()
+        self.init_environment_map()
+        self.pre_fill_environment_map()
         # self.fill_environment_map(
         #     seed=None,
         #     fill_percent=0.02,
@@ -96,12 +97,16 @@ class Environment:
 
         for node in self.level.hubs.values():
             pos = self.calculate_2d_position(node.x, node.y)
-            self.environment_map[pos.y][pos.x] = EEnvironmentObject.NODE
+            self.environment_map[pos.y][pos.x] = (
+                EEnvironmentObject.NODE
+                if not node.is_blocked() else
+                EEnvironmentObject.BLOCKED_NODE
+            )
 
     def calculate_2d_position(self, x: int, y: int) -> Vector2:
         return Vector2(
             x * self.SCALE + self.PADDING_X,
-            y * self.SCALE + self.PADDING_Y + self.SCALE
+            y * self.SCALE + self.PADDING_Y
         )
 
     def calculate_2d_position_vec(self, vec: Vector2) -> Vector2:
