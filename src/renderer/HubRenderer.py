@@ -27,10 +27,13 @@ class HubRenderer:
 
         # Create hub
         self.node_model = pr.load_model('src/assets/models/node.glb')
+        self.node_color_model = pr.load_model_from_mesh(
+            pr.gen_mesh_cylinder(0.15, 0.2, 16)
+        )
 
         self.nodes = []
         for hub in self.level.hubs.values():
-            model = HubModel(hub, self.node_model)
+            model = HubModel(hub, self.node_model, self.node_color_model)
             self.nodes.append(model)
             self.ray_cast.register(model)
             pass
@@ -45,3 +48,4 @@ class HubRenderer:
     def unload(self) -> None:
         self.logger.log('Unloading hub renderer...')
         pr.unload_model(self.node_model)
+        pr.unload_model(self.node_color_model)

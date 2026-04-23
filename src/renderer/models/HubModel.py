@@ -1,4 +1,5 @@
 from .CollisionModel import CollisionModel
+from ..ColorMap import color_map
 from pyray import Model, Vector3
 from ...Hub import Hub
 import pyray as pr
@@ -6,13 +7,16 @@ import pyray as pr
 
 class HubModel(CollisionModel):
     model: Model
+    color_model: Model
+
     collision_model: Model
     hub: Hub
 
-    def __init__(self, hub: Hub, model: Model) -> None:
+    def __init__(self, hub: Hub, model: Model, color_model: Model) -> None:
         super().__init__()
         self.hub = hub
         self.model = model
+        self.color_model = color_model
         self.collision_model = pr.load_model_from_mesh(
             pr.gen_mesh_cube(1, 0.1, 1)
         )
@@ -35,6 +39,18 @@ class HubModel(CollisionModel):
             Vector3(0.5, 0.5, 0.5),
             pr.WHITE
         )
+        pr.draw_model_ex(
+            self.color_model,
+            self.get_position(),
+            Vector3(0, 1, 0),
+            0,
+            Vector3(1, 0.4, 1),
+            color_map.get(
+                self.hub.metadata.get_color(),
+                pr.RAYWHITE
+            )
+        )
+
         if self.is_selected:
             self.is_selected = False
             pr.draw_model_wires_ex(
