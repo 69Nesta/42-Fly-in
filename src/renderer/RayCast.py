@@ -1,21 +1,16 @@
+from pyray import Vector3, Ray, RayCollision, BoundingBox, Matrix
+from .models import CollisionModel
 from ..utils import Logger, Color
+from typing import Optional
 from ..Level import Level
-from ..Hub import Hub
-from .models import DroneModel
-from pyray import Model, Vector3, Ray, RayCollision, BoundingBox
-from typing import Any, Optional
 import pyray as pr
-
-
-t_RayCastValues = Hub | DroneModel
 
 
 class RayCast:
     level: Level
     logger: Logger
 
-    _entries: dict[int, DroneModel]
-    _entries_statics: dict[tuple[Model, Vector3, BoundingBox], t_RayCastValues]
+    _entries: dict[CollisionModel, BoundingBox]
 
     def __init__(self, level: Level) -> None:
         self.level = level
@@ -27,73 +22,47 @@ class RayCast:
         self.logger.log('Initializing ray cast...')
 
         self._entries = {}
-        self._entries_statics = {}
 
-    def register(
-                self,
-                ids: int,
-                model: DroneModel,
-            ) -> None:
-        self.logger.log(
-            f'Registering ray cast entry for drone id : {ids!r}'
+    def register(self, model: CollisionModel) -> None:
+        bounds: BoundingBox = pr.get_mesh_bounding_box(
+            model.get_collision_model().meshes[0]
         )
+
         self._entries.update({
-            ids: model
+            model: bounds
         })
 
-    def register_static(
-                self,
-                model: Model,
-                position: Vector3,
-                data: t_RayCastValues
-            ) -> None:
-        self.logger.log(
-            f'Registering ray cast static entry for {data!r} at {position}'
-        )
-        bounds: BoundingBox = pr.get_mesh_bounding_box(model.meshes[0])
-        bounds.min = pr.vector3_add(bounds.min, position)
-        bounds.max = pr.vector3_add(bounds.max, position)
-
-        self._entries_statics.update({
-            (model, position, bounds): data
-        })
-
-    def cast(self, ray: Ray) -> Optional[t_RayCastValues]:
-        best_value: Optional[Any] = None
+    def cast(self, ray: Ray) -> CollisionModel | None:
+        best_value: Optional[CollisionModel] = None
         best_col: Optional[RayCollision] = None
+        bounds: BoundingBox = BoundingBox()
 
-        for (entry, position, bounds), value in self._entries_statics.items():
+        for model, local_bounds in self._entries.items():
+            position: Vector3 = model.get_collision_position()
+
+            bounds.min = pr.vector3_add(local_bounds.min, position)
+            bounds.max = pr.vector3_add(local_bounds.max, position)
+
             if not pr.get_ray_collision_box(ray, bounds).hit:
                 continue
 
-            transform = pr.matrix_translate(position.x, position.y, position.z)
+            translation: Matrix = pr.matrix_translate(
+                position.x, position.y, position.z
+            )
+            rotation: Matrix = pr.matrix_rotate(
+                model.get_collision_rotation_axis(),
+                model.get_collision_rotation()
+            )
+
+            transform: Matrix = pr.matrix_multiply(rotation, translation)
             col: RayCollision = pr.get_ray_collision_mesh(
-                ray, entry.meshes[0], transform
+                ray, model.get_collision_model().meshes[0], transform
             )
             if col.hit:
                 if best_col is None or col.distance < best_col.distance:
-                    best_value = value
+                    best_value = model
                     best_col = col
 
-        if best_col is not None:
-            return best_value
-
-        for _, data in self._entries.items():
-            bounds = pr.get_mesh_bounding_box(data.colliton_model.meshes[0])
-            bounds.min = pr.vector3_add(bounds.min, data.get_coll_position())
-            bounds.max = pr.vector3_add(bounds.max, data.get_coll_position())
-
-            if not pr.get_ray_collision_box(ray, bounds).hit:
-                continue
-
-            position = data.get_coll_position()
-            transform = pr.matrix_translate(position.x, position.y, position.z)
-            col = pr.get_ray_collision_mesh(
-                ray, data.colliton_model.meshes[0], transform
-            )
-            if col.hit:
-                if best_col is None or col.distance < best_col.distance:
-                    best_value = data
-                    best_col = col
-
+        if best_value is not None:
+            best_value.set_selected(True)
         return best_value

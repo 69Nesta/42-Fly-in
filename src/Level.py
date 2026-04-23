@@ -59,6 +59,7 @@ class Level:
             raise ValueError('No end hub found in the level')
 
         self.init_drones()
+        self._nodes_positions()
 
     def _nodes_positions(self) -> None:
         self.min_pos = Vector2(inf, inf)
@@ -103,13 +104,21 @@ class Level:
     def get_current_step(self) -> int:
         return self.current_step
 
+    def get_drone_start_position(self) -> Vector2:
+        pos: Vector2 = self.start_hub.get_position()
+        return Vector2(pos.x - 1, pos.y)
+
+    def get_drone_end_position(self) -> Vector2:
+        pos: Vector2 = self.end_hub.get_position()
+        return Vector2(pos.x + 1, pos.y)
+
     def init_drones(self) -> None:
         self.logger.log(f'Initializing {self.nb_drones} drones...')
         self.drones = []
         for i in range(self.nb_drones):
             self.drones.append(Drone(
                 id=i,
-                start_point=Vector2(-1, 0),
-                end_point=Vector2(self.end_hub.x + 1, self.end_hub.y)
+                start_point=self.get_drone_start_position(),
+                end_point=self.get_drone_end_position(),
             ))
         self.logger.log('Drones initialized successfully.')

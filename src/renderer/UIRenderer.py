@@ -1,6 +1,6 @@
-from .models import DroneModel
+from .models import DroneModel, HubModel, CollisionModel
 from ..utils import Logger, Color
-from .RayCast import RayCast, t_RayCastValues
+from .RayCast import RayCast
 from .components import TextBox
 from ..Level import Level
 from ..Hub import Hub
@@ -52,7 +52,7 @@ class UIRenderer:
         self.text_box_state = TextBox(
             font_size=20,
             text_color=pr.WHITE,
-            background_color=pr.fade(pr.BLACK, 0.5),
+            background_color=pr.fade(pr.GRAY, 0.2),
             screen_width=self.width,
             screen_height=self.height,
             top_align=True,
@@ -60,8 +60,8 @@ class UIRenderer:
         )
         self.text_box_drone = TextBox(
             font_size=20,
-            text_color=pr.GREEN,
-            background_color=pr.fade(pr.LIME, 0.5),
+            text_color=pr.ORANGE,
+            background_color=pr.fade(pr.ORANGE, 0.2),
             screen_width=self.width,
             screen_height=self.height,
             top_align=True,
@@ -70,7 +70,7 @@ class UIRenderer:
         self.text_box_hub = TextBox(
             font_size=20,
             text_color=pr.BLUE,
-            background_color=pr.fade(pr.SKYBLUE, 0.5),
+            background_color=pr.fade(pr.SKYBLUE, 0.2),
             screen_width=self.width,
             screen_height=self.height,
             top_align=True,
@@ -78,17 +78,16 @@ class UIRenderer:
         )
 
     def update(self, ray: Ray) -> None:
-        object: t_RayCastValues | None = self.ray_cast.cast(ray)
+        object: CollisionModel | None = self.ray_cast.cast(ray)
         self._current_targeting = None
 
         if object is None:
             return
 
-        if isinstance(object, Hub):
+        if isinstance(object, HubModel):
             self._current_targeting = object
         elif isinstance(object, DroneModel):
             self._current_targeting = object
-            object.update_selected(True)
 
     def _draw_crosshair(self) -> None:
         pr.draw_rectangle(
@@ -108,7 +107,8 @@ class UIRenderer:
         if self._current_targeting is None:
             return
 
-        if isinstance(self._current_targeting, Hub):
+        if isinstance(self._current_targeting, HubModel):
+            self._current_targeting = self._current_targeting.hub
             reservation: dict[int, int] = self.level.reservations.get(
                 self._current_targeting, {}
             )
