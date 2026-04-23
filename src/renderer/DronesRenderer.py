@@ -41,8 +41,7 @@ class DronesRenderer:
             self.raycast.register(model)
 
     def update(self) -> None:
-        if (pr.is_mouse_button_pressed(pr.MouseButton.MOUSE_BUTTON_LEFT) or
-                pr.is_key_pressed(pr.KeyboardKey.KEY_RIGHT)):
+        if (pr.is_key_pressed(pr.KeyboardKey.KEY_RIGHT)):
             if self.level.update_step(1):
                 for idx, drone in enumerate(self.drones):
                     drone_pos = self.level.drones[idx].get_position_at_step(
@@ -56,8 +55,7 @@ class DronesRenderer:
                         ),
                         animation_time=self.ANNIMATION_DURATION,
                     )
-        elif (pr.is_mouse_button_pressed(pr.MouseButton.MOUSE_BUTTON_RIGHT) or
-                pr.is_key_pressed(pr.KeyboardKey.KEY_LEFT)):
+        elif (pr.is_key_pressed(pr.KeyboardKey.KEY_LEFT)):
             if self.level.update_step(-1):
                 for idx, drone in enumerate(self.drones):
                     drone_pos = self.level.drones[idx].get_position_at_step(
