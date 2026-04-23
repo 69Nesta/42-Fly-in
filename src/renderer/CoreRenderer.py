@@ -68,13 +68,13 @@ class CoreRenderer:
         self.ui_renderer = UIRenderer(
             self.level,
             self.WIDTH, self.HEIGHT,
-            self.ray_cast
+            self.ray_cast,
+            self.input_controller
         )
 
     def run(self) -> None:
         while not pr.window_should_close():
             time: float = pr.get_time()
-            # pr.update_camera(self.camera, pr.CameraMode.CAMERA_FREE)
 
             # Update
             self.input_controller.update()

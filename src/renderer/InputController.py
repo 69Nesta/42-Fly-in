@@ -1,5 +1,10 @@
+from enum import Enum
 import pyray as pr
 import math
+
+
+class ESettings(Enum):
+    SHOW_UI_HELP: bool = True
 
 
 class InputController:
@@ -12,16 +17,31 @@ class InputController:
 
     focused_mouse: bool
 
+    _settings: dict[ESettings, bool]
+
     def __init__(self, camera: pr.Camera3D, WIDTH: int, HEIGHT: int) -> None:
         self.WIDTH = WIDTH
         self.HEIGHT = HEIGHT
         self.camera = camera
 
         self.move_speed = self.base_move_speed
+        self._settings = {}
         self.focused_mouse = True
 
         if self.focused_mouse:
             pr.disable_cursor()
+
+    def get_setting(self, setting: ESettings) -> bool:
+        if setting not in self._settings:
+            return setting.value
+        return self._settings[setting]
+
+    def set_setting(self, setting: ESettings, value: bool) -> None:
+        self._settings[setting] = value
+
+    def toggle_setting(self, setting: ESettings) -> None:
+        current_value = self.get_setting(setting)
+        self.set_setting(setting, not current_value)
 
     def get_current_pointing(self) -> pr.Vector2:
         if not self.focused_mouse:
@@ -29,15 +49,23 @@ class InputController:
         return pr.Vector2(self.WIDTH / 2.0, self.HEIGHT / 2.0)
 
     def update(self) -> None:
+        self._update_settings()
+        self._update_focused_mouse()
+        self._update_movement_speed()
+        self._update_camera_position()
+        self._update_camera_rotation()
+
+    def _update_settings(self) -> None:
+        if pr.is_key_pressed(pr.KeyboardKey.KEY_H):
+            self.toggle_setting(ESettings.SHOW_UI_HELP)
+
+    def _update_focused_mouse(self) -> None:
         if pr.is_mouse_button_pressed(pr.MouseButton.MOUSE_BUTTON_RIGHT):
             self.focused_mouse = not self.focused_mouse
             if self.focused_mouse:
                 pr.disable_cursor()
             else:
                 pr.enable_cursor()
-        self._update_movement_speed()
-        self._update_camera_position()
-        self._update_camera_rotation()
 
     def _update_camera_position(self) -> None:
         dx = self.camera.target.x - self.camera.position.x
