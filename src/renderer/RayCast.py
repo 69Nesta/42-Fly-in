@@ -24,14 +24,8 @@ class RayCast:
         self._entries = {}
 
     def register(self, model: CollisionModel) -> None:
-        position: Vector3 = model.get_collision_position()
         bounds: BoundingBox = pr.get_mesh_bounding_box(
             model.get_collision_model().meshes[0]
-        )
-
-        self.logger.log(
-            f'Registering ray cast static entry for {model!r} at '
-            f'{position}'
         )
 
         self._entries.update({

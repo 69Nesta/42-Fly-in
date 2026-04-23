@@ -58,7 +58,7 @@ class DroneModel(CollisionModel):
         cuve = Bezier(
             current_pos,
             position,
-            math.radians(current_rot),
+            math.radians(-current_rot),
             math.radians(rotation),
             0.5
         )
