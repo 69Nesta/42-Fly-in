@@ -106,7 +106,7 @@ class UIRenderer:
             self.ray_cast.cast(ray)
         self._current_targeting = None
 
-        if objects is None or len(objects) == 0:
+        if not objects:
             return
 
         first_object, _ = objects[0]

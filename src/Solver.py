@@ -81,8 +81,10 @@ class Solver():
                 return True
 
             for conn in self.level.connections.get_from_hub(hub):
+                if conn.capacity < 1:
+                    continue
                 other = conn.get_other(hub)
-                if other.is_blocked():
+                if other.is_blocked() or other.metadata.max_drones < 1:
                     continue
                 if other not in seen:
                     seen.add(other)
