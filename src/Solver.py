@@ -56,8 +56,8 @@ class Solver():
                and isinstance(next_node, Hub)
                and node != next_node):
                 conn = self.level.connections.get_between(node, next_node)
-                self.reservations_connection[conn][t] = (
-                    self.reservations_connection[conn].get(t, 0) + 1
+                self.reservations_connection[conn][t + 1] = (
+                    self.reservations_connection[conn].get(t + 1, 0) + 1
                 )
 
             if isinstance(node, Connection):
@@ -125,12 +125,9 @@ class Solver():
                 if not neighbor.is_priority():
                     hub_cost += 0.5
 
-                if (self._hub_is_available(neighbor, arrival_time)):
-                    if neighbor.is_restricted():
-                        if not self._connection_is_available(conn, t + 1):
-                            continue
-                    elif not self._connection_is_available(conn, t):
-                        continue
+                if (self._hub_is_available(neighbor, arrival_time)
+                   and self._connection_is_available(conn, arrival_time)):
+
                     new_cost = cost + hub_cost
                     if new_cost < dist[(neighbor, arrival_time)]:
                         dist[(neighbor, arrival_time)] = new_cost
