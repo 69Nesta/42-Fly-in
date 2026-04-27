@@ -108,6 +108,17 @@ class LevelLoader(BaseModel):
                 0, '',
                 'Map must contain at least one end_hub'
             ))
+        if len(start_hubs) > 1:
+            self._result.errors.append(ParseError(
+                0, '',
+                'Map must contain at most one start_hub, got '
+                f'{len(start_hubs)}'
+            ))
+        if len(end_hubs) > 1:
+            self._result.errors.append(ParseError(
+                0, '',
+                f'Map must contain at most one end_hub, got {len(end_hubs)}'
+            ))
 
     def _load(self) -> None:
         with open(self.filepath, 'r') as f:
@@ -125,6 +136,26 @@ class LevelLoader(BaseModel):
         self._parse_connections(lines, index)
 
         self._check_map_validity()
+        self._update_hubs_capacities()
+
+    def _update_hubs_capacities(self) -> None:
+        for hub in self.hubs.values():
+            if hub.is_start() and hub.metadata.max_drones < self.nb_drones:
+                self._logger.warning(
+                    f'Start hub {hub.name!r} has max_drones='
+                    f'{hub.metadata.max_drones}, but nb_drones='
+                    f'{self.nb_drones}. Updating max_drones to '
+                    f'{self.nb_drones}.'
+                )
+                hub.metadata.max_drones = self.nb_drones
+            elif hub.is_end() and hub.metadata.max_drones < self.nb_drones:
+                self._logger.warning(
+                    f'End hub {hub.name!r} has max_drones='
+                    f'{hub.metadata.max_drones}, but nb_drones='
+                    f'{self.nb_drones}. Updating max_drones to '
+                    f'{self.nb_drones}.'
+                )
+                hub.metadata.max_drones = self.nb_drones
 
     def _strip_comments(self, data: str) -> list[tuple[int, str]]:
         result: list[tuple[int, str]] = []

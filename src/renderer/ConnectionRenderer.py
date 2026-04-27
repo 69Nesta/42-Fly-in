@@ -30,5 +30,4 @@ class ConnectionRenderer:
 
     def unload(self) -> None:
         self.logger.log('Unloading connection renderer...')
-        # pr.unload_model(self.hub_model)
         pass

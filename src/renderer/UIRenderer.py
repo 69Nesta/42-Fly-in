@@ -173,7 +173,7 @@ class UIRenderer:
                 f'FPS: {pr.get_fps()}',
                 (
                     f'STEP: {self.level.current_step} / '
-                    f'{self.level.number_of_steps}'
+                    f'{self.level.number_of_steps - 1}'
                 ),
                 f'Number of drones: {len(self.level.drones)}'
             ],

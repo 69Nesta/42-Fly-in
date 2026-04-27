@@ -11,25 +11,10 @@ class EEnvironmentObject(Enum):
     START_NODE = 1
     NODE = 2
     END_NODE = 3
-    # LIGHT_SQUARE = 4
-    # LOOT_BOX = 5
-    # TURRET_CANNON = 6
-    # TURRET_GUN = 7
-    # TURRET_GUN_DOUBLE = 8
     BLOCKED_NODE = 9
 
 
-object_weights: dict[EEnvironmentObject, float] = {
-    # EEnvironmentObject.LIGHT_SQUARE: 0.2,
-    # EEnvironmentObject.LOOT_BOX: 0,
-    # EEnvironmentObject.TURRET_CANNON: 0,
-    # EEnvironmentObject.TURRET_GUN: 0,
-    # EEnvironmentObject.TURRET_GUN_DOUBLE: 0
-}
-
-
-# def make_even(n):
-# return n if n % 2 == 0 else n + 1
+object_weights: dict[EEnvironmentObject, float] = {}
 
 
 class Environment:
@@ -64,11 +49,6 @@ class Environment:
         self.init_environment()
         self.init_environment_map()
         self.pre_fill_environment_map()
-        # self.fill_environment_map(
-        #     seed=None,
-        #     fill_percent=0.02,
-        #     object_weights=object_weights
-        # )
 
     def init_environment_map(self) -> None:
         self.environment_map = defaultdict(

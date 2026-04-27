@@ -37,6 +37,19 @@ class Logger(BaseModel):
             end=end
         )
 
+    def warning(self, message: str, end: str | None = '\n') -> None:
+        """Print a warning message (always shown).
+
+        Args:
+            message (str): Warning message to print.
+            end (str | None): End character appended to the message.
+        """
+        print(
+            f'{self._get_format()} {Color.YELLOW}[WARNING]{Color.RESET} '
+            f'{message}',
+            end=end
+        )
+
     def info(self, message: str, end: str | None = '\n') -> None:
         """Print an informational message (always shown).
 
@@ -65,5 +78,4 @@ class Logger(BaseModel):
             str: Formatted time string (HH:MM:SS).
         """
         now = datetime.datetime.now()
-        # return now.strftime("%b %a %d %X")
         return now.strftime("%X")
