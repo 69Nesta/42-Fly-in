@@ -5,6 +5,7 @@ import math
 
 class ESettings(Enum):
     SHOW_UI_HELP: bool = True
+    SHOW_UI_DEBUG: bool = False
 
 
 class InputController:
@@ -58,6 +59,8 @@ class InputController:
     def _update_settings(self) -> None:
         if pr.is_key_pressed(pr.KeyboardKey.KEY_H):
             self.toggle_setting(ESettings.SHOW_UI_HELP)
+        if pr.is_key_pressed(pr.KeyboardKey.KEY_O):
+            self.toggle_setting(ESettings.SHOW_UI_DEBUG)
 
     def _update_focused_mouse(self) -> None:
         if pr.is_mouse_button_pressed(pr.MouseButton.MOUSE_BUTTON_RIGHT):

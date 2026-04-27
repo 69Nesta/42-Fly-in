@@ -133,6 +133,9 @@ class Hub(BaseModel):
     def get_position(self) -> Vector2:
         return Vector2(self.x, self.y)
 
+    def get_name(self) -> str:
+        return self.name
+
     def __lt__(self, other: 'Hub') -> bool:
         return self.name < other.name
 

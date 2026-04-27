@@ -5,7 +5,7 @@ from .RayCast import RayCast
 from .components import TextBox
 from ..Level import Level
 from ..Hub import Hub
-from pyray import Ray
+from pyray import Ray, RayCollision
 import pyray as pr
 
 
@@ -27,6 +27,7 @@ class UIRenderer:
     text_box_drone: TextBox
     text_box_hub: TextBox
     text_box_state: TextBox
+    text_box_debug: TextBox
 
     def __init__(
                 self,
@@ -88,19 +89,31 @@ class UIRenderer:
             top_align=False,
             left_align=True,
         )
+        self.text_box_debug = TextBox(
+            font_size=20,
+            text_color=pr.YELLOW,
+            background_color=pr.fade(pr.YELLOW, 0.2),
+            screen_width=self.width,
+            screen_height=self.height,
+            top_align=False,
+            left_align=False,
+        )
         self._init_help()
+        self._init_debug()
 
     def update(self, ray: Ray) -> None:
-        object: CollisionModel | None = self.ray_cast.cast(ray)
+        objects: list[tuple[CollisionModel, RayCollision]] = \
+            self.ray_cast.cast(ray)
         self._current_targeting = None
 
-        if object is None:
+        if objects is None or len(objects) == 0:
             return
 
-        if isinstance(object, HubModel):
-            self._current_targeting = object
-        elif isinstance(object, DroneModel):
-            self._current_targeting = object
+        first_object, _ = objects[0]
+        first_object.set_selected(True)
+        if (isinstance(first_object, HubModel) or
+           isinstance(first_object, DroneModel)):
+            self._current_targeting = first_object
 
     def _draw_crosshair(self) -> None:
         pr.draw_rectangle(
@@ -161,10 +174,12 @@ class UIRenderer:
                 (
                     f'STEP: {self.level.current_step} / '
                     f'{self.level.number_of_steps}'
-                )
+                ),
+                f'Number of drones: {len(self.level.drones)}'
             ],
             {
-                0: pr.GREEN
+                0: pr.GREEN,
+                2: pr.GRAY
             }
         )
         self.text_box_state.draw()
@@ -175,7 +190,8 @@ class UIRenderer:
             '- Left / Right arrow to change simulation step',
             '- Right click to toggle mouse focus',
             '- WASD to move the camera',
-            '- H to toggle this help',
+            '- \'O\' to toggle debug info',
+            '- \'H\' to toggle this help',
             '- Mouse to look around',
         ]
         self.text_box_help.set_lines(help_text)
@@ -186,11 +202,45 @@ class UIRenderer:
 
         self.text_box_help.draw()
 
+    def _init_debug(self) -> None:
+        pass
+
+    def _draw_debug(self) -> None:
+        if not self.input_controller.get_setting(ESettings.SHOW_UI_DEBUG):
+            return
+
+        self.text_box_debug.set_lines([
+            'Debug info:',
+            'Connections Reservations: ',
+            *[
+                (
+                    f'- {conn.hubs[0].name} <-> {conn.hubs[1].name}: ' +
+                    str(self.level.reservations_connection.get(conn, {}).get(
+                        self.level.current_step, 0
+                    )) + f' / {conn.get_capacity()}'
+                )
+                for conn in self.level.connections.all
+            ],
+            'Hubs Reservations: ',
+            *[
+                (
+                    f'- {hub.get_name()}: ' +
+                    str(self.level.reservations.get(hub, {}).get(
+                        self.level.current_step, 0
+                    )) + f' / {hub.metadata.max_drones}'
+                )
+                for hub in self.level.hubs.values()
+            ]
+        ])
+
+        self.text_box_debug.draw()
+
     def draw(self) -> None:
         self._draw_help()
         self._draw_state()
         self._draw_crosshair()
         self._draw_current_target()
+        self._draw_debug()
 
     def unload(self) -> None:
         self.logger.log('Unloading UI renderer...')

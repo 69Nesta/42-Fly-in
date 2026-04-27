@@ -32,9 +32,8 @@ class RayCast:
             model: bounds
         })
 
-    def cast(self, ray: Ray) -> CollisionModel | None:
-        best_value: Optional[CollisionModel] = None
-        best_col: Optional[RayCollision] = None
+    def cast(self, ray: Ray) -> list[tuple[CollisionModel, RayCollision]]:
+        touched_models: list[tuple[CollisionModel, RayCollision]] = []
         bounds: BoundingBox = BoundingBox()
 
         for model, local_bounds in self._entries.items():
@@ -59,10 +58,7 @@ class RayCast:
                 ray, model.get_collision_model().meshes[0], transform
             )
             if col.hit:
-                if best_col is None or col.distance < best_col.distance:
-                    best_value = model
-                    best_col = col
+                touched_models.append((model, col))
 
-        if best_value is not None:
-            best_value.set_selected(True)
-        return best_value
+        touched_models.sort(key=lambda x: x[1].distance)
+        return touched_models
