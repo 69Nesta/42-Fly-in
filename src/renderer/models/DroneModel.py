@@ -123,7 +123,7 @@ class DroneModel(CollisionModel):
             self.model,
             self.get_position(),
             Vector3(0, 1, 0),
-            rotation + 90,
+            rotation - 90,
             Vector3(0.1, 0.1, 0.1),
             pr.WHITE
         )
