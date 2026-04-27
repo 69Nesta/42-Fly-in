@@ -14,6 +14,10 @@ t_path = list[tuple[Hub | Connection, int]]
 
 
 class Solver():
+    __slots__: list[str] = [
+        'level', 'logger', 'reservations', 'reservations_connection'
+    ]
+
     level: Level
     logger: Logger
     reservations: dict[Hub, dict[int, int]]
@@ -31,41 +35,36 @@ class Solver():
         self.reset_reservations()
 
     def _hub_is_available(self, hub: Hub, t: int) -> bool:
-        restriced_cond = True
-        if hub.is_restricted():
-            restriced_cond = (
-                self.reservations[hub].get(t - 1, 0) < hub.metadata.max_drones
-            )
         return (
             self.reservations[hub].get(t, 0) < hub.metadata.max_drones
-            and restriced_cond
         )
 
     def _connection_is_available(self, conn: Connection, t: int) -> bool:
-        for dt in range(t, t + conn.get_travel_time(conn.hubs[0])):
-            if (self.reservations_connection[conn].get(dt, 0) >=
-                    conn.get_capacity()):
-                return False
-        return True
+        return (
+            self.reservations_connection[conn].get(t, 0) < conn.get_capacity()
+        )
 
     def _apply_reservation(self, drone: Drone, path: t_path) -> None:
         for i in range(len(path) - 1):
             node, t = path[i]
             next_node, _ = path[i + 1]
-
-            if not isinstance(node, Hub) or not isinstance(next_node, Hub):
-                continue
-
-            self.reservations[node].update({
-                t: self.reservations[node].get(t, 0) + 1
-            })
-
-            if node != next_node:
+            if isinstance(node, Hub):
+                self.reservations[node].update({
+                    t: self.reservations[node].get(t, 0) + 1
+                })
+            if (isinstance(node, Hub)
+               and isinstance(next_node, Hub)
+               and node != next_node):
                 conn = self.level.connections.get_between(node, next_node)
-                for dt in range(t + 1, t + conn.get_travel_time(next_node)):
-                    self.reservations_connection[conn][dt] = (
-                        self.reservations_connection[conn].get(dt, 0) + 1
-                    )
+                self.reservations_connection[conn][t + 1] = (
+                    self.reservations_connection[conn].get(t + 1, 0) + 1
+                )
+
+            if isinstance(node, Connection):
+                self.reservations_connection[node][t] = (
+                    self.reservations_connection[node].get(t, 0) + 1
+                )
+
         last_node, last_t = path[-1]
         if isinstance(last_node, Hub):
             self.reservations[last_node].update({
@@ -127,7 +126,8 @@ class Solver():
                     hub_cost += 0.5
 
                 if (self._hub_is_available(neighbor, arrival_time)
-                   and self._connection_is_available(conn, t)):
+                   and self._connection_is_available(conn, arrival_time)):
+
                     new_cost = cost + hub_cost
                     if new_cost < dist[(neighbor, arrival_time)]:
                         dist[(neighbor, arrival_time)] = new_cost
@@ -147,10 +147,7 @@ class Solver():
             (node, t) for (node, t) in prev if node == self.level.end_hub
         )
         try:
-            end_state = min(
-                states,
-                key=lambda s: s[1]
-            )
+            end_state = heapq.nsmallest(1, states, key=lambda s: s[1])[0]
         except ValueError:
             raise ValueError('No path found from start to end hub.')
 
@@ -185,6 +182,9 @@ class Solver():
             drone.path = path
             self._apply_reservation(drone, path)
             self.logger.log(f'Planned path for drone {drone.id}')
+            self.logger.log(
+                ' -> '.join([hub.get_name() for hub, _ in drone.path])
+            )
 
         self.logger.log('All drones planned successfully.')
         self.level.update_number_of_steps()

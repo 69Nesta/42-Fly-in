@@ -4,7 +4,7 @@ from pyray import Vector2
 from .Hub import Hub
 
 
-@dataclass
+@dataclass(slots=True)
 class Drone:
     id: int = field()
     start_point: Vector2 = field()
