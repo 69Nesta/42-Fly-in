@@ -38,7 +38,7 @@ class CoreRenderer:
         self.logger.log('Initializing renderer...')
 
         self.level = level
-        pr.set_trace_log_level(7)
+        pr.set_trace_log_level(pr.TraceLogLevel.LOG_NONE)
         pr.init_window(self.WIDTH, self.HEIGHT, self.title)
         pr.set_target_fps(60)
 

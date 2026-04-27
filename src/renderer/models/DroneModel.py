@@ -1,5 +1,5 @@
 from .CollisionModel import CollisionModel
-from pyray import Model, Vector3, Vector2
+from pyray import Model, Vector3, Vector2, ModelAnimation
 from ...utils import Bezier
 import pyray as pr
 import math
@@ -123,7 +123,7 @@ class DroneModel(CollisionModel):
             self.model,
             self.get_position(),
             Vector3(0, 1, 0),
-            rotation + 90,
+            rotation - 90,
             Vector3(0.1, 0.1, 0.1),
             pr.WHITE
         )
