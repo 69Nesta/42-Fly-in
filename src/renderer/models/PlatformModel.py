@@ -7,9 +7,6 @@ class PlatformModel:
     model: Model
     environment: Environment
 
-    # offset_x: float
-    # offset_y: float
-
     def __init__(self, environment: Environment) -> None:
         self.environment = environment
         self.model = pr.load_model('src/assets/models/platform.glb')

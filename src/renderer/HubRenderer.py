@@ -25,7 +25,6 @@ class HubRenderer:
         self.logger.log('Initializing hub renderer...')
         self.ray_cast = ray_cast
 
-        # Create hub
         self.node_model = pr.load_model('src/assets/models/node.glb')
         self.node_color_model = pr.load_model_from_mesh(
             pr.gen_mesh_cylinder(0.15, 0.2, 16)

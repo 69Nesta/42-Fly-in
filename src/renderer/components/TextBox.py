@@ -23,7 +23,6 @@ class TextBox():
     out_x_space: int
     out_y_space: int
 
-    # precalculated values
     width: int
     height: int
     left_align: int

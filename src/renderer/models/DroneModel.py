@@ -5,7 +5,7 @@ import pyray as pr
 import math
 
 
-t_drone_animation = tuple[Vector2, float]  # position, rotation
+t_drone_animation = tuple[Vector2, float]
 
 
 class DroneModel(CollisionModel):
@@ -139,5 +139,4 @@ class DroneModel(CollisionModel):
             )
 
     def unload(self) -> None:
-        # pr.unload_model(self.model)
         pr.unload_model(self.collision_model)

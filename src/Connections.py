@@ -167,10 +167,6 @@ class Connections:
             if hub in connection.hubs
         ]
 
-    # def get_intersections(self) \
-    #         -> list[tuple[Connection, Connection, Vector2]]:
-    #     return self._intersections_cache
-
     def calculate_intersections(self) \
             -> list[tuple[Connection, Connection, Vector2]]:
         intersections: list[tuple[Connection, Connection, Vector2]] = []
