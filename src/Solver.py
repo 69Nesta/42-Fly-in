@@ -14,6 +14,10 @@ t_path = list[tuple[Hub | Connection, int]]
 
 
 class Solver():
+    __slots__: list[str] = [
+        'level', 'logger', 'reservations', 'reservations_connection'
+    ]
+
     level: Level
     logger: Logger
     reservations: dict[Hub, dict[int, int]]
@@ -146,10 +150,11 @@ class Solver():
             (node, t) for (node, t) in prev if node == self.level.end_hub
         )
         try:
-            end_state = min(
-                states,
-                key=lambda s: s[1]
-            )
+            # end_state = min(
+            #     states,
+            #     key=lambda s: s[1]
+            # )
+            end_state = heapq.nsmallest(1, states, key=lambda s: s[1])[0]
         except ValueError:
             raise ValueError('No path found from start to end hub.')
 

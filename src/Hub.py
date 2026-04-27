@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import cast, Any
 from .Enums import EColor
 from pyray import Vector2
@@ -25,6 +25,8 @@ class ZoneType(Enum):
 
 
 class HubMetadata(BaseModel):
+    model_config: ConfigDict = ConfigDict(slots=True)
+
     zone: ZoneType = Field(default=ZoneType.NORMAL)
     color: str | None = Field(default=None, pattern=r'^[A-Za-z]+$')
     max_drones: int = Field(default=1, ge=0)
@@ -80,6 +82,8 @@ class HubMetadata(BaseModel):
 
 
 class Hub(BaseModel):
+    model_config: ConfigDict = ConfigDict(slots=True)
+
     type: HubType = Field()
     name: str = Field()
     x: int = Field()
