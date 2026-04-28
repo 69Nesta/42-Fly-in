@@ -6,12 +6,27 @@ import pyray as pr
 
 
 class RayCast:
+    """Ray casting system for 3D object intersection detection.
+
+    Manages collision detection between rays (e.g., mouse rays) and
+    3D models in the scene.
+
+    Attributes:
+        level: The Level instance.
+        logger: Logger instance for debug output.
+        _entries: Dictionary mapping collision models to their bounding boxes.
+    """
     level: Level
     logger: Logger
 
     _entries: dict[CollisionModel, BoundingBox]
 
     def __init__(self, level: Level) -> None:
+        """Initialize the ray casting system.
+
+        Args:
+            level: The Level instance containing scene data.
+        """
         self.level = level
         self.logger = Logger(
             print_log=level.logger.print_log,
@@ -23,6 +38,11 @@ class RayCast:
         self._entries = {}
 
     def register(self, model: CollisionModel) -> None:
+        """Register a collision model for ray casting.
+
+        Args:
+            model: The collision model to register.
+        """
         bounds: BoundingBox = pr.get_mesh_bounding_box(
             model.get_collision_model().meshes[0]
         )
@@ -32,6 +52,14 @@ class RayCast:
         })
 
     def cast(self, ray: Ray) -> list[tuple[CollisionModel, RayCollision]]:
+        """Cast a ray and find all intersected models.
+
+        Args:
+            ray: The ray to cast.
+
+        Returns:
+            List of (model, collision) tuples, sorted by distance.
+        """
         touched_models: list[tuple[CollisionModel, RayCollision]] = []
         bounds: BoundingBox = BoundingBox()
 

@@ -7,6 +7,20 @@ import pyray as pr
 
 
 class DronesRenderer:
+    """Manages drone visualization and animation.
+
+    Coordinates drone model instances, handles step-based animation,
+    and integrates with the raycasting system for collision detection.
+
+    Attributes:
+        level: The Level instance.
+        logger: Logger for debug output.
+        raycast: RayCast system for collision detection.
+        drone_model: Shared PyRay model for all drones.
+        drones: List of DroneModel instances.
+        current_step: Current simulation step.
+        ANNIMATION_DURATION: Duration of drone movement animation in ms.
+    """
     level: Level
     logger: Logger
     raycast: RayCast
@@ -17,6 +31,12 @@ class DronesRenderer:
     ANNIMATION_DURATION: int = 500
 
     def __init__(self, level: Level, ray_cast: RayCast) -> None:
+        """Initialize the drones renderer.
+
+        Args:
+            level: The Level instance.
+            ray_cast: The RayCast system for collision detection.
+        """
         self.level = level
         self.logger = Logger(
             print_log=level.logger.print_log,
@@ -39,6 +59,10 @@ class DronesRenderer:
             self.raycast.register(model)
 
     def update(self) -> None:
+        """Update drone positions based on keyboard input.
+
+        RIGHT arrow advances simulation step, LEFT arrow goes back one step.
+        """
         if (pr.is_key_pressed(pr.KeyboardKey.KEY_RIGHT)):
             if self.level.update_step(1):
                 for idx, drone in enumerate(self.drones):
@@ -69,10 +93,12 @@ class DronesRenderer:
                     )
 
     def draw(self) -> None:
+        """Draw all drone models."""
         for drone in self.drones:
             drone.draw()
 
     def unload(self) -> None:
+        """Unload and clean up all drone models."""
         self.logger.log('Unloading drones renderer...')
         for drone in self.drones:
             drone.unload()

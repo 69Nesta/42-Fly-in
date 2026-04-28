@@ -1,3 +1,11 @@
+"""Custom exception hierarchy for Fly-In application.
+
+Defines application-specific errors:
+- FlyInError: Base exception for all Fly-In errors
+- FileError: File I/O errors (not found, permission, not a file)
+- ParseError: Level file parsing errors
+"""
+
 from .FlyInError import FlyInError
 from .FileError import (
     FileError,

@@ -12,6 +12,25 @@ import pyray as pr
 
 
 class CoreRenderer:
+    """Main 3D renderer for the Fly In simulation visualization.
+
+    Manages all rendering components including hubs, connections, drones,
+    environment, and UI. Orchestrates the main render loop.
+
+    Attributes:
+        WIDTH: Window width in pixels.
+        HEIGHT: Window height in pixels.
+        logger: Logger instance for debug output.
+        level: The Level instance to render.
+        title: Window title.
+        camera: PyRay 3D camera.
+        input_controller: Handles user input and camera movement.
+        ray_cast: Ray casting system for intersection detection.
+        hub_renderer: Renderer for hub objects.
+        connection_renderer: Renderer for connections.
+        drones_renderer: Renderer for drone models.
+        ui_renderer: Renderer for UI overlay.
+    """
     WIDTH: int = 1280
     HEIGHT: int = 720
 
@@ -29,6 +48,14 @@ class CoreRenderer:
     ui_renderer: UIRenderer
 
     def __init__(self, level: Level, verbose: bool = False) -> None:
+        """Initialize the core renderer.
+
+        Sets up the PyRay window, camera, and all rendering components.
+
+        Args:
+            level: The Level instance to render.
+            verbose: Whether to enable verbose logging. Defaults to False.
+        """
         self.title = "Fly In - Renderer"
         self.logger = Logger(
             print_log=verbose,
@@ -74,6 +101,11 @@ class CoreRenderer:
         )
 
     def run(self) -> None:
+        """Start the main render loop.
+
+        Continuously updates all renderers, handles input, and draws
+        the 3D scene and UI overlay until the window is closed.
+        """
         while not pr.window_should_close():
             time: float = pr.get_time()
 

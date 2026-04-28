@@ -17,6 +17,11 @@ class ArgsParser(BaseModel):
     _parser: ArgumentParser = PrivateAttr()
 
     def model_post_init(self, _: Any) -> None:
+        """Initialize the parser after model creation.
+
+        Args:
+            _: Unused context parameter from Pydantic.
+        """
         self._logger = Logger(name='ArgsParser', color=Color.YELLOW)
         self.register_arguments()
 
@@ -61,4 +66,12 @@ class ArgsParser(BaseModel):
         self._logger.log('Arguments registered successfully.')
 
     def parse_args(self, args: Sequence[str] | None = None) -> Namespace:
+        """Parse command-line arguments.
+
+        Args:
+            args: Sequence of argument strings. If None, uses sys.argv.
+
+        Returns:
+            A Namespace object containing the parsed arguments.
+        """
         return self._parser.parse_args(args)

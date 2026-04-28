@@ -1,3 +1,10 @@
+"""UI components for rendering text and labels.
+
+Provides reusable UI elements for displaying information on screen:
+- TextBox: Multi-line styled text display with per-line colors
+- NameTag: 3D world-space name tags that scale with distance
+"""
+
 from .TextBox import TextBox
 from .NameTag import NameTag
 

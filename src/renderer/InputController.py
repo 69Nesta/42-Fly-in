@@ -4,11 +4,31 @@ import math
 
 
 class ESettings(Enum):
+    """User-configurable settings.
+
+    Attributes:
+        SHOW_UI_HELP: Display help overlay.
+        SHOW_UI_DEBUG: Display debug information.
+    """
     SHOW_UI_HELP = True
     SHOW_UI_DEBUG = False
 
 
 class InputController:
+    """Manages camera and input controls for 3D navigation.
+
+    Handles keyboard input for camera movement, mouse-based camera rotation,
+    and setting toggles.
+
+    Attributes:
+        HEIGHT: Screen height in pixels.
+        WIDTH: Screen width in pixels.
+        camera: PyRay Camera3D for 3D view.
+        base_move_speed: Base movement speed multiplier.
+        move_speed: Current movement speed (affected by modifiers).
+        focused_mouse: Whether mouse input focuses on camera rotation.
+        _settings: User setting values.
+    """
     HEIGHT: int
     WIDTH: int
 
@@ -21,6 +41,13 @@ class InputController:
     _settings: dict[ESettings, bool]
 
     def __init__(self, camera: pr.Camera3D, WIDTH: int, HEIGHT: int) -> None:
+        """Initialize the input controller.
+
+        Args:
+            camera: The PyRay Camera3D to control.
+            WIDTH: Screen width in pixels.
+            HEIGHT: Screen height in pixels.
+        """
         self.WIDTH = WIDTH
         self.HEIGHT = HEIGHT
         self.camera = camera
@@ -33,23 +60,52 @@ class InputController:
             pr.disable_cursor()
 
     def get_setting(self, setting: ESettings) -> bool:
+        """Get the current value of a setting.
+
+        Args:
+            setting: The setting to retrieve.
+
+        Returns:
+            Current setting value, or default if not set.
+        """
         if setting not in self._settings:
             return setting.value
         return self._settings[setting]
 
     def set_setting(self, setting: ESettings, value: bool) -> None:
+        """Set the value of a setting.
+
+        Args:
+            setting: The setting to modify.
+            value: New value for the setting.
+        """
         self._settings[setting] = value
 
     def toggle_setting(self, setting: ESettings) -> None:
+        """Toggle a boolean setting to its opposite value.
+
+        Args:
+            setting: The setting to toggle.
+        """
         current_value = self.get_setting(setting)
         self.set_setting(setting, not current_value)
 
     def get_current_pointing(self) -> pr.Vector2:
+        """Get the current mouse/center screen position.
+
+        Returns:
+            Vector2 pointing position (center if focused, mouse position
+            otherwise).
+        """
         if not self.focused_mouse:
             return pr.get_mouse_position()
         return pr.Vector2(self.WIDTH / 2.0, self.HEIGHT / 2.0)
 
     def update(self) -> None:
+        """Update all input and camera controls.
+
+        Processes keyboard input, mouse input, and applies camera updates.
+        """
         self._update_settings()
         self._update_focused_mouse()
         self._update_movement_speed()

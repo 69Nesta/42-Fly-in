@@ -10,6 +10,26 @@ import pyray as pr
 
 
 class UIRenderer:
+    """Manages all UI elements including text boxes, crosshair, and tooltips.
+
+    Renders target information, simulation state, debug data, and help text
+    based on raycasting and user input.
+
+    Attributes:
+        level: The Level instance.
+        logger: Logger for debug output.
+        width: Screen width in pixels.
+        height: Screen height in pixels.
+        ray_cast: RayCast system for picking.
+        camera: PyRay Camera3D.
+        input_controller: Input controller for settings.
+        _current_targeting: Currently targeted hub or drones.
+        text_box_drone: Text box for drone information.
+        text_box_hub: Text box for hub information.
+        text_box_state: Text box for simulation state.
+        text_box_debug: Text box for debug information.
+        stack_count_name_tag: Name tag for drone stack counts.
+    """
     level: Level
     logger: Logger
     width: int
@@ -29,11 +49,22 @@ class UIRenderer:
     def __init__(
                 self,
                 level: Level,
-                width: int, height: int,
+                width: int,
+                height: int,
                 ray_cast: RayCast,
                 camera: Camera3D,
                 input_controller: InputController
             ) -> None:
+        """Initialize the UI renderer.
+
+        Args:
+            level: The Level instance.
+            width: Screen width in pixels.
+            height: Screen height in pixels.
+            ray_cast: The RayCast system for picking.
+            camera: PyRay Camera3D.
+            input_controller: Input controller for settings.
+        """
         self.level = level
         self.logger = Logger(
             print_log=level.logger.print_log,
@@ -53,6 +84,7 @@ class UIRenderer:
         self.stack_count_name_tag = NameTag('', self.camera, font_size=16)
 
     def init_text_boxes(self) -> None:
+        """Initialize all text boxes with styling."""
         self.text_box_state = TextBox(
             font_size=20,
             text_color=pr.WHITE,
@@ -102,6 +134,11 @@ class UIRenderer:
         self._init_debug()
 
     def update(self, ray: Ray) -> None:
+        """Update UI based on raycasting results.
+
+        Args:
+            ray: The ray for picking/raycasting.
+        """
         objects: list[tuple[CollisionModel, RayCollision]] = \
             self.ray_cast.cast(ray)
         self._current_targeting = None
@@ -123,6 +160,7 @@ class UIRenderer:
                     break
 
     def _draw_crosshair(self) -> None:
+        """Draw a crosshair at the center of the screen."""
         pr.draw_rectangle(
             int(self.width / 2) - 1,
             int(self.height / 2) - 10,
@@ -137,6 +175,7 @@ class UIRenderer:
         )
 
     def _draw_current_target_hub(self) -> None:
+        """Draw information about the currently targeted hub."""
         if not isinstance(self._current_targeting, Hub):
             return
         reservation: dict[int, int] = self.level.reservations.get(
@@ -164,6 +203,7 @@ class UIRenderer:
         self.text_box_hub.draw()
 
     def _draw_current_target_drone(self) -> None:
+        """Draw information about currently targeted drone(s)."""
         if not isinstance(self._current_targeting, list):
             return
 
@@ -195,6 +235,7 @@ class UIRenderer:
         self.text_box_drone.draw()
 
     def _draw_current_target(self) -> None:
+        """Draw information about the current target (hub or drone(s))."""
         if self._current_targeting is None:
             return
 
@@ -204,6 +245,7 @@ class UIRenderer:
             self._draw_current_target_drone()
 
     def _draw_state(self) -> None:
+        """Draw current simulation state (FPS, step, drone count)."""
         self.text_box_state.set_lines(
             [
                 f'FPS: {pr.get_fps()}',
@@ -221,6 +263,7 @@ class UIRenderer:
         self.text_box_state.draw()
 
     def _init_help(self) -> None:
+        """Initialize help text with control instructions."""
         help_text: list[str] = [
             'Controls:',
             '- Left / Right arrow to change simulation step',
@@ -233,15 +276,21 @@ class UIRenderer:
         self.text_box_help.set_lines(help_text)
 
     def _draw_help(self) -> None:
+        """Draw help overlay if enabled."""
         if not self.input_controller.get_setting(ESettings.SHOW_UI_HELP):
             return
 
         self.text_box_help.draw()
 
     def _init_debug(self) -> None:
+        """Initialize debug information display (placeholder)."""
         pass
 
     def _draw_debug(self) -> None:
+        """Draw debug information if enabled.
+
+        Shows connection and hub reservations at the current step.
+        """
         if not self.input_controller.get_setting(ESettings.SHOW_UI_DEBUG):
             return
 
@@ -272,6 +321,7 @@ class UIRenderer:
         self.text_box_debug.draw()
 
     def draw(self) -> None:
+        """Draw all UI elements in proper order."""
         self._draw_help()
         self._draw_state()
         self._draw_crosshair()
@@ -279,4 +329,5 @@ class UIRenderer:
         self._draw_debug()
 
     def unload(self) -> None:
+        """Unload and clean up UI resources."""
         self.logger.log('Unloading UI renderer...')

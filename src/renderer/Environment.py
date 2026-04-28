@@ -7,6 +7,7 @@ import random
 
 
 class EEnvironmentObject(Enum):
+    """Environment object types for grid cells."""
     EMPTY = 0
     START_NODE = 1
     NODE = 2
@@ -18,14 +19,47 @@ object_weights: dict[EEnvironmentObject, float] = {}
 
 
 def get_x(vec: Vector2) -> int:
+    """Get the X coordinate from a Vector2.
+
+    Args:
+        vec: Vector2 instance.
+
+    Returns:
+        X coordinate as integer.
+    """
     return int(vec.x)
 
 
 def get_y(vec: Vector2) -> int:
+    """Get the Y coordinate from a Vector2.
+
+    Args:
+        vec: Vector2 instance.
+
+    Returns:
+        Y coordinate as integer.
+    """
     return int(vec.y)
 
 
 class Environment:
+    """Manages the 2D grid environment for pathfinding visualization.
+
+    Converts the level topology into a discrete grid map and tracks
+    environment objects at grid positions.
+
+    Attributes:
+        logger: Logger for debug output.
+        level: The Level instance.
+        environment_height: Grid height in cells.
+        environment_width: Grid width in cells.
+        SCALE: Scaling factor for grid granularity.
+        PADDING_X: Horizontal padding around level bounds.
+        PADDING_Y: Vertical padding around level bounds.
+        offset_x: X offset for grid-to-world conversion.
+        offset_y: Y offset for grid-to-world conversion.
+        environment_map: 2D grid mapping positions to objects.
+    """
     logger: Logger
     level: Level
 
@@ -40,6 +74,11 @@ class Environment:
     environment_map: dict[int, dict[int, EEnvironmentObject]]
 
     def __init__(self, level: Level) -> None:
+        """Initialize the environment grid.
+
+        Args:
+            level: The Level instance.
+        """
         self.logger = Logger(
             print_log=level.logger.print_log,
             name='Environment',
@@ -59,11 +98,13 @@ class Environment:
         self.pre_fill_environment_map()
 
     def init_environment_map(self) -> None:
+        """Initialize the environment grid as nested defaultdicts."""
         self.environment_map = defaultdict(
             lambda: defaultdict(lambda: EEnvironmentObject.EMPTY)
         )
 
     def init_environment(self) -> None:
+        """Calculate grid dimensions based on level bounds and scale."""
         self.logger.log('Initializing environment...')
         self.environment_height = 1 + (
             self.level.height * self.SCALE + (self.PADDING_Y * 2)
@@ -73,6 +114,7 @@ class Environment:
         )
 
     def pre_fill_environment_map(self) -> None:
+        """Populate grid with hubs, start, and end positions."""
         pos: Vector2
         pos = self.calculate_2d_position_vec(
             self.level.get_drone_start_position()
@@ -94,6 +136,15 @@ class Environment:
             )
 
     def calculate_2d_position(self, x: float, y: float) -> Vector2:
+        """Convert world coordinates to grid coordinates.
+
+        Args:
+            x: World X coordinate.
+            y: World Y coordinate.
+
+        Returns:
+            Vector2 with grid coordinates.
+        """
         normalized_x = x - self.level.min_pos.x
         normalized_y = y - self.level.min_pos.y
         return Vector2(
@@ -102,6 +153,14 @@ class Environment:
         )
 
     def calculate_2d_position_vec(self, vec: Vector2) -> Vector2:
+        """Convert a Vector2 from world to grid coordinates.
+
+        Args:
+            vec: World position vector.
+
+        Returns:
+            Vector2 with grid coordinates.
+        """
         return self.calculate_2d_position(vec.x, vec.y)
 
     def fill_environment_map(
@@ -110,6 +169,13 @@ class Environment:
                 fill_percent: float,
                 object_weights: dict[EEnvironmentObject, float]
             ) -> None:
+        """Randomly fill environment grid with objects.
+
+        Args:
+            seed: Random seed for reproducibility.
+            fill_percent: Probability of placing an object in each cell.
+            object_weights: Weight distribution for object types.
+        """
         random.seed(seed)
         objects = list(object_weights.keys())
         weights = list(object_weights.values())

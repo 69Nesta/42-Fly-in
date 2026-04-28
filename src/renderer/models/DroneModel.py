@@ -6,9 +6,23 @@ import math
 
 
 t_drone_animation = tuple[Vector2, float]
+"""Type alias for drone animation state: (position, rotation)."""
 
 
 class DroneModel(CollisionModel):
+    """3D model for a delivery drone with animation support.
+
+    Manages drone visualization, movement animations using Bézier curves,
+    and collision detection for raycasting.
+
+    Attributes:
+        idx: Unique identifier for the drone.
+        model: PyRay model for drone geometry.
+        collision_model: Cube mesh for collision detection.
+        frame_rate: Animation frame rate in FPS.
+        animations_pos: Queue of animation frames (position, rotation).
+        last_postion: Current drone position and rotation.
+    """
     idx: int
     model: Model
     collision_model: Model
@@ -24,6 +38,14 @@ class DroneModel(CollisionModel):
                 model: Model,
                 start: t_drone_animation
             ) -> None:
+        """Initialize a drone model.
+
+        Args:
+            idx: Unique drone identifier.
+            frame_rate: Animation frame rate in FPS.
+            model: The PyRay model for drone geometry.
+            start: Starting position and rotation tuple.
+        """
         super().__init__()
         self.idx = idx
         self.model = model
@@ -36,15 +58,31 @@ class DroneModel(CollisionModel):
         self.init_animations()
 
     def get_id(self) -> int:
+        """Get the drone's unique identifier.
+
+        Returns:
+            The drone's ID.
+        """
         return self.idx
 
     def get_pos(self) -> tuple[float, float]:
+        """Get the drone's current position.
+
+        Returns:
+            Tuple of (x, y) coordinates.
+        """
         return (self.last_postion[0].x, self.last_postion[0].y)
 
     def init_animations(self) -> None:
+        """Initialize the animation queue."""
         self.animations_pos = []
 
     def last_animation_pos(self) -> t_drone_animation:
+        """Get the last animation frame or current position.
+
+        Returns:
+            Last animation frame if available, otherwise current position.
+        """
         if len(self.animations_pos) > 0:
             return self.animations_pos[-1]
         else:
@@ -56,6 +94,13 @@ class DroneModel(CollisionModel):
                 rotation: float,
                 animation_time: int
             ) -> None:
+        """Animate drone movement to a new position using Bézier curves.
+
+        Args:
+            position: Target position.
+            rotation: Target rotation in degrees.
+            animation_time: Duration of animation in milliseconds.
+        """
         current_pos, current_rot = self.last_animation_pos()
         number_of_frames = round(animation_time / (1000 / self.frame_rate))
         cuve = Bezier(
@@ -82,15 +127,33 @@ class DroneModel(CollisionModel):
                 rotation: float,
                 animation_time: int
             ) -> None:
+        """Animate drone movement backward to a position.
+
+        Args:
+            position: Target position.
+            rotation: Target rotation in degrees.
+            animation_time: Duration of animation in milliseconds.
+        """
         self.move_to(position, rotation, animation_time)
 
     def set_position(self, position: Vector2, rotation: float = 0) -> None:
+        """Directly set drone position without animation.
+
+        Args:
+            position: New position.
+            rotation: New rotation in degrees. Defaults to 0.
+        """
         self.animations_pos.clear()
         self.animations_pos.append(
             (position, rotation)
         )
 
     def get_position(self) -> Vector3:
+        """Get the drone's 3D world position.
+
+        Returns:
+            Vector3 position in world space.
+        """
         return Vector3(
             self.last_postion[0].x * 3,
             1.1,
@@ -98,6 +161,11 @@ class DroneModel(CollisionModel):
         )
 
     def get_collision_position(self) -> Vector3:
+        """Get the collision model's world position.
+
+        Returns:
+            Vector3 position slightly above the drone.
+        """
         return Vector3(
             self.last_postion[0].x * 3,
             1.1 + .4,
@@ -105,15 +173,33 @@ class DroneModel(CollisionModel):
         )
 
     def get_collision_model(self) -> Model:
+        """Get the collision model for raycasting.
+
+        Returns:
+            The collision model mesh.
+        """
         return self.collision_model
 
     def get_collision_rotation_axis(self) -> Vector3:
+        """Get the rotation axis for the drone.
+
+        Returns:
+            Y-axis (0, 1, 0).
+        """
         return Vector3(0, 1, 0)
 
     def get_collision_rotation(self) -> float:
+        """Get the drone's current rotation angle.
+
+        Returns:
+            Rotation in degrees.
+        """
         return self.last_postion[1]
 
     def draw(self) -> None:
+        """
+        Draw the drone model and optionally its collision box if selected.
+        """
         if len(self.animations_pos) > 0:
             self.last_postion = self.animations_pos.pop(0)
         _, rotation = self.last_postion
@@ -138,4 +224,5 @@ class DroneModel(CollisionModel):
             )
 
     def unload(self) -> None:
+        """Unload and clean up the collision model."""
         pr.unload_model(self.collision_model)

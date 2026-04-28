@@ -6,6 +6,20 @@ import math
 
 
 class ConnectionModel:
+    """Visual 3D model for a connection between two hubs.
+
+    Renders connections as cylinders with proper positioning and rotation
+    based on the connected hubs' positions.
+
+    Attributes:
+        WORLD_SCALE: Scale factor for converting map coordinates to world space
+        CONNECTION_Y: Y-axis height for connections.
+        connection: The Connection object this model represents.
+        model: The PyRay Model for the connection geometry.
+        position: World position of the connection.
+        angle: Rotation angle of the connection.
+        color: Color of the connection.
+    """
     WORLD_SCALE: float = 3.0
     CONNECTION_Y: float = 0.96
 
@@ -17,6 +31,11 @@ class ConnectionModel:
     color: Color
 
     def __init__(self, connection: Connection) -> None:
+        """Initialize a connection model.
+
+        Args:
+            connection: The Connection object to visualize.
+        """
         super().__init__()
         self.connection = connection
         self._generate_models()
@@ -24,6 +43,11 @@ class ConnectionModel:
         self.color = Color(156, 175, 183, 255)
 
     def _generate_models(self) -> None:
+        """Generate the 3D cylinder model for the connection.
+
+        Calculates distance and angle between hubs and creates a cylinder
+        mesh rotated to connect them.
+        """
         p1 = Vector2(self.connection.hubs[0].x, self.connection.hubs[0].y)
         p2 = Vector2(self.connection.hubs[1].x, self.connection.hubs[1].y)
         length = (
@@ -48,9 +72,11 @@ class ConnectionModel:
         self.position = position
 
     def update(self) -> None:
+        """Update the connection model (placeholder for future logic)."""
         pass
 
     def draw(self) -> None:
+        """Draw the connection model to the screen."""
         pr.draw_model(
             self.model,
             self.position,
@@ -59,4 +85,5 @@ class ConnectionModel:
         )
 
     def unload(self) -> None:
+        """Unload and clean up the connection model."""
         pr.unload_model(self.model)

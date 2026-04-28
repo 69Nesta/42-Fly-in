@@ -18,6 +18,14 @@ t_re = re.Pattern[str]
 
 @dataclass
 class ParseResult:
+    """Result of parsing a map file.
+
+    Attributes:
+        nb_drones: Number of drones from the map.
+        hubs: Dictionary of all parsed hubs.
+        errors: List of parsing errors encountered.
+        connections: All parsed connections.
+    """
     nb_drones: int = 0
     hubs: dict[str, Hub] = field(default_factory=dict)
     errors: list[ParseError] = field(default_factory=list)
@@ -25,10 +33,21 @@ class ParseResult:
 
     @property
     def ok(self) -> bool:
+        """Check if parsing was successful.
+
+        Returns:
+            True if no errors occurred during parsing, False otherwise.
+        """
         return len(self.errors) == 0
 
 
 class LevelLoader(BaseModel):
+    """Loads and parses map files to create Level objects.
+
+    Attributes:
+        filepath: Path to the map file to load.
+        verbose: Whether to enable verbose logging.
+    """
     filepath: str = Field()
     verbose: bool = Field(default=False)
 
@@ -41,21 +60,54 @@ class LevelLoader(BaseModel):
 
     @property
     def nb_drones(self) -> int:
+        """Get the number of drones.
+
+        Returns:
+            Number of drones from the parsed map.
+        """
         return self._result.nb_drones
 
     @property
     def hubs(self) -> dict[str, Hub]:
+        """Get all hubs.
+
+        Returns:
+            Dictionary of hubs indexed by name.
+        """
         return self._result.hubs
 
     @property
     def connections(self) -> Connections:
+        """Get all connections.
+
+        Returns:
+            Connections container with all connections.
+        """
         return self._result.connections
 
     @property
     def errors(self) -> list[ParseError]:
+        """Get all parsing errors.
+
+        Returns:
+            List of ParseError objects encountered during loading.
+        """
         return self._result.errors
 
     def model_post_init(self, context: Any) -> None:
+        """Initialize the loader after model creation.
+
+        Loads and parses the map file.
+
+        Args:
+            context: Pydantic context parameter.
+
+        Raises:
+            FileNotFoundError: If the map file doesn't exist.
+            PermissionError: If there's no permission to read the file.
+            NotAFileError: If the path is a directory.
+            ValueError: If parsing produces errors.
+        """
         self._logger = Logger(
             print_log=self.verbose,
             name='LevelLoader',
@@ -92,6 +144,10 @@ class LevelLoader(BaseModel):
         return super().model_post_init(context)
 
     def _check_map_validity(self) -> None:
+        """Validate that the map has required start and end hubs.
+
+        Appends errors to _result if validation fails.
+        """
         start_hubs = [
             hub for hub in self.hubs.values() if hub.type == HubType.START_HUB
         ]
@@ -121,6 +177,10 @@ class LevelLoader(BaseModel):
             ))
 
     def _load(self) -> None:
+        """Load and parse the map file.
+
+        Reads the file and parses drones, hubs, and connections sections.
+        """
         with open(self.filepath, 'r') as f:
             raw: str = f.read()
 
@@ -139,6 +199,10 @@ class LevelLoader(BaseModel):
         self._update_hubs_capacities()
 
     def _update_hubs_capacities(self) -> None:
+        """Update start/end hub capacities if needed.
+
+        Ensures start and end hubs can accommodate all drones.
+        """
         for hub in self.hubs.values():
             if hub.is_start() and hub.metadata.max_drones < self.nb_drones:
                 self._logger.warning(
@@ -158,6 +222,14 @@ class LevelLoader(BaseModel):
                 hub.metadata.max_drones = self.nb_drones
 
     def _strip_comments(self, data: str) -> list[tuple[int, str]]:
+        """Strip comments from map file content.
+
+        Args:
+            data: Raw file content.
+
+        Returns:
+            List of (line_number, content) tuples with comments removed.
+        """
         result: list[tuple[int, str]] = []
         for lineno, raw in enumerate(data.splitlines(), start=1):
             cleaned = raw.split('#')[0].strip()
@@ -170,6 +242,15 @@ class LevelLoader(BaseModel):
                 lines: list[tuple[int, str]],
                 index: int
             ) -> int:
+        """Parse the number of drones from the map file.
+
+        Args:
+            lines: List of (line_number, content) tuples.
+            index: Current line index.
+
+        Returns:
+            The next line index after parsing.
+        """
         lineno, line = lines[index]
         match = self._RE_NB_DRONES.match(line)
         if not match:
@@ -182,6 +263,15 @@ class LevelLoader(BaseModel):
         return index + 1
 
     def _parse_hubs(self, lines: list[tuple[int, str]], index: int) -> int:
+        """Parse hub definitions from the map file.
+
+        Args:
+            lines: List of (line_number, content) tuples.
+            index: Current line index.
+
+        Returns:
+            The next line index after parsing all hubs.
+        """
         while index < len(lines):
             lineno, line = lines[index]
             if (not self._RE_HUB.match(line)
@@ -214,6 +304,12 @@ class LevelLoader(BaseModel):
                 lines: list[tuple[int, str]],
                 index: int
             ) -> None:
+        """Parse connection definitions from the map file.
+
+        Args:
+            lines: List of (line_number, content) tuples.
+            index: Current line index to start parsing connections.
+        """
         while index < len(lines):
             lineno, line = lines[index]
             if not self._RE_CONNECTION.match(line):
