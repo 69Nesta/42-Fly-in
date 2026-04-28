@@ -7,6 +7,19 @@ import pyray as pr
 
 
 class HubRenderer:
+    """Renderer for hub visualization in the 3D environment.
+
+    Manages rendering of all hub nodes and their color indicators,
+    with support for selection via raycasting.
+
+    Attributes:
+        level: The level containing hub data.
+        logger: Logger instance for debug output.
+        ray_cast: Ray casting system for intersection detection.
+        node_model: 3D model for hub geometry.
+        node_color_model: 3D model for hub color indicator.
+        nodes: List of hub models to render.
+    """
     level: Level
     logger: Logger
     ray_cast: RayCast
@@ -16,6 +29,12 @@ class HubRenderer:
     nodes: list[HubModel]
 
     def __init__(self, level: Level, ray_cast: RayCast) -> None:
+        """Initialize the hub renderer.
+
+        Args:
+            level: The level instance containing hub data.
+            ray_cast: The ray casting system for intersection detection.
+        """
         self.level = level
         self.logger = Logger(
             print_log=level.logger.print_log,
@@ -38,13 +57,16 @@ class HubRenderer:
             pass
 
     def update(self) -> None:
+        """Update hub models (placeholder for future logic)."""
         pass
 
     def draw(self) -> None:
+        """Draw all hub models to the screen."""
         for node in self.nodes:
             node.draw()
 
     def unload(self) -> None:
+        """Unload and clean up hub models."""
         self.logger.log('Unloading hub renderer...')
         pr.unload_model(self.node_model)
         pr.unload_model(self.node_color_model)

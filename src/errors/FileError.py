@@ -13,6 +13,11 @@ class FileNotFoundError(FileError):
         file_name (str): Path or name of the missing file.
     """
     def __init__(self, file_name: str) -> None:
+        """Initialize FileNotFoundError.
+
+        Args:
+            file_name: Path or name of the missing file.
+        """
         super().__init__(
             f'File \'{file_name}\' not found'
         )
@@ -25,6 +30,11 @@ class PermissionError(FileError):
         file_name (str): Path or name of the file with denied permissions.
     """
     def __init__(self, file_name: str) -> None:
+        """Initialize PermissionError.
+
+        Args:
+            file_name: Path or name of the file with denied permissions.
+        """
         super().__init__(
             f'Permission denied for file \'{file_name}\''
         )
@@ -37,6 +47,11 @@ class NotAFileError(FileError):
         file_name (str): The path that was expected to be a file.
     """
     def __init__(self, file_name: str) -> None:
+        """Initialize NotAFileError.
+
+        Args:
+            file_name: The path that was expected to be a file.
+        """
         super().__init__(
             f'Path \'{file_name}\' is not a file'
         )

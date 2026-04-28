@@ -1,3 +1,9 @@
+"""Color mapping from application enums to PyRay colors.
+
+Provides a dictionary mapping EColor enum values to PyRay color constants
+for consistent color rendering throughout the application.
+"""
+
 import pyray as pr
 from ..Enums import EColor as Color
 

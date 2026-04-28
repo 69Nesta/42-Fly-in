@@ -12,12 +12,26 @@ import os
 
 
 class OutputFile:
+    """Generates and writes simulation output to a file.
+
+    Attributes:
+        filepath: Path where the output file will be written.
+        level: The Level instance containing drone and step information.
+        logger: Logger instance for debug/info messages.
+        lines: Dictionary mapping step numbers to lists of drone position str.
+    """
     filepath: str
     level: Level
     logger: Logger
     lines: dict[int, list[str]]
 
     def __init__(self, filepath: str, level: Level) -> None:
+        """Initialize the output file generator.
+
+        Args:
+            filepath: Path where the output will be written.
+            level: The Level instance to generate output from.
+        """
         self.filepath = filepath
         self.level = level
         self.logger = Logger(
@@ -28,6 +42,10 @@ class OutputFile:
         self.lines = defaultdict(list)
 
     def generate(self) -> None:
+        """Generate output by simulating each step.
+
+        Populates self.lines with drone-to-location mappings for each step.
+        """
         self.logger.log('Generating output file...')
         for step in range(self.level.number_of_steps):
             for drone in self.level.drones:
@@ -45,6 +63,13 @@ class OutputFile:
                     )
 
     def write(self) -> None:
+        """Write the generated output to the file.
+
+        Raises:
+            FileNotFoundError: If the file cannot be created.
+            PermissionError: If there's a permission issue.
+            NotAFileError: If the path is a directory.
+        """
         self.logger.log('Writing output file...')
         directory = os.path.dirname(self.filepath)
         if directory:

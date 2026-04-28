@@ -4,6 +4,32 @@ import pyray as pr
 
 
 class TextBox():
+    """Renders a styled text box on the screen.
+
+    Displays multi-line text with configurable alignment, colors, and styling.
+    Supports per-line color customization.
+
+    Attributes:
+        lines: List of text lines to display.
+        position: Screen position for the text box.
+        font_size: Font size for rendering.
+        text_color: Default text color.
+        background_color: Background color.
+        screen_width: Screen width in pixels.
+        screen_height: Screen height in pixels.
+        text_space: Vertical spacing between lines.
+        is_top_align: Whether to align to top.
+        is_left_align: Whether to align to left.
+        in_x_space: Inner horizontal padding.
+        in_y_space: Inner vertical padding.
+        out_x_space: Outer horizontal padding.
+        out_y_space: Outer vertical padding.
+        width: Calculated text box width.
+        height: Calculated text box height.
+        left_align: Calculated left position.
+        top_align: Calculated top position.
+        color_option: Per-line color overrides.
+    """
     lines: list[str]
     position: Vector2
     font_size: int
@@ -42,8 +68,24 @@ class TextBox():
                 in_x_space: int = 10,
                 in_y_space: int = 10,
                 out_x_space: int = 10,
-                out_y_space: int = 10,
+                out_y_space: int = 10
             ) -> None:
+        """Initialize a text box.
+
+        Args:
+            font_size: Font size for text.
+            text_color: Default text color.
+            background_color: Background color.
+            screen_width: Screen width in pixels.
+            screen_height: Screen height in pixels.
+            top_align: Align to top of screen. Defaults to True.
+            left_align: Align to left of screen. Defaults to True.
+            text_space: Vertical spacing between lines. Defaults to 25.
+            in_x_space: Inner horizontal padding. Defaults to 10.
+            in_y_space: Inner vertical padding. Defaults to 10.
+            out_x_space: Outer horizontal padding. Defaults to 10.
+            out_y_space: Outer vertical padding. Defaults to 10.
+        """
         self.font_size = font_size
         self.text_color = text_color
         self.background_color = background_color
@@ -62,6 +104,7 @@ class TextBox():
         self.out_y_space = out_y_space
 
     def _calculate_lines(self) -> None:
+        """Calculate text box dimensions based on content and alignment."""
         max_line_length: int = max(
             [pr.measure_text(line, self.font_size) for line in self.lines]
         ) if len(self.lines) > 0 else 0
@@ -83,6 +126,13 @@ class TextBox():
                 lines: list[str],
                 color_option: dict[int, Color] = {}
             ) -> None:
+        """Set the text lines and optional per-line colors.
+
+        Args:
+            lines: List of text lines to display.
+            color_option: Dictionary mapping line index to color. Defaults to
+            empty.
+        """
         self.lines = lines
         self.color_option = color_option
 
@@ -93,6 +143,13 @@ class TextBox():
                 lines: list[str],
                 color_option: dict[int, Color] = {}
             ) -> None:
+        """Update all lines and colors (alias for set_lines).
+
+        Args:
+            lines: List of text lines to display.
+            color_option: Dictionary mapping line index to color. Defaults to
+            empty.
+        """
         self.set_lines(lines, color_option)
 
     def update_line(
@@ -101,6 +158,14 @@ class TextBox():
                 line: str,
                 color_option: Optional[Color] = None
             ) -> None:
+        """Update a single line's text and optional color.
+
+        Args:
+            index: Line index to update.
+            line: New text for the line.
+            color_option: Optional color override for the line. Defaults to
+            None.
+        """
         if index < 0 or index >= len(self.lines):
             return
         self.lines[index] = line
@@ -110,6 +175,7 @@ class TextBox():
         self._calculate_lines()
 
     def draw(self) -> None:
+        """Draw the text box with background, border, and styled text."""
         if self.lines is None or len(self.lines) == 0:
             return
 
