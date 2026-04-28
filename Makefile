@@ -10,7 +10,7 @@ run:
 	@$(UV_PY) -m src $(ARGS)
 
 debug:
-	@$(UV_PY) -m src --debug
+	@$(UV_PY) -m src -v $(ARGS)
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
