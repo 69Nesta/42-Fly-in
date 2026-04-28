@@ -1,7 +1,6 @@
 from pyray import Vector3, Ray, RayCollision, BoundingBox, Matrix
 from .models import CollisionModel
 from ..utils import Logger, Color
-from typing import Optional
 from ..Level import Level
 import pyray as pr
 
