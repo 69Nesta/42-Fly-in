@@ -27,12 +27,19 @@ Design and implement an intelligent pathfinding algorithm that:
 - **Interactive CLI**: User-friendly command-line interface for map selection and configuration
 
 ### Preview
+----
 
-**Level Category Selection**: The application starts with an interactive map selector, allowing users to choose from various levels in `maps` directory (*the directory can be changed by adding `--maps-dir <path>`*).  
-![Level Category Selector](assets/preview/level_category_selector.png)  
-**LeveL Map Selection**: After selecting a category, users can choose a specific level to solve, with metadata displayed for informed decision-making.  
-![Level Map Selector](assets/preview/level_map_selector.png)  
-**3D Visualization**: The core rendering engine provides a dynamic view of the drone routing process, showing hubs, connections, and drone movements with clear visual indicators for zone types and capacities.  
+**Level Category Selection**: The application starts with an interactive map selector, allowing users to choose from various levels in `maps` directory (*the directory can be changed by adding `--maps-dir <path>`*).
+![Level Category Selector](assets/preview/level_category_selector.png)
+
+----
+
+**LeveL Map Selection**: After selecting a category, users can choose a specific level to solve, with metadata displayed for informed decision-making.
+![Level Map Selector](assets/preview/level_map_selector.png)
+
+----
+
+**3D Visualization**: The core rendering engine provides a dynamic view of the drone routing process, showing hubs, connections, and drone movements with clear visual indicators for zone types and capacities.
 ![Rendered Scene](assets/preview/rendered_scene.png)
 
 ## Architecture Overview
