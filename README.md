@@ -28,18 +28,17 @@ Design and implement an intelligent pathfinding algorithm that:
 
 ### Preview
 
-**Level Category Selection**: The application starts with an interactive map selector, allowing users to choose from various levels in `maps` directory (*the directory can be changed by adding `--maps-dir <path>`*).
-![Level Category Selector](assets/preview/level_category_selector.png)
-**LeveL Map Selection**: After selecting a category, users can choose a specific level to solve, with metadata displayed for informed decision-making.
-![Level Map Selector](assets/preview/level_map_selector.png)
-**3D Visualization**: The core rendering engine provides a dynamic view of the drone routing process, showing hubs, connections, and drone movements with clear visual indicators for zone types and capacities.
+**Level Category Selection**: The application starts with an interactive map selector, allowing users to choose from various levels in `maps` directory (*the directory can be changed by adding `--maps-dir <path>`*).  
+![Level Category Selector](assets/preview/level_category_selector.png)  
+**LeveL Map Selection**: After selecting a category, users can choose a specific level to solve, with metadata displayed for informed decision-making.  
+![Level Map Selector](assets/preview/level_map_selector.png)  
+**3D Visualization**: The core rendering engine provides a dynamic view of the drone routing process, showing hubs, connections, and drone movements with clear visual indicators for zone types and capacities.  
 ![Rendered Scene](assets/preview/rendered_scene.png)
 
 ## Architecture Overview
 
 ```mermaid
-graph TB
-    graph TD
+graph TD
 
     %% ===== INPUT =====
     subgraph INPUT["🟦 Input Layer"]
@@ -101,6 +100,49 @@ graph TB
 
     %% Node styling
     classDef default fill:#ffffff,stroke:#333,stroke-width:1px,color:#111
+```
+
+## Solver Design
+```mermaid
+flowchart TD
+    A[Start Solver] --> B["reset_reservations()"]
+
+    B --> C["Check path exists (_static_path_exists)"]
+    C -->|No| X["Stop: No valid path"]
+    C -->|Yes| D["plan_all_drones()"]
+
+    D --> E["For each drone"]
+
+    E --> F["Find path (Dijkstra with reservations)"]
+    F -->|No path| Y["Stop: Error"]
+
+    F --> G["Assign path to drone"]
+    G --> H["Apply reservations"]
+    H --> I["Update hub usage over time"]
+    H --> J["Update connection usage over time"]
+
+    I --> K["Next drone"]
+    J --> K
+
+    K -->|More drones| E
+    K -->|Done| L["Update level steps"]
+
+    L --> M["Store reservations in level"]
+    M --> N["End"]
+
+    %% Colors
+    classDef init fill:#D6EAF8,stroke:#1B4F72,stroke-width:2px;
+    classDef check fill:#FCF3CF,stroke:#B7950B,stroke-width:2px;
+    classDef process fill:#D5F5E3,stroke:#1E8449,stroke-width:2px;
+    classDef reservation fill:#E8DAEF,stroke:#6C3483,stroke-width:2px;
+    classDef error fill:#FADBD8,stroke:#922B21,stroke-width:2px;
+
+    class A,B init;
+    class C check;
+    class D,E,F,G process;
+    class H,I,J reservation;
+    class K,L,M,N process;
+    class X,Y error;
 ```
 
 ## Algorithm Implementation
@@ -279,7 +321,8 @@ connection: restricted_zone-goal
 
 1. **Clone and navigate to project**
    ```bash
-   cd /path/to/fly-in
+   git clone git@github.com:69Nesta/42-Fly-in.git
+   cd fly-in
    ```
 
 2. **Install dependencies**
@@ -301,7 +344,7 @@ connection: restricted_zone-goal
 make run
 ```
 
-This launches an interactive map selector to choose which level to solve.
+This launches an interactive map selector to choose which level to solve (*by default the directory levels is `maps/` can be changed with `--maps-dir <path>`*).
 
 #### Specify Input Map
 ```bash
@@ -544,23 +587,22 @@ fly-in/
 ### References
 
 - **Graph Algorithms**
-  - Dijkstra's Algorithm: https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm
-  - Shortest Path in Weighted Graphs: https://www.geeksforgeeks.org/dijkstras-algorithm/
-  - Time-Expanded Graphs: https://en.wikipedia.org/wiki/Space%E2%80%93time_trade-off
+  - [Dijkstra's Algorithm](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm)
+  - [Shortest Path in Weighted Graphs](https://www.geeksforgeeks.org/dsa/shortest-path-weighted-graph-weight-edge-1-2/)
+  - [Time-Expanded Graphs](https://en.wikipedia.org/wiki/Space%E2%80%93time_trade-off)
 
 - **Pathfinding and AI**
-  - A* Algorithm (related): https://en.wikipedia.org/wiki/A*_search_algorithm
-  - Multi-Agent Pathfinding: https://arxiv.org/abs/1308.0676
-  - Capacity Constraints in Networks: https://en.wikipedia.org/wiki/Maximum_flow_problem
+  - [A* Algorithm (related)](https://en.wikipedia.org/wiki/A*_search_algorithm)
+  - [Capacity Constraints in Networks](https://en.wikipedia.org/wiki/Maximum_flow_problem)
 
 - **Type Safety in Python**
-  - Python Type Hints: https://docs.python.org/3/library/typing.html
-  - Mypy Documentation: https://mypy.readthedocs.io/
-  - Pydantic: https://docs.pydantic.dev/
+  - [Python Type Hints](https://docs.python.org/3/library/typing.html)
+  - [Mypy Documentation](https://mypy.readthedocs.io/)
+  - [Pydantic](https://docs.pydantic.dev/)
 
 - **3D Graphics**
-  - Raylib Documentation: https://www.raylib.com/
-  - PyRay (Python Raylib): https://github.com/overdev/pyray
+  - [Raylib Documentation](https://www.raylib.com/)
+  - [PyRay (Python Raylib)](https://electronstudio.github.io/raylib-python-cffi/pyray.html)
 
 ### AI Usage
 
