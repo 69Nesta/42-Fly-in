@@ -87,10 +87,6 @@ class DroneModel(CollisionModel):
             (position, rotation)
         )
 
-    @staticmethod
-    def _get_angle_between_points(p1: Vector2, p2: Vector2) -> float:
-        return math.atan2(p2.y - p1.y, p2.x - p1.x) * (180 / math.pi)
-
     def get_position(self) -> Vector3:
         return Vector3(
             self.last_postion[0].x * 3,

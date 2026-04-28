@@ -17,15 +17,15 @@ class Connection(BaseModel):
 
     _hash: int = PrivateAttr()
 
+    def model_post_init(self, context: Any) -> None:
+        self._hash = hash(self.hubs[0].name) ^ hash(self.hubs[1].name)
+        return super().model_post_init(context)
+
     def get_id(self) -> str:
         return f'{self.hubs[0].name}<->{self.hubs[1].name}'
 
     def get_name(self) -> str:
         return f'{self.hubs[0].name} <-> {self.hubs[1].name}'
-
-    def model_post_init(self, context: Any) -> None:
-        self._hash = hash(self.hubs[0].name) ^ hash(self.hubs[1].name)
-        return super().model_post_init(context)
 
     def get_travel_time(self, from_hub: Hub) -> int:
         return self.get_other(from_hub).metadata.get_travel_time()

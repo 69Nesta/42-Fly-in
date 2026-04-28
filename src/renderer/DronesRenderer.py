@@ -1,4 +1,4 @@
-from ..utils import Logger, Color
+from ..utils import Logger, Color, MathUtils
 from .models import DroneModel
 from .RayCast import RayCast
 from ..Level import Level
@@ -47,7 +47,7 @@ class DronesRenderer:
                     )
                     drone.move_to(
                         position=drone_pos,
-                        rotation=drone._get_angle_between_points(
+                        rotation=MathUtils.get_angle_between_points(
                             drone.last_animation_pos()[0],
                             drone_pos
                         ),
@@ -61,7 +61,7 @@ class DronesRenderer:
                     )
                     drone.back_to(
                         position=drone_pos,
-                        rotation=drone._get_angle_between_points(
+                        rotation=MathUtils.get_angle_between_points(
                             drone.last_animation_pos()[0],
                             drone_pos
                         ),
