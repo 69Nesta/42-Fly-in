@@ -183,10 +183,7 @@ class Solver():
             path: t_path = self.dijkstra_with_reservations(departure_time=0)
             drone.path = path
             self._apply_reservation(drone, path)
-            self.logger.log(f'Planned path for drone {drone.id}')
-            self.logger.log(
-                ' -> '.join([hub.get_name() for hub, _ in drone.path])
-            )
+            self.logger.log(f'Planned path for drone {drone.get_name()}')
 
         self.logger.log('All drones planned successfully.')
         self.level.update_number_of_steps()

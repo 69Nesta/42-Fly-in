@@ -69,6 +69,7 @@ class CoreRenderer:
             self.level,
             self.WIDTH, self.HEIGHT,
             self.ray_cast,
+            self.camera,
             self.input_controller
         )
 

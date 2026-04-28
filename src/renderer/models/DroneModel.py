@@ -38,6 +38,9 @@ class DroneModel(CollisionModel):
     def get_id(self) -> int:
         return self.idx
 
+    def get_pos(self) -> tuple[float, float]:
+        return (self.last_postion[0].x, self.last_postion[0].y)
+
     def init_animations(self) -> None:
         self.animations_pos = []
 

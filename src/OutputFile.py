@@ -37,11 +37,11 @@ class OutputFile:
                     continue
                 if isinstance(hub_or_conn, Hub):
                     self.lines[step].append(
-                        f'D{drone.id + 1}-{hub_or_conn.name}'
+                        f'{drone.get_name()}-{hub_or_conn.name}'
                     )
                 elif isinstance(hub_or_conn, Connection):
                     self.lines[step].append(
-                        f'D{drone.id + 1}-{hub_or_conn.get_id()}'
+                        f'{drone.get_name()}-{hub_or_conn.get_id()}'
                     )
 
     def write(self) -> None:
