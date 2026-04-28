@@ -4,8 +4,8 @@ import math
 
 
 class ESettings(Enum):
-    SHOW_UI_HELP: bool = True
-    SHOW_UI_DEBUG: bool = False
+    SHOW_UI_HELP = True
+    SHOW_UI_DEBUG = False
 
 
 class InputController:

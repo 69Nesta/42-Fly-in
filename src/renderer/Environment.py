@@ -17,13 +17,21 @@ class EEnvironmentObject(Enum):
 object_weights: dict[EEnvironmentObject, float] = {}
 
 
+def get_x(vec: Vector2) -> int:
+    return int(vec.x)
+
+
+def get_y(vec: Vector2) -> int:
+    return int(vec.y)
+
+
 class Environment:
     logger: Logger
     level: Level
 
     environment_height: int
     environment_width: int
-    SCALE: float = 3
+    SCALE: int = 3
     PADDING_X: int = 5
     PADDING_Y: int = 1
     offset_x: float
@@ -55,7 +63,7 @@ class Environment:
             lambda: defaultdict(lambda: EEnvironmentObject.EMPTY)
         )
 
-    def init_environment(self):
+    def init_environment(self) -> None:
         self.logger.log('Initializing environment...')
         self.environment_height = 1 + (
             self.level.height * self.SCALE + (self.PADDING_Y * 2)
@@ -69,21 +77,23 @@ class Environment:
         pos = self.calculate_2d_position_vec(
             self.level.get_drone_start_position()
         )
-        self.environment_map[pos.y][pos.x] = EEnvironmentObject.START_NODE
+        self.environment_map[get_y(pos)][get_x(pos)] = \
+            EEnvironmentObject.START_NODE
         pos = self.calculate_2d_position_vec(
             self.level.get_drone_end_position()
         )
-        self.environment_map[pos.y][pos.x] = EEnvironmentObject.END_NODE
+        self.environment_map[get_y(pos)][get_x(pos)] = \
+            EEnvironmentObject.END_NODE
 
         for node in self.level.hubs.values():
             pos = self.calculate_2d_position(node.x, node.y)
-            self.environment_map[pos.y][pos.x] = (
+            self.environment_map[get_y(pos)][get_x(pos)] = (
                 EEnvironmentObject.NODE
                 if not node.is_blocked() else
                 EEnvironmentObject.BLOCKED_NODE
             )
 
-    def calculate_2d_position(self, x: int, y: int) -> Vector2:
+    def calculate_2d_position(self, x: float, y: float) -> Vector2:
         normalized_x = x - self.level.min_pos.x
         normalized_y = y - self.level.min_pos.y
         return Vector2(

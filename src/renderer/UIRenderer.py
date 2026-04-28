@@ -1,18 +1,12 @@
 from .models import DroneModel, HubModel, CollisionModel
 from .InputController import InputController, ESettings
 from pyray import Ray, RayCollision, Camera3D
+from ..utils import Logger, Color, StrUtils
 from .components import TextBox, NameTag
-from ..utils import Logger, Color
 from .RayCast import RayCast
 from ..Level import Level
 from ..Hub import Hub
 import pyray as pr
-
-
-def truncate(text, max_length):
-    if len(text) > max_length:
-        return text[:max_length - 1] + "..."
-    return text
 
 
 class UIRenderer:
@@ -143,6 +137,8 @@ class UIRenderer:
         )
 
     def _draw_current_target_hub(self) -> None:
+        if not isinstance(self._current_targeting, Hub):
+            return
         reservation: dict[int, int] = self.level.reservations.get(
             self._current_targeting, {}
         )
@@ -150,8 +146,8 @@ class UIRenderer:
         self.text_box_hub.set_lines([
             'Type: Hub',
             (
-                f'Node: {truncate(self._current_targeting.name, 15)} '
-                f'({self._current_targeting.get_position().x:.0f}, '
+                f'Node: {StrUtils.truncate(self._current_targeting.name, 15)}'
+                f' ({self._current_targeting.get_position().x:.0f}, '
                 f'{self._current_targeting.get_position().y:.0f})'
             ),
             (
@@ -168,6 +164,9 @@ class UIRenderer:
         self.text_box_hub.draw()
 
     def _draw_current_target_drone(self) -> None:
+        if not isinstance(self._current_targeting, list):
+            return
+
         if len(self._current_targeting) == 1:
             self.text_box_drone.set_lines([
                 'Type: Drone',

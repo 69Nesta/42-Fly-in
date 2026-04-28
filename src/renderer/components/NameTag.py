@@ -12,7 +12,7 @@ class NameTag:
     base_font_size: int
     min_scale: float
     max_scale: float
-    padding: float
+    padding: int
 
     # Colors
     text_color: Color
@@ -27,7 +27,7 @@ class NameTag:
                 font_size: int = 20,
                 min_scale: float = 0.5,
                 max_scale: float = 2.0,
-                padding: float = 4,
+                padding: int = 4,
                 text_color: Color = pr.WHITE,
                 shadow_color: Color = pr.BLACK,
                 bg_color: Color = Color(0, 0, 0, 120)
@@ -53,7 +53,7 @@ class NameTag:
     def set_offset_y(self, offset_y: float) -> None:
         self.offset_y = offset_y
 
-    def draw(self, position: Vector3):
+    def draw(self, position: Vector3) -> None:
         pos3d = Vector3(
             position.x,
             position.y + self.offset_y,
