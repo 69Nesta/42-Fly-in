@@ -12,6 +12,12 @@ class Drone:
 
     path: list[tuple[Hub | Connection, int]] = field(default_factory=list)
 
+    def get_id(self) -> int:
+        return self.id
+
+    def get_name(self) -> str:
+        return f'D{self.id + 1}'
+
     def get_position(self) -> Vector2:
         return self.start_point
 

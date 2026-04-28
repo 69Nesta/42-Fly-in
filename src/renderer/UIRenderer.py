@@ -1,11 +1,11 @@
 from .models import DroneModel, HubModel, CollisionModel
 from .InputController import InputController, ESettings
+from pyray import Ray, RayCollision, Camera3D
+from .components import TextBox, NameTag
 from ..utils import Logger, Color
 from .RayCast import RayCast
-from .components import TextBox
 from ..Level import Level
 from ..Hub import Hub
-from pyray import Ray, RayCollision
 import pyray as pr
 
 
@@ -21,19 +21,23 @@ class UIRenderer:
     width: int
     height: int
     ray_cast: RayCast
+    camera: Camera3D
     input_controller: InputController
 
-    _current_targeting: Hub | DroneModel | None
+    _current_targeting: Hub | list[DroneModel] | None
     text_box_drone: TextBox
     text_box_hub: TextBox
     text_box_state: TextBox
     text_box_debug: TextBox
+
+    stack_count_name_tag: NameTag
 
     def __init__(
                 self,
                 level: Level,
                 width: int, height: int,
                 ray_cast: RayCast,
+                camera: Camera3D,
                 input_controller: InputController
             ) -> None:
         self.level = level
@@ -47,10 +51,12 @@ class UIRenderer:
         self.width = width
         self.height = height
         self.ray_cast = ray_cast
+        self.camera = camera
         self.input_controller = input_controller
         self._current_targeting = None
 
         self.init_text_boxes()
+        self.stack_count_name_tag = NameTag('', self.camera, font_size=16)
 
     def init_text_boxes(self) -> None:
         self.text_box_state = TextBox(
@@ -111,9 +117,16 @@ class UIRenderer:
 
         first_object, _ = objects[0]
         first_object.set_selected(True)
-        if (isinstance(first_object, HubModel) or
-           isinstance(first_object, DroneModel)):
-            self._current_targeting = first_object
+        if isinstance(first_object, HubModel):
+            self._current_targeting = first_object.hub
+        elif isinstance(first_object, DroneModel):
+            self._current_targeting = [first_object]
+            for obj, _ in objects[1:]:
+                if (isinstance(obj, DroneModel)
+                   and obj.get_pos() == first_object.get_pos()):
+                    self._current_targeting.append(obj)
+                else:
+                    break
 
     def _draw_crosshair(self) -> None:
         pr.draw_rectangle(
@@ -129,43 +142,67 @@ class UIRenderer:
             pr.fade(pr.GRAY, 0.8)
         )
 
+    def _draw_current_target_hub(self) -> None:
+        reservation: dict[int, int] = self.level.reservations.get(
+            self._current_targeting, {}
+        )
+        cost: int = self._current_targeting.metadata.get_travel_time()
+        self.text_box_hub.set_lines([
+            'Type: Hub',
+            (
+                f'Node: {truncate(self._current_targeting.name, 15)} '
+                f'({self._current_targeting.get_position().x:.0f}, '
+                f'{self._current_targeting.get_position().y:.0f})'
+            ),
+            (
+                'Zone: ' +
+                self._current_targeting.metadata.zone.name.capitalize()
+            ),
+            f'Color: {self._current_targeting.metadata.color}',
+            f'Cost: {cost} turn',
+            (
+                f'Load: {reservation.get(self.level.current_step, 0)} /'
+                f' {self._current_targeting.metadata.max_drones}'
+            )
+        ])
+        self.text_box_hub.draw()
+
+    def _draw_current_target_drone(self) -> None:
+        if len(self._current_targeting) == 1:
+            self.text_box_drone.set_lines([
+                'Type: Drone',
+                f'ID: D{self._current_targeting[0].get_id() + 1}',
+                'Position: ('
+                f'{self._current_targeting[0].get_position().x:.0f}, '
+                f'{self._current_targeting[0].get_position().z:.0f})',
+            ])
+        else:
+            self.text_box_drone.set_lines([
+                f'Type: Drone (multiple, {len(self._current_targeting)})',
+                'IDs: ' + ', '.join([
+                    f'D{drone.get_id() + 1}'
+                    for drone in self._current_targeting
+                ]),
+                'Position: ('
+                f'{self._current_targeting[0].get_position().x:.0f}, '
+                f'{self._current_targeting[0].get_position().z:.0f})',
+            ])
+            self.stack_count_name_tag.set_text(
+                f'x{len(self._current_targeting)}'
+            )
+            self.stack_count_name_tag.draw(
+                self._current_targeting[0].get_position()
+            )
+        self.text_box_drone.draw()
+
     def _draw_current_target(self) -> None:
         if self._current_targeting is None:
             return
 
-        if isinstance(self._current_targeting, HubModel):
-            self._current_targeting = self._current_targeting.hub
-            reservation: dict[int, int] = self.level.reservations.get(
-                self._current_targeting, {}
-            )
-            cost: int = self._current_targeting.metadata.get_travel_time()
-            self.text_box_hub.set_lines([
-                'Type: Hub',
-                (
-                    f'Node: {truncate(self._current_targeting.name, 15)} '
-                    f'({self._current_targeting.get_position().x:.0f}, '
-                    f'{self._current_targeting.get_position().y:.0f})'
-                ),
-                (
-                    'Zone: ' +
-                    self._current_targeting.metadata.zone.name.capitalize()
-                ),
-                f'Color: {self._current_targeting.metadata.color}',
-                f'Cost: {cost} turn',
-                (
-                    f'Load: {reservation.get(self.level.current_step, 0)} /'
-                    f' {self._current_targeting.metadata.max_drones}'
-                )
-            ])
-            self.text_box_hub.draw()
-        elif isinstance(self._current_targeting, DroneModel):
-            self.text_box_drone.set_lines([
-                'Type: Drone',
-                f'ID: D{self._current_targeting.get_id() + 1}',
-                f'Position: ({self._current_targeting.get_position().x:.0f}, '
-                f'{self._current_targeting.get_position().z:.0f})',
-            ])
-            self.text_box_drone.draw()
+        if isinstance(self._current_targeting, Hub):
+            self._draw_current_target_hub()
+        elif isinstance(self._current_targeting, list):
+            self._draw_current_target_drone()
 
     def _draw_state(self) -> None:
         self.text_box_state.set_lines(
