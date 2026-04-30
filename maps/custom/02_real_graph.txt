@@ -1,0 +1,25 @@
+nb_drones: 4
+
+start_hub: START 0 0
+end_hub: END 7 3
+
+hub: Alpha 2 1 [max_drones=2]
+hub: Bravo 2 4
+hub: Charlie 4 0
+hub: Delta 4 3
+hub: Echo 4 5
+hub: Fox 6 1
+
+connection: START-Alpha [max_link_capacity=2]
+connection: START-Bravo
+connection: Alpha-Charlie
+connection: Alpha-Delta
+connection: Bravo-Delta
+connection: Bravo-Echo
+connection: Charlie-Fox
+connection: Charlie-Delta
+connection: Delta-Fox
+connection: Delta-END
+connection: Echo-Delta
+connection: Echo-END
+connection: Fox-END

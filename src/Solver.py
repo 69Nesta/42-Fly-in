@@ -1,10 +1,10 @@
 from collections import defaultdict, deque
 from .Connections import Connection
 from .utils import Logger, Color
+from .Hub import Hub, ENodeCost
 from typing import Generator
 from .Level import Level
 from .Drone import Drone
-from .Hub import Hub
 import heapq
 
 t_dist = dict[tuple[Hub, int], float]
@@ -191,7 +191,7 @@ class Solver():
 
                 hub_cost: float = float(travel_time)
                 if not neighbor.is_priority():
-                    hub_cost += 0.5
+                    hub_cost += ENodeCost.NORMAL.value / 1000.0
 
                 if (self._hub_is_available(neighbor, arrival_time)
                    and self._connection_is_available(conn, arrival_time)):
