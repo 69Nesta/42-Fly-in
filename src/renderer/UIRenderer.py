@@ -182,7 +182,7 @@ class UIRenderer:
             self._current_targeting, {}
         )
         cost: int = self._current_targeting.metadata.get_travel_time()
-        self.text_box_hub.set_lines([
+        lines: list[str] = [
             'Type: Hub',
             (
                 f'Node: {StrUtils.truncate(self._current_targeting.name, 15)}'
@@ -199,7 +199,16 @@ class UIRenderer:
                 f'Load: {reservation.get(self.level.current_step, 0)} /'
                 f' {self._current_targeting.metadata.max_drones}'
             )
-        ])
+        ]
+        if self._current_targeting.is_end():
+            lines[-1] = (
+                'Load: ' +
+                str(self.level.drones_reached_end.get(
+                    self.level.current_step, 0
+                )) +
+                f' / {self._current_targeting.metadata.max_drones}'
+            )
+        self.text_box_hub.set_lines(lines)
         self.text_box_hub.draw()
 
     def _draw_current_target_drone(self) -> None:
