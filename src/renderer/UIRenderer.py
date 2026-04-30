@@ -88,7 +88,7 @@ class UIRenderer:
         self.text_box_state = TextBox(
             font_size=20,
             text_color=pr.WHITE,
-            background_color=pr.fade(pr.GRAY, 0.2),
+            background_color=pr.fade(pr.WHITE, 0.3),
             screen_width=self.width,
             screen_height=self.height,
             top_align=True,
@@ -253,11 +253,15 @@ class UIRenderer:
                     f'STEP: {self.level.current_step} / '
                     f'{self.level.number_of_steps - 1}'
                 ),
-                f'Number of drones: {len(self.level.drones)}'
+                f'Number of drones: {len(self.level.drones)}',
+                'Drones reached end: ' +
+                str(self.level.drones_reached_end.get(
+                    self.level.current_step, 0
+                )) +
+                f' / {len(self.level.drones)}'
             ],
             {
                 0: pr.GREEN,
-                2: pr.GRAY
             }
         )
         self.text_box_state.draw()
