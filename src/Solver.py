@@ -276,5 +276,6 @@ class Solver():
 
         self.logger.log('All drones planned successfully.')
         self.level.update_number_of_steps()
+        self.level.update_drone_reached_end()
         self.level.reservations = self.reservations
         self.level.reservations_connection = self.reservations_connection

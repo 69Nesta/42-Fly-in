@@ -44,6 +44,7 @@ class Level:
 
     reservations: dict[Hub, dict[int, int]]
     reservations_connection: dict[Connection, dict[int, int]]
+    drones_reached_end: dict[int, int]
 
     min_pos: Vector2
     max_pos: Vector2
@@ -77,6 +78,7 @@ class Level:
         self.current_step = 0
         self.reservations = {}
         self.reservations_connection = {}
+        self.drones_reached_end = {}
 
         for hub in self.hubs.values():
             if hub.is_start():
@@ -139,6 +141,28 @@ class Level:
             self.number_of_steps,
             max((len(drone.path) for drone in self.drones), default=0)
         )
+
+    def update_drone_reached_end(self) -> None:
+        """
+        Update the count of drones that have reached the end hub at each time
+        step.
+        """
+        tmp_drones_reached_end: dict[int, int] = {}
+        for drone in self.drones:
+            for node, t in drone.path[::-1]:
+                if isinstance(node, Hub) and node.is_end():
+                    tmp_drones_reached_end.update({
+                        t: tmp_drones_reached_end.get(t, 0) + 1
+                    })
+                    break
+
+        total_reach: int = 0
+        for t, count in sorted(
+                    tmp_drones_reached_end.items(),
+                    key=lambda x: x[0]
+                ):
+            total_reach += count
+            self.drones_reached_end[t] = total_reach
 
     def update_step(self, move: int) -> bool:
         """Move the simulation step forward or backward.
