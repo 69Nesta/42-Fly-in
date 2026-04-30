@@ -610,6 +610,7 @@ fly-in/
 - **3D Graphics**
   - [Raylib Documentation](https://www.raylib.com/)
   - [PyRay (Python Raylib)](https://electronstudio.github.io/raylib-python-cffi/pyray.html)
+  - [Bezier Curves](https://en.wikipedia.org/wiki/B%C3%A9zier_curve)
 
 ### AI Usage
 
