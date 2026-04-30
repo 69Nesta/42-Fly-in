@@ -63,27 +63,6 @@ class HubMetadata(BaseModel):
         else:
             return EColor.NONE
 
-    def get_weight(self) -> float:
-        """Get the traversal weight for this hub based on its zone type.
-
-        Returns:
-            Weight value: 1.0 (normal), inf (blocked), 2.0 (restricted), 0.5
-            (priority).
-
-        Raises:
-            ValueError: If zone type is unknown.
-        """
-        if self.zone == ZoneType.NORMAL:
-            return 1.0
-        elif self.zone == ZoneType.BLOCKED:
-            return float('inf')
-        elif self.zone == ZoneType.RESTRICTED:
-            return 2.0
-        elif self.zone == ZoneType.PRIORITY:
-            return 0.5
-        else:
-            raise ValueError(f'Unknown zone type: {self.zone!r}')
-
     def get_travel_time(self) -> int:
         """Get the travel time to traverse this hub based on its zone type.
 
