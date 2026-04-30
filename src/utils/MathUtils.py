@@ -30,3 +30,15 @@ class MathUtils:
             The distance between the two points.
         """
         return math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2)
+
+    @staticmethod
+    def is_same_2d_pos(p1: Vector2, p2: Vector2) -> bool:
+        """Check if two 2D positions are the same.
+
+        Args:
+            p1: First position.
+            p2: Second position.
+        Returns:
+            True if positions are the same, False otherwise.
+        """
+        return p1.x == p2.x and p1.y == p2.y
