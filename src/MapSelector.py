@@ -70,7 +70,7 @@ class MapSelector:
         selected: str | None = None
         file: str | None = None
 
-        priority_last: set[str] = {'customs', 'errors'}
+        priority_last: set[str] = {'customs'}
 
         folders: list[str] = sorted(
             self.maps.keys(),
