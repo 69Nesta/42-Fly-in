@@ -39,6 +39,21 @@ class ZoneType(Enum):
     PRIORITY = 'priority'
 
 
+class ENodeCost(Enum):
+    """Enumeration of cost values for different hub zone types.
+
+    Attributes:
+        NORMAL: Cost for normal zones.
+        BLOCKED: Cost for blocked zones (infinite).
+        RESTRICTED: Cost for restricted zones.
+        PRIORITY: Cost for priority zones (lower than normal).
+    """
+    NORMAL = 1
+    BLOCKED = 2
+    RESTRICTED = 2
+    PRIORITY = 1
+
+
 class HubMetadata(BaseModel):
     """Metadata and properties associated with a hub.
 
@@ -73,16 +88,13 @@ class HubMetadata(BaseModel):
         Raises:
             ValueError: If zone type is unknown.
         """
-        if self.zone == ZoneType.NORMAL:
-            return 1
-        elif self.zone == ZoneType.BLOCKED:
-            return 1
-        elif self.zone == ZoneType.RESTRICTED:
-            return 2
-        elif self.zone == ZoneType.PRIORITY:
-            return 1
-        else:
-            raise ValueError(f'Unknown zone type: {self.zone!r}')
+        match self.zone:
+            case ZoneType.NORMAL | ZoneType.BLOCKED | ZoneType.PRIORITY:
+                return ENodeCost.NORMAL.value
+            case ZoneType.RESTRICTED:
+                return ENodeCost.RESTRICTED.value
+            case _:
+                raise ValueError(f'Unknown zone type: {self.zone!r}')
 
     @classmethod
     def from_attrs(cls, attrs: dict[str, str]) -> 'HubMetadata':
