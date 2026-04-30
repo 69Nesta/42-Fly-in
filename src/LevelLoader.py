@@ -288,6 +288,11 @@ class LevelLoader(BaseModel):
                 self.hubs.update({
                     hub.name: hub
                 })
+                if hub.is_start() and hub.is_blocked():
+                    self._result.errors.append(ParseError(
+                        lineno, line,
+                        'Start hub cannot be blocked'
+                    ))
             except ValidationError as e:
                 for err in e.errors():
                     loc = ' → '.join(str(_loc) for _loc in err['loc'])
