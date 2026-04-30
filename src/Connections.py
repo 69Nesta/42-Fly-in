@@ -60,17 +60,6 @@ class Connection(BaseModel):
         """
         return self.get_other(from_hub).metadata.get_travel_time()
 
-    def get_weight(self, from_hub: Hub) -> float:
-        """Get the traversal weight of this connection from a hub.
-
-        Args:
-            from_hub: The hub where the drone is coming from.
-
-        Returns:
-            Weight value for pathfinding algorithms.
-        """
-        return self.get_other(from_hub).metadata.get_weight()
-
     def get_capacity(self) -> int:
         """Get the connection's capacity.
 
