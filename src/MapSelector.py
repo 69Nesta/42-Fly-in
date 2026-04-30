@@ -1,4 +1,5 @@
 import questionary
+import sys
 import os
 
 
@@ -11,6 +12,9 @@ class MapSelector:
     """
     maps_dir: str
     maps: dict[str, list[str]]
+
+    back_option: str = 'Go Back ↩'
+    quit_option: str = '✖ Exit ✖'
 
     def __init__(self, maps_dir: str) -> None:
         """Initialize the map selector with a directory path.
@@ -63,29 +67,36 @@ class MapSelector:
         Raises:
             ValueError: If no maps are found or selection is cancelled.
         """
-        folders: list[str] = list(self.maps.keys())
+        selected: str | None = None
+        file: str | None = None
+
+        folders = sorted(self.maps.keys())
         if not folders:
             raise ValueError(
                 f'No map files were found under {self.maps_dir!r}.'
             )
 
-        folders.sort()
-        selected = questionary.select(
-            "Pick a folder:",
-            choices=folders
-        ).ask()
-        if selected is None:
-            raise ValueError('Folder selection was cancelled or unavailable.')
+        while True:
+            selected = questionary.select(
+                'Pick a folder',
+                choices=[*folders, self.quit_option],
+            ).ask()
 
-        files: list[str] = self.maps[selected]
-        if not files:
-            raise ValueError(f'No map files available in folder {selected!r}.')
+            if selected is None:
+                raise ValueError(
+                    'Folder selection was cancelled or unavailable.'
+                )
+            if selected == self.quit_option:
+                sys.exit(0)
 
-        file = questionary.select(
-            "Pick a map:",
-            choices=files
-        ).ask()
-        if file is None:
-            raise ValueError('Map selection was cancelled or unavailable.')
+            file = questionary.select(
+                'Pick a map',
+                choices=[*self.maps[selected], self.back_option],
+            ).ask()
 
-        return os.path.join(self.maps_dir, selected, file)
+            if file is None:
+                raise ValueError('Map selection was cancelled or unavailable.')
+            if file == self.back_option:
+                continue
+
+            return os.path.join(self.maps_dir, selected, file)
