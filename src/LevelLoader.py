@@ -193,7 +193,8 @@ class LevelLoader(BaseModel):
         index = self._parse_nb_drones(lines, index)
         index = self._parse_hubs(lines, index)
 
-        self._parse_connections(lines, index)
+        if (self._result.ok):
+            self._parse_connections(lines, index)
 
         self._check_map_validity()
         self._update_hubs_capacities()

@@ -70,7 +70,12 @@ class MapSelector:
         selected: str | None = None
         file: str | None = None
 
-        folders = sorted(self.maps.keys())
+        priority_last: set[str] = {'customs'}
+
+        folders: list[str] = sorted(
+            self.maps.keys(),
+            key=lambda x: (x in priority_last, x)
+        )
         if not folders:
             raise ValueError(
                 f'No map files were found under {self.maps_dir!r}.'

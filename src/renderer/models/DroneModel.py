@@ -108,7 +108,7 @@ class DroneModel(CollisionModel):
             position,
             math.radians(-current_rot),
             math.radians(rotation),
-            0.5
+            0.3
         )
 
         for i in range(number_of_frames):

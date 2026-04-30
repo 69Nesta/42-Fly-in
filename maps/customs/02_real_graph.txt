@@ -1,7 +1,7 @@
 nb_drones: 4
 
-start_hub: START 0 0
-end_hub: END 7 3
+start_hub: START 0 0 [max_drones=4]
+end_hub: END 7 3 [max_drones=4]
 
 hub: Alpha 2 1 [max_drones=2]
 hub: Bravo 2 4
