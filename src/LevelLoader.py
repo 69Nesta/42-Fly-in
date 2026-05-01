@@ -6,9 +6,9 @@ from .errors import (
 )
 from pydantic import BaseModel, Field, PrivateAttr, ValidationError
 from .Connections import Connections, Connection
+from .utils import Color, Logger, MathUtils
 from dataclasses import dataclass, field
 from typing import ClassVar, Any
-from .utils import Color, Logger
 from .Hub import Hub, HubType
 import re
 
@@ -285,6 +285,17 @@ class LevelLoader(BaseModel):
                         lineno, line, 'Hub name must be unique, got duplicate'
                         f' name {hub.name!r}'
                     ))
+                for existing in self.hubs.values():
+                    if MathUtils.is_same_2d_pos(
+                                existing.get_position(),
+                                hub.get_position()
+                            ):
+                        self._result.errors.append(ParseError(
+                            lineno, line,
+                            f'Hub {hub.name!r} has duplicate position '
+                            f'{hub.get_position().x}, {hub.get_position().y} '
+                            f'with hub {existing.name!r}'
+                        ))
                 self.hubs.update({
                     hub.name: hub
                 })
