@@ -1,15 +1,16 @@
 from collections import defaultdict, deque
 from .Connections import Connection
 from .utils import Logger, Color
-from .Hub import Hub, ENodeCost
 from typing import Generator
 from .Level import Level
 from .Drone import Drone
+from .Hub import Hub
 import heapq
 
-t_dist = dict[tuple[Hub, int], float]
-t_prev = dict[tuple[Hub, int], tuple[Hub, int]]
-t_heap_queue = list[tuple[float, Hub, int]]
+
+t_dist = dict[tuple[Hub, int], tuple[float, int]]
+t_prev = dict[tuple[Hub, tuple[int, int]], tuple[Hub, tuple[int, int]]]
+t_heap_queue = list[tuple[int, int, Hub]]
 t_path = list[tuple[Hub | Connection, int]]
 
 
@@ -101,8 +102,9 @@ class Solver():
                and isinstance(next_node, Hub)
                and node != next_node):
                 conn = self.level.connections.get_between(node, next_node)
-                self.reservations_connection[conn][t + 1] = (
-                    self.reservations_connection[conn].get(t + 1, 0) + 1
+                arrival: int = t + conn.get_travel_time(next_node)
+                self.reservations_connection[conn][arrival] = (
+                    self.reservations_connection[conn].get(arrival, 0) + 1
                 )
 
             if isinstance(node, Connection):
@@ -144,7 +146,7 @@ class Solver():
 
         return False
 
-    def dijkstra_with_reservations(self, departure_time: int = 0) -> t_path:
+    def dijkstra_with_reservations(self, departure_time: int, is_first: bool) -> t_path:
         """Find shortest path from start to end hub considering reservations.
 
         Uses Dijkstra's algorithm with dynamic availability constraints based
@@ -159,25 +161,25 @@ class Solver():
         Raises:
             ValueError: If no valid path exists.
         """
-        dist: t_dist = defaultdict(lambda: float('inf'))
+        dist: t_dist = defaultdict(lambda: (float('inf'), 0))
         prev: t_prev = {}
-        visited: set[tuple[Hub, int]] = set()
+        visited: set[tuple[Hub, tuple[int, int]]] = set()
 
         pq: t_heap_queue = [
-            (0, self.level.start_hub, departure_time)
+            (departure_time, 0, self.level.start_hub)
         ]
-        dist[(self.level.start_hub, departure_time)] = 0.0
+        dist[(self.level.start_hub, departure_time)] = (0.0, 0)
 
         while pq:
-            cost, node, t = heapq.heappop(pq)
+            t, priority_count, node = heapq.heappop(pq)
             if node == self.level.end_hub:
-                return self._reconstruct_path(prev)
+                return self._reconstruct_path(prev, is_first=is_first)
 
-            if (node, t) in visited:
+            if (node, (t, priority_count)) in visited:
                 continue
-            visited.add((node, t))
+            visited.add((node, (t, priority_count)))
 
-            if cost > dist[(node, t)]:
+            if (t, priority_count) > dist[(node, t)]:
                 continue
 
             wait_t: int = t + 1
@@ -185,32 +187,46 @@ class Solver():
                 neighbor: Hub = conn.get_other(node)
                 travel_time: int = conn.get_travel_time(node)
                 arrival_time: int = t + travel_time
+                new_priority_count: int = priority_count
 
                 if neighbor.is_blocked():
                     continue
 
-                hub_cost: float = float(travel_time)
-                if not neighbor.is_priority():
-                    hub_cost += ENodeCost.NORMAL.value / 1000.0
+                if neighbor.is_priority():
+                    new_priority_count -= 1
 
                 if (self._hub_is_available(neighbor, arrival_time)
                    and self._connection_is_available(conn, arrival_time)):
 
-                    new_cost = cost + hub_cost
-                    if new_cost < dist[(neighbor, arrival_time)]:
-                        dist[(neighbor, arrival_time)] = new_cost
-                        prev[(neighbor, arrival_time)] = (node, t)
-                        heapq.heappush(pq, (new_cost, neighbor, arrival_time))
+                    new_dist: tuple[int, int] = (
+                        arrival_time,
+                        new_priority_count
+                    )
+                    old_dist: tuple[int, int] = (
+                        t,
+                        priority_count
+                    )
+                    if new_dist < dist[(neighbor, arrival_time)]:
+                        dist[(neighbor, arrival_time)] = new_dist
+                        prev[(neighbor, new_dist)] = (node, old_dist)
+                        if is_first:
+                            self.logger.log(
+                                f'Adding to queue: {neighbor.get_name()} at time {arrival_time} with priority count {new_priority_count}'
+                            )
+                        heapq.heappush(
+                            pq,
+                            (arrival_time, new_priority_count, neighbor)
+                        )
 
-            new_wait_cost: float = cost + 1
-            if new_wait_cost < dist[(node, wait_t)]:
-                dist[(node, wait_t)] = new_wait_cost
-                prev[(node, wait_t)] = (node, t)
-                heapq.heappush(pq, (new_wait_cost, node, wait_t))
+            new_dist = (wait_t, priority_count)
+            if new_dist < dist[(node, wait_t)]:
+                dist[(node, wait_t)] = new_dist
+                prev[(node, new_dist)] = (node, (t, priority_count))
+                heapq.heappush(pq, (wait_t, priority_count, node))
 
         raise ValueError('No path found from start to end hub. !')
 
-    def _reconstruct_path(self, prev: t_prev) -> t_path:
+    def _reconstruct_path(self, prev: t_prev, is_first: bool) -> t_path:
         """Reconstruct the path from start to end hub from previous pointers.
 
         Args:
@@ -222,23 +238,30 @@ class Solver():
         Raises:
             ValueError: If no complete path exists in prev.
         """
-        states: Generator[tuple[Hub, int], None, None] = (
+        states: Generator[tuple[Hub, tuple[int, int]], None, None] = (
             (node, t) for (node, t) in prev if node == self.level.end_hub
         )
         try:
-            end_state = heapq.nsmallest(1, states, key=lambda s: s[1])[0]
+            end_state = heapq.nsmallest(1, states, key=lambda s: (s[1]))
         except ValueError:
+            raise ValueError('No path found from start to end hub.')
+        if not end_state:
             raise ValueError('No path found from start to end hub.')
 
         path: t_path = []
-        state: tuple[Hub, int] | None = end_state
+        state: tuple[Hub, tuple[int, int]] | None = end_state[0]
         while state is not None:
-            path.append(state)
-            new_state: tuple[Hub, int] | None = prev.get(state)
-            if new_state is not None and new_state[1] + 1 != state[1]:
+            if is_first:
+                self.logger.log(f'Backtracking from end state: {state}')
+            node: Hub = state[0]
+            time: int = state[1][0]
+
+            path.append((node, time))
+            new_state: tuple[Hub, tuple[int, int]] | None = prev.get(state)
+            if new_state is not None and new_state[0] != node:
                 path.append((
-                    self.level.connections.get_between(state[0], new_state[0]),
-                    state[1] - 1
+                    self.level.connections.get_between(node, new_state[0]),
+                    time - 1
                 ))
             state = new_state
 
@@ -269,13 +292,28 @@ class Solver():
 
         self.logger.log('Planning paths for all drones...')
         for drone in self.level.drones:
-            path: t_path = self.dijkstra_with_reservations(departure_time=0)
+            path: t_path = self.dijkstra_with_reservations(departure_time=0, is_first=drone.id == 3)
             drone.path = path
             self._apply_reservation(drone, path)
             self.logger.log(f'Planned path for drone {drone.get_name()}')
+            self.logger.log(
+                'Path: ' +
+                str([
+                    node.get_name()
+                    for node, _ in path
+                    if isinstance(node, Hub)
+                ])
+            )
 
         self.logger.log('All drones planned successfully.')
         self.level.update_number_of_steps()
         self.level.update_drone_reached_end()
+        self.print_stats()
         self.level.reservations = self.reservations
         self.level.reservations_connection = self.reservations_connection
+
+    def print_stats(self) -> None:
+        """Print statistics about the planned paths and reservations."""
+        self.logger.info('--- Solver Statistics ---')
+        self.logger.info(f'Total drones: {len(self.level.drones)}')
+        self.logger.info(f'Total steps: {self.level.number_of_steps - 1}')
