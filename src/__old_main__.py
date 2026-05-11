@@ -1,13 +1,12 @@
-from .network.network import Network
+from .renderer.CoreRenderer import CoreRenderer
+from pydantic import ValidationError
 from .MapSelector import MapSelector
 from .ArgsParser import ArgsParser
-from .map_loader import MapLoader
+from .OutputFile import OutputFile
 from .utils import Logger, Color
-
-from .algo.time_graph import TimeGraph
-
-from pydantic import ValidationError
 from argparse import Namespace
+from .Solver import Solver
+from .Level import Level
 import sys
 
 
@@ -41,40 +40,35 @@ def run() -> None:
         else:
             map_path = args.input
 
-        loaded_map: MapLoader = MapLoader(
-            filepath=map_path,
+        level: Level = Level(
+            map_path=map_path,
             verbose=args.verbose
         )
 
-        network: Network = Network(
-            loaded_map=loaded_map,
+        solver: Solver = Solver(
+            level=level
+        )
+        solver.plan_all_drones()
+
+        output: OutputFile = OutputFile(
+            filepath=args.output,
+            level=level
+        )
+        output.generate()
+        output.write()
+
+        renderer: CoreRenderer = CoreRenderer(
+            level=level,
             verbose=args.verbose
         )
-
-        TimeGraph(
-            verbose=args.verbose,
-            network=network
-        )
-
-        # output: OutputFile = OutputFile(
-        #     filepath=args.output,
-        #     level=level
-        # )
-        # output.generate()
-        # output.write()
-
-        # renderer: CoreRenderer = CoreRenderer(
-        #     level=level,
-        #     verbose=args.verbose
-        # )
-        # renderer.run()
+        renderer.run()
 
     except ValidationError as e:
         for error in e.errors():
-            if error.get('ctx') and error.get('ctx', {}).get('error'):
-                logger.error(f'Error: {error.get('ctx', {}).get('error')}')
+            if error.get("ctx") and error.get("ctx", {}).get("error"):
+                logger.error(f"Error: {error.get('ctx', {}).get('error')}")
             else:
-                logger.error(f'Error: {error['msg']}')
+                logger.error(f"Error: {error['msg']}")
     except ValueError as e:
         logger.error(f'Error: {e.__cause__ or e}')
     # except Exception as e:
