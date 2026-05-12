@@ -60,6 +60,12 @@ class Connection(NetworkObject):
                 f'between {self.nodes[0].name!r} and {self.nodes[1].name!r}.'
             )
 
+    def get_capacity(self) -> int:
+        return self.metadata.capacity
+
+    def get_capacity_from(self, node: Node) -> int:
+        return min(self.get_other(node).get_capacity(), self.get_capacity())
+
     def _calculate_hash(self) -> None:
         self._hash = hash(tuple(sorted((
             self.nodes[0].name,

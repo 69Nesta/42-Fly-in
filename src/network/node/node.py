@@ -4,6 +4,7 @@ from ...utils import Logger
 
 from pydantic import BaseModel, Field, PrivateAttr
 from typing import cast, TYPE_CHECKING
+from functools import lru_cache
 from pyray import Vector2
 import re
 
@@ -73,6 +74,23 @@ class Node(NetworkObject, BaseModel):
             metadata=metadata,
         )
 
+    def get_connections(self) -> list[tuple['Node', NetworkObject]]:
+        return self._get_connections_cached()
+
+    @lru_cache(maxsize=None)
+    def _get_connections_cached(
+                self
+            ) -> list[tuple['Node', NetworkObject]]:
+        connections: list[tuple['Node', NetworkObject]] = []
+
+        for connection in self._connections:
+            if connection.nodes[0] is self:
+                connections.append((connection.nodes[1], connection))
+            else:
+                connections.append((connection.nodes[0], connection))
+
+        return connections
+
     def is_blocked(self) -> bool:
         """Check if the hub is in a blocked zone.
 
@@ -128,6 +146,14 @@ class Node(NetworkObject, BaseModel):
             The hub's name.
         """
         return self.name
+
+    def get_capacity(self) -> int:
+        """Get the hub's capacity for drone traffic.
+
+        Returns:
+            The hub's capacity as an integer.
+        """
+        return self.metadata.max_drones
 
     def __lt__(self, other: 'Node') -> bool:
         """Check if this hub's name is lexicographically less than another.

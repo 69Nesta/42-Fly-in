@@ -5,6 +5,7 @@ from .map_loader import MapLoader
 from .utils import Logger, Color
 
 from .algo.time_graph import TimeGraph
+from .algo.dfs import DFS
 
 from pydantic import ValidationError
 from argparse import Namespace
@@ -51,10 +52,20 @@ def run() -> None:
             verbose=args.verbose
         )
 
-        TimeGraph(
+        time_graph: TimeGraph = TimeGraph(
             verbose=args.verbose,
             network=network
         )
+        DFS(args.verbose, time_graph)
+
+        # print('TimeGraph initialized with nodes:', len(time_graph.nodes))
+        # for node in time_graph.step_dict.get(0, set()):
+        #     print(f'Node at time {node.time}: {node.object.get_name()}')
+        # for i in range(1, 8):
+        #     time_graph.next_step()
+        #     print('TimeGraph after next_step with nodes:', len(time_graph.nodes))
+        #     for node in time_graph.step_dict.get(i, set()):
+        #         print(f'Node at time {node.time}: {node.object.get_name()}')
 
         # output: OutputFile = OutputFile(
         #     filepath=args.output,

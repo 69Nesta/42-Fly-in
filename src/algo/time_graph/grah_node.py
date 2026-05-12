@@ -1,5 +1,5 @@
 from .node import Node
 
 
-class ConnectionNode(Node):
+class GraphNode(Node):
     pass
