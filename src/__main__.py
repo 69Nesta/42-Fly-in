@@ -1,10 +1,11 @@
-from .network.network import Network
+from .network import Network, Node as NetworkNode
 from .MapSelector import MapSelector
 from .ArgsParser import ArgsParser
 from .map_loader import MapLoader
 from .utils import Logger, Color
 
 from .algo.time_graph import TimeGraph
+from .algo.bfs import BFS
 from .algo.dfs import DFS
 
 from pydantic import ValidationError
@@ -56,18 +57,43 @@ def run() -> None:
             verbose=args.verbose,
             network=network
         )
-        DFS(args.verbose, time_graph)
+        bfs: BFS = BFS(args.verbose, time_graph)  # noqa: F841
+        dfs: DFS = DFS(args.verbose, time_graph)  # noqa: F841
 
-        # print('TimeGraph initialized with nodes:', len(time_graph.nodes))
-        # for node in time_graph.step_dict.get(0, set()):
-        #     print(f'Node at time {node.time}: {node.object.get_name()}')
-        # for i in range(1, 8):
-        #     time_graph.next_step()
-        #     print('TimeGraph after next_step with nodes:', len(time_graph.nodes))
-        #     for node in time_graph.step_dict.get(i, set()):
-        #         print(f'Node at time {node.time}: {node.object.get_name()}')
+        # dfs.run()
 
-        # output: OutputFile = OutputFile(
+        # for i in range(0, 4):
+        #     step_nodes = time_graph.get_step(i)
+
+        for i in range(0, 4):
+            step_nodes = time_graph.get_step(i)
+            print(f'Time step {i} has {len(step_nodes)} nodes.')
+            for node in step_nodes:
+                if not isinstance(node.object, NetworkNode):
+                    continue
+                print(f'  Node: {node.object.get_name()} | at time {node.time}')
+                print(f'    Connections: {len(node.get_connections())}')
+                for edge, conn in node.get_connections():
+                    if isinstance(edge.object, NetworkNode):
+                        print(
+                            f'      Neighbor: {edge.object.get_name()} | at time {edge.time}'
+                        )
+
+        for i in range(0, 4):
+            step_nodes = bfs.get_step(i)
+            logger.log(f'Time step {i} has {len(step_nodes)} nodes.')
+            for node in step_nodes:
+                if not isinstance(node.node.object, NetworkNode):
+                    continue
+                logger.log(f'  Node: {node.node.object.get_name()} | at time {node.node.time}')
+                logger.log(f'    Connections: {len(node.edges)}')
+                for edge in node.edges:
+                    if isinstance(edge.get_other(node).node.object, NetworkNode):
+                        logger.log(
+                            f'      Neighbor: {edge.get_other(node).node.object.get_name()} | at time {edge.get_other(node).node.time} | capacity: {edge.capacity}'
+                        )
+
+        # # output: OutputFile = OutputFile(
         #     filepath=args.output,
         #     level=level
         # )

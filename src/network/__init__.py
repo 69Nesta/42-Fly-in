@@ -8,6 +8,7 @@ from .metadata import (
 )
 from .node import Node, NodeType
 from .connection import Connection, ConnectionManager
+from .network import Network
 
 
 __all__: list[str] = [
@@ -20,5 +21,6 @@ __all__: list[str] = [
     'ZoneType',
     'ZoneCost',
     'NodeType',
-    'Node'
+    'Node',
+    'Network',
 ]

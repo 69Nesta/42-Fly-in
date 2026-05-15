@@ -1,15 +1,17 @@
 from ...utils import Logger, Color
-from .dfs_edge import DFSEdge  # noqa: F401
-from .dfs_node import DFSNode  # noqa: F401
-from ..time_graph import TimeGraph
+from ..bfs import BFSEdge, BFSNode, BFSObject
+from ..time_graph import TimeGraph, Node  # noqa: F401
+
+# from collections import deque
 
 
 class DFS:
     logger: Logger
     time_graph: TimeGraph
 
-    nodes: list[DFSNode]
-    edges: list[DFSEdge]
+    nodes: list[BFSNode]
+    edges: list[BFSEdge]
+    path: list[BFSObject]
 
     def __init__(self, verbose: bool, time_graph: TimeGraph) -> None:
         self.logger = Logger(
@@ -22,3 +24,8 @@ class DFS:
 
         self.nodes = []
         self.edges = []
+        self.path = []
+
+    def run(self) -> None:
+        self.logger.log('Running DFS...')
+        self.logger.error('DFS is not implemented yet.')

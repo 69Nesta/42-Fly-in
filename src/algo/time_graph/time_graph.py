@@ -1,6 +1,6 @@
 from .connection_node import ConnectionNode
 from ...network.network import Network
-from ...network import NetworkObject, Node as NetworkNode
+from ...network import NetworkObject, Node as NetworkNode  # noqa: F401
 from ...utils import Logger, Color
 from .node import Node
 
@@ -35,7 +35,7 @@ class TimeGraph:
     def create_node(
                 self,
                 time: int,
-                object: NetworkObject,
+                object: NetworkNode,
                 node_type: type[Node] = Node
             ) -> Node:
         node: Node = node_type(time, object)
@@ -47,22 +47,27 @@ class TimeGraph:
                 self,
                 from_node: Node,
                 next_time: int,
-                next_object: NetworkObject
+                next_object: NetworkNode
             ) -> None:
 
         new_node: Node = self.create_node(next_time, next_object)
         new_node.add_connection(from_node)
 
+    def get_step(self, step: int) -> set[Node]:
+        for _ in range(step - self.step):
+            self.next_step()
+        return self.step_dict.get(step, set())
+
     def next_step(self) -> None:
-        self.logger.log('Creating TimeGraph...')
+        self.logger.log(f'Calculating time step {self.step + 1}...')
+        new_step: int = self.step + 1
         for node in self.step_dict.get(self.step, set()):
-            new_step: int = self.step + 1
-            new_node: Node = self.create_node(
+            new_current_node: Node = self.create_node(
                 new_step,
                 node.object
             )
-            new_node.add_connection(node)
-            self.step_dict.setdefault(new_step, set()).add(new_node)
+            new_current_node.add_connection(node)
+            self.step_dict.setdefault(new_step, set()).add(new_current_node)
 
             if isinstance(node, ConnectionNode):
                 continue

@@ -10,3 +10,12 @@ class NetworkObject(ABC):
             The capacity of this network object.
         """
         pass
+
+    @abstractmethod
+    def get_name(self) -> str:
+        """Get the name of this network object.
+
+        Returns:
+            The name of this network object.
+        """
+        pass

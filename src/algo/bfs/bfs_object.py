@@ -1,7 +1,7 @@
 from abc import ABC
 
 
-class DFSObject(ABC):
+class BFSObject(ABC):
     capacity: int
     load: int
 

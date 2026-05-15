@@ -74,14 +74,14 @@ class Node(NetworkObject, BaseModel):
             metadata=metadata,
         )
 
-    def get_connections(self) -> list[tuple['Node', NetworkObject]]:
+    def get_connections(self) -> list[tuple['Node', 'Connection']]:
         return self._get_connections_cached()
 
     @lru_cache(maxsize=None)
     def _get_connections_cached(
                 self
-            ) -> list[tuple['Node', NetworkObject]]:
-        connections: list[tuple['Node', NetworkObject]] = []
+            ) -> list[tuple['Node', 'Connection']]:
+        connections: list[tuple['Node', 'Connection']] = []
 
         for connection in self._connections:
             if connection.nodes[0] is self:

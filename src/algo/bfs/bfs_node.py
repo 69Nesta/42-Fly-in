@@ -1,14 +1,15 @@
-from .dfs_object import DFSObject
-from ...network import Node
+from ..bfs import BFSObject
+# from ...network import Node
+from ..time_graph import Node
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .dfs_edge import DFSEdge
+    from ..bfs import BFSEdge
 
 
-class DFSNode(DFSObject):
+class BFSNode(BFSObject):
     node: Node
-    edges: list['DFSEdge']
+    edges: list['BFSEdge']
 
     _need_to_be_sorted: bool
 
@@ -17,18 +18,18 @@ class DFSNode(DFSObject):
 
         self.node: Node = node
         self.level: int = level
-        self.edges: list['DFSEdge'] = []
+        self.edges: list['BFSEdge'] = []
 
         self._need_to_be_sorted: bool = False
 
-    def add_edge(self, edge: 'DFSEdge') -> None:
+    def add_edge(self, edge: 'BFSEdge') -> None:
         self.edges.append(edge)
         self._need_to_be_sorted = True
 
-    def sort_edges(self) -> list['DFSEdge']:
+    def sort_edges(self) -> list['BFSEdge']:
         if self._need_to_be_sorted:
             self.edges.sort(
-                key=lambda edge: edge.get_other(self).node.is_priority(),
+                key=lambda edge: edge.get_other(self).node.object.is_priority()
             )
             self._need_to_be_sorted = False
         return self.edges

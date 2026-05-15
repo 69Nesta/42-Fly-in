@@ -38,6 +38,9 @@ class Connection(NetworkObject):
         node_a._connections.append(self)
         node_b._connections.append(self)
 
+    def get_name(self) -> str:
+        return f'{self.nodes[0].name}-{self.nodes[1].name}'
+
     def get_other(self, node: Node) -> Node:
         """Get the other node connected by this connection.
 

@@ -1,15 +1,15 @@
-from .dfs_object import DFSObject
-from .dfs_node import DFSNode
+from .bfs_object import BFSObject
+from .bfs_node import BFSNode
 from ...network import Connection
 
 
-class DFSEdge(DFSObject):
-    nodes: tuple[DFSNode, DFSNode]
+class BFSEdge(BFSObject):
+    nodes: tuple[BFSNode, BFSNode]
     connection: Connection | None
 
     def __init__(
                 self,
-                nodes: tuple[DFSNode, DFSNode],
+                nodes: tuple[BFSNode, BFSNode],
                 capacity: int,
                 connection: Connection | None = None
             ) -> None:
@@ -18,7 +18,7 @@ class DFSEdge(DFSObject):
         self.nodes = nodes
         self.connection = connection
 
-    def get_other(self, node: DFSNode) -> DFSNode:
+    def get_other(self, node: BFSNode) -> BFSNode:
         if self.nodes[0] == node:
             return self.nodes[1]
         elif self.nodes[1] == node:
