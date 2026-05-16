@@ -61,6 +61,7 @@ class TimeGraph:
     def next_step(self) -> None:
         self.logger.log(f'Calculating time step {self.step + 1}...')
         new_step: int = self.step + 1
+
         for node in self.step_dict.get(self.step, set()):
             new_current_node: Node = self.create_node(
                 new_step,
@@ -71,8 +72,7 @@ class TimeGraph:
 
             if isinstance(node, ConnectionNode):
                 continue
-            if not isinstance(node.object, NetworkNode):
-                continue
+
             for zone, connection in node.object.get_connections():
                 if zone.get_capacity() <= 0 or zone.is_blocked():
                     continue
@@ -92,7 +92,7 @@ class TimeGraph:
                         zone
                     )
 
-                new_neighbor.add_connection(node, connection)
+                node.add_connection(new_neighbor, connection)
                 self.step_dict.setdefault(new_step, set()).add(new_neighbor)
 
         self.step += 1

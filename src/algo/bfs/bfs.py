@@ -14,9 +14,6 @@ class BFS:
     steps: dict[int, set[BFSNode]]
     current_step: int
 
-    nodes: list[BFSNode]
-    edges: list[BFSEdge]
-
     start_node: BFSNode
     reached_end_node: bool
 
@@ -29,9 +26,6 @@ class BFS:
         self.logger.log('Initializing BFS...')
         self.time_graph = time_graph
         self.network = time_graph.network
-
-        self.nodes = []
-        self.edges = []
 
         self.start_node = self.create_node(
             node=list(time_graph.get_step(0))[0],
@@ -53,9 +47,12 @@ class BFS:
         return list(self.steps.get(step, set()))
 
     def next_step(self) -> None:
-        for node in self.steps.get(self.current_step, set()):
+        nodes: set[BFSNode] = self.steps.get(self.current_step, set())
+        if not nodes:
+            return
+
+        for node in nodes:
             if not self.reached_end_node:
-                self.create_edges_of_node(node)
                 if node.node.object.is_end():
                     self.reached_end_node = True
 
@@ -71,19 +68,18 @@ class BFS:
             self.create_edges_of_node(node)
 
     def expend(self) -> None:
+        self.time_graph.next_step()
         max_step: int = max(self.steps.keys(), default=0)
-
-        for node in self.time_graph.get_step(max_step + 1):
-            new_node: BFSNode = self.create_node(
-                node=node,
-                level=max_step + 1,
-                capacity=node.object.get_capacity()
-            )
-            self.steps.setdefault(max_step + 1, set()).add(new_node)
 
         for step in range(max_step + 1):
             for _node in self.get_step(step):
                 self.create_edges_of_node(_node)
+
+        if not self.steps.get(self.current_step, set()):
+            for step in range(max_step - 1, -1, -1):
+                if self.steps.get(step, set()):
+                    self.current_step = step
+                    break
 
         self.next_step()
 
@@ -95,7 +91,7 @@ class BFS:
                 capacity: int
             ) -> BFSNode:
         bfs_node = BFSNode(node, level, capacity)
-        self.nodes.append(bfs_node)
+        # self.nodes.append(bfs_node)
         return bfs_node
 
     def create_edge(
@@ -109,23 +105,25 @@ class BFS:
             capacity=to_node.capacity,
             connection=connection
         )
-        self.edges.append(edge)
+        # self.edges.append(edge)
         from_node.add_edge(edge)
-        to_node.add_edge(edge)
+        # to_node.add_edge(edge)
         return edge
 
     def create_edges_of_node(self, node: BFSNode) -> None:
         for connected_node, connection in node.node.get_connections():
-            if any(
-                edge.get_other(node).node == connected_node
-                for edge in node.edges
-            ):
+            if connected_node.time <= node.node.time:
                 continue
             bfs_connected_node: BFSNode = self.create_node(
                 node=connected_node,
                 level=node.level + 1,
                 capacity=connected_node.object.get_capacity()
             )
+            if any(
+                edge.get_other(node).node == connected_node
+                for edge in node.edges
+            ):
+                continue
             self.create_edge(
                 from_node=node,
                 to_node=bfs_connected_node,

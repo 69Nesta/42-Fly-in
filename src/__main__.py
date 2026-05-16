@@ -65,44 +65,11 @@ def run() -> None:
             logger.log(
                 'Found path: ' +
                 str([
-                    obj.node.object.get_name()
+                    f'{obj.node.object.get_name()} at time {obj.node.time}'
                     for obj in path
                     if isinstance(obj, BFSNode)
                 ])
             )
-
-        # for i in range(0, 4):
-        #     step_nodes = time_graph.get_step(i)
-
-        # for i in range(0, 4):
-        #     step_nodes = time_graph.get_step(i)
-        #     print(f'Time step {i} has {len(step_nodes)} nodes.')
-        #     for node in step_nodes:
-        #         if not isinstance(node.object, NetworkNode):
-        #             continue
-        #         print(f'  Node: {node.object.get_name()} | at time {node.ti
-        # me}')
-        #         print(f'    Connections: {len(node.get_connections())}')
-        #         for edge, conn in node.get_connections():
-        #             if isinstance(edge.object, NetworkNode):
-        #                 print(
-        #                     f'      Neighbor: {edge.object.get_name()} | at
-        #  time {edge.time}'
-        #                 )
-
-        for i in range(0, 4):
-            step_nodes = bfs.get_step(i)
-            logger.log(f'Time step {i} has {len(step_nodes)} nodes.')
-            for node in step_nodes:
-                if not isinstance(node.node.object, NetworkNode):
-                    continue
-                logger.log(f'  Node: {node.node.object.get_name()} | at time {node.node.time}')
-                logger.log(f'    Connections: {len(node.edges)}')
-                for edge in node.edges:
-                    if isinstance(edge.get_other(node).node.object, NetworkNode):
-                        logger.log(
-                            f'      Neighbor: {edge.get_other(node).node.object.get_name()} | at time {edge.get_other(node).node.time} | capacity: {edge.capacity}'
-                        )
 
         # # output: OutputFile = OutputFile(
         #     filepath=args.output,
