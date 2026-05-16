@@ -1,6 +1,6 @@
 from .connection_node import ConnectionNode
 from ...network.network import Network
-from ...network import NetworkObject, Node as NetworkNode  # noqa: F401
+from ...network import Node as NetworkNode
 from ...utils import Logger, Color
 from .node import Node
 
@@ -66,7 +66,7 @@ class TimeGraph:
                 new_step,
                 node.object
             )
-            new_current_node.add_connection(node)
+            node.add_connection(new_current_node)
             self.step_dict.setdefault(new_step, set()).add(new_current_node)
 
             if isinstance(node, ConnectionNode):

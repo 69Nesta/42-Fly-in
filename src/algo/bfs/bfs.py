@@ -54,18 +54,10 @@ class BFS:
 
     def next_step(self) -> None:
         for node in self.steps.get(self.current_step, set()):
-            # print(1)
             if not self.reached_end_node:
-                # print(3)
                 self.create_edges_of_node(node)
-
-                iterable_end = [
-                    edge.get_other(node).node.object.is_end()
-                    for edge in node.edges
-                ]
-                if any(iterable_end):
+                if node.node.object.is_end():
                     self.reached_end_node = True
-                    print('Reached end node!')
 
             for edge in node.edges:
                 other_node = edge.get_other(node)

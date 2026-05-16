@@ -1,11 +1,11 @@
-from .network import Network, Node as NetworkNode
 from .MapSelector import MapSelector
 from .ArgsParser import ArgsParser
+from .network import Network, Node as NetworkNode
 from .map_loader import MapLoader
 from .utils import Logger, Color
 
 from .algo.time_graph import TimeGraph
-from .algo.bfs import BFS
+from .algo.bfs import BFS, BFSNode
 from .algo.dfs import DFS
 
 from pydantic import ValidationError
@@ -57,27 +57,38 @@ def run() -> None:
             verbose=args.verbose,
             network=network
         )
-        bfs: BFS = BFS(args.verbose, time_graph)  # noqa: F841
-        dfs: DFS = DFS(args.verbose, time_graph)  # noqa: F841
+        bfs: BFS = BFS(args.verbose, time_graph)
+        dfs: DFS = DFS(args.verbose, bfs, network)
+        dfs.solve()
 
-        # dfs.run()
+        for path in dfs.paths:
+            logger.log(
+                'Found path: ' +
+                str([
+                    obj.node.object.get_name()
+                    for obj in path
+                    if isinstance(obj, BFSNode)
+                ])
+            )
 
         # for i in range(0, 4):
         #     step_nodes = time_graph.get_step(i)
 
-        for i in range(0, 4):
-            step_nodes = time_graph.get_step(i)
-            print(f'Time step {i} has {len(step_nodes)} nodes.')
-            for node in step_nodes:
-                if not isinstance(node.object, NetworkNode):
-                    continue
-                print(f'  Node: {node.object.get_name()} | at time {node.time}')
-                print(f'    Connections: {len(node.get_connections())}')
-                for edge, conn in node.get_connections():
-                    if isinstance(edge.object, NetworkNode):
-                        print(
-                            f'      Neighbor: {edge.object.get_name()} | at time {edge.time}'
-                        )
+        # for i in range(0, 4):
+        #     step_nodes = time_graph.get_step(i)
+        #     print(f'Time step {i} has {len(step_nodes)} nodes.')
+        #     for node in step_nodes:
+        #         if not isinstance(node.object, NetworkNode):
+        #             continue
+        #         print(f'  Node: {node.object.get_name()} | at time {node.ti
+        # me}')
+        #         print(f'    Connections: {len(node.get_connections())}')
+        #         for edge, conn in node.get_connections():
+        #             if isinstance(edge.object, NetworkNode):
+        #                 print(
+        #                     f'      Neighbor: {edge.object.get_name()} | at
+        #  time {edge.time}'
+        #                 )
 
         for i in range(0, 4):
             step_nodes = bfs.get_step(i)
@@ -111,8 +122,7 @@ def run() -> None:
             if error.get('ctx') and error.get('ctx', {}).get('error'):
                 logger.error(f'Error: {error.get('ctx', {}).get('error')}')
             else:
-                logger.error(f'Error: {error['msg']}')
-    except ValueError as e:
+                logger.error(f'Error: {error['msg']}') 
         logger.error(f'Error: {e.__cause__ or e}')
     # except Exception as e:
     #     logger.error(f'Unexpected error: {e}')
