@@ -90,9 +90,7 @@ class BFS:
                 level: int,
                 capacity: int
             ) -> BFSNode:
-        bfs_node = BFSNode(node, level, capacity)
-        # self.nodes.append(bfs_node)
-        return bfs_node
+        return BFSNode(node, level, capacity)
 
     def create_edge(
                 self,
@@ -100,14 +98,12 @@ class BFS:
                 to_node: BFSNode,
                 connection: Connection | None = None
                 ) -> BFSEdge:
-        edge = BFSEdge(
+        edge: BFSEdge = BFSEdge(
             nodes=(from_node, to_node),
             capacity=to_node.capacity,
             connection=connection
         )
-        # self.edges.append(edge)
         from_node.add_edge(edge)
-        # to_node.add_edge(edge)
         return edge
 
     def create_edges_of_node(self, node: BFSNode) -> None:

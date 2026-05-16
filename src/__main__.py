@@ -1,6 +1,6 @@
 from .MapSelector import MapSelector
 from .ArgsParser import ArgsParser
-from .network import Network, Node as NetworkNode
+from .network import Network
 from .map_loader import MapLoader
 from .utils import Logger, Color
 
@@ -89,7 +89,7 @@ def run() -> None:
             if error.get('ctx') and error.get('ctx', {}).get('error'):
                 logger.error(f'Error: {error.get('ctx', {}).get('error')}')
             else:
-                logger.error(f'Error: {error['msg']}') 
+                logger.error(f'Error: {error['msg']}')
         logger.error(f'Error: {e.__cause__ or e}')
     # except Exception as e:
     #     logger.error(f'Unexpected error: {e}')

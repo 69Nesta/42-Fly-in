@@ -1,5 +1,4 @@
 from ..bfs import BFSObject
-# from ...network import Node
 from ..time_graph import Node
 from typing import TYPE_CHECKING
 
