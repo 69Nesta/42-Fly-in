@@ -1,5 +1,5 @@
-from .CollisionModel import CollisionModel
-from ..ColorMap import color_map
+from .collision_model import CollisionModel
+from ..utils.color_map import color_map
 from pyray import Model, Vector3
 from ...network import Node
 import pyray as pr

@@ -1,5 +1,4 @@
-from .algo.time_graph import Node, ConnectionNode
-from .network import Node as NetworkNode
+from ...algo.time_graph import Node, ConnectionNode
 
 from dataclasses import dataclass, field
 from pyray import Vector2

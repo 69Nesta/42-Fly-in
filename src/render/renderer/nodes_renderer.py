@@ -1,12 +1,12 @@
-from .models import NodeModel
-from ..utils import Logger, Color
-from .RayCast import RayCast
-from ..network import Network
+from ..models import NodeModel
+from ...utils import Logger, Color
+from ..utils.ray_cast import RayCast
+from ...network import Network
 from pyray import Model
 import pyray as pr
 
 
-class NodeRenderer:
+class NodesRenderer:
     """Renderer for node visualization in the 3D environment.
 
     Manages rendering of all node nodes and their color indicators,
@@ -38,7 +38,7 @@ class NodeRenderer:
         self.network = network
         self.logger = Logger(
             print_log=network.logger.print_log,
-            name='NodeRenderer',
+            name='NodesRenderer',
             color=Color.GREEN
         )
         self.logger.log('Initializing node renderer...')

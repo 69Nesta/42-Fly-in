@@ -1,6 +1,6 @@
-from .models import ConnectionModel
-from ..utils import Logger, Color
-from ..network import Network
+from ..models import ConnectionModel
+from ...utils import Logger, Color
+from ...network import Network
 
 
 class ConnectionRenderer:

@@ -1,7 +1,6 @@
 from pyray import Vector3, Ray, RayCollision, BoundingBox, Matrix
-from .models import CollisionModel
-from ..utils import Logger, Color
-from ..Level import Level
+from ..models import CollisionModel
+from ...utils import Logger, Color
 import pyray as pr
 
 
@@ -17,7 +16,6 @@ class RayCast:
     Attributes:
         _entries: Dictionary mapping collision models to their bounding boxes.
     """
-    level: Level
 
     _entries: dict[CollisionModel, BoundingBox]
 

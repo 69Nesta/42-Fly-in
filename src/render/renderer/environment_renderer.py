@@ -1,8 +1,8 @@
-from .models import PlatformModel, SDModel, EnvironmentModel
-from .Environment import Environment
-from ..utils import Logger, Color
-from ..network import Network
-from .SkyBox import SkyBox
+from ..models import PlatformModel, SDModel, EnvironmentModel
+from ..environment import Environment
+from ...utils import Logger, Color
+from ...network import Network
+from ..models import SkyModel
 
 
 class EnvironmentRenderer:
@@ -14,7 +14,7 @@ class EnvironmentRenderer:
     Attributes:
         level: The Level instance.
         logger: Logger for debug output.
-        skybox: The SkyBox renderer.
+        sky_model: The SkyBox renderer.
         environment: The Environment grid.
         platform: The PlatformModel.
         sd_model: Start/end hub indicator model.
@@ -23,9 +23,9 @@ class EnvironmentRenderer:
     network: Network
     logger: Logger
 
-    skybox: SkyBox
     environment: Environment
 
+    sky_model: SkyModel
     platform: PlatformModel
     sd_model: SDModel
     environment_model: EnvironmentModel
@@ -44,7 +44,7 @@ class EnvironmentRenderer:
         )
         self.logger.log('Initializing environment renderer...')
 
-        self.skybox = SkyBox()
+        self.sky_model = SkyModel()
         self.environment = Environment(self.network)
         self.environment_model = EnvironmentModel(self.environment)
         self.platform = PlatformModel(self.environment)
@@ -60,7 +60,7 @@ class EnvironmentRenderer:
 
     def draw(self) -> None:
         """Draw all environment elements in proper order."""
-        self.skybox.draw_3d()
+        self.sky_model.draw_3d()
         self.sd_model.draw()
         self.platform.draw()
         self.environment_model.draw()
@@ -68,7 +68,7 @@ class EnvironmentRenderer:
     def unload(self) -> None:
         """Unload and clean up all environment resources."""
         self.logger.log('Unloading environment renderer...')
-        self.skybox.unload()
+        self.sky_model.unload()
         self.platform.unload()
         self.sd_model.unload()
         self.environment_model.unload()

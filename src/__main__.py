@@ -1,8 +1,8 @@
 from .network import Network
-from .MapSelector import MapSelector
-from .ArgsParser import ArgsParser
-from .OutputFile import OutputFile
-from .renderer import CoreRenderer
+from .map_selector import MapSelector
+from .args_parser import ArgsParser
+from .output_file import OutputFile
+from .render import CoreRender
 from .map_loader import MapLoader
 from .utils import Logger, Color
 
@@ -63,7 +63,7 @@ def run() -> None:
         output.generate()
         output.write()
 
-        renderer: CoreRenderer = CoreRenderer(
+        renderer: CoreRender = CoreRender(
             network=network,
             verbose=args.verbose
         )

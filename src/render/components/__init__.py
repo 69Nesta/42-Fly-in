@@ -5,8 +5,8 @@ Provides reusable UI elements for displaying information on screen:
 - NameTag: 3D world-space name tags that scale with distance
 """
 
-from .TextBox import TextBox
-from .NameTag import NameTag
+from .text_box import TextBox
+from .name_tag import NameTag
 
 
 __all__: list[str] = [
