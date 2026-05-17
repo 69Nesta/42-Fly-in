@@ -64,16 +64,6 @@ def run() -> None:
         dfs: DFS = DFS(args.verbose, bfs, network)
         dfs.solve()
 
-        # for path in dfs.paths:
-        #     logger.log(
-        #         'Found path: ' +
-        #         str([
-        #             f'{obj.node.object.get_name()} at time {obj.node.time}'
-        #             for obj in path
-        #             if isinstance(obj, BFSNode)
-        #         ])
-        #     )
-
         for idx, drone in enumerate(network.drones):
             drone.path = [
                 step.node

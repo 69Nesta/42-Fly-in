@@ -51,6 +51,8 @@ class Network:
         self._calculate_height_and_width()
         self._create_drones()
 
+    # def create_load_map()
+
     def update_step(self, move: int) -> bool:
         """Move the simulation step forward or backward.
 
