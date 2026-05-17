@@ -10,6 +10,6 @@ from .name_tag import NameTag
 
 
 __all__: list[str] = [
-    'text_box',
-    'name_tag',
+    'TextBox',
+    'NameTag',
 ]
