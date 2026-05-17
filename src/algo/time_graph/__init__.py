@@ -1,5 +1,5 @@
 from .connection_node import ConnectionNode
-from .grah_node import GraphNode
+from .graph_node import GraphNode
 from .node import Node
 from .time_graph import TimeGraph
 

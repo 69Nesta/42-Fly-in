@@ -120,13 +120,10 @@ class Network:
                 if isinstance(node, ConnectionNode):
                     continue
                 key = (node.object, step)
-                if key not in self.load_map:
-                    self.load_map[key] = []
                 self.load_map[key].append(drone)
+
             for step in range(len(drone.path), self.simulation_length + 1):
                 key = (self.end_node, step)
-                if key not in self.load_map:
-                    self.load_map[key] = []
                 self.load_map[key].append(drone)
 
     def update_simlation_length(self) -> None:

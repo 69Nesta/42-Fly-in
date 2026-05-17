@@ -8,9 +8,9 @@ from .utils import Color, Logger, MathUtils
 from .network import Connection, ConnectionManager
 from .network import Node, NodeType
 
-from pydantic import BaseModel, Field, PrivateAttr, ValidationError
 from dataclasses import dataclass, field
-from typing import ClassVar, Any
+from pydantic import ValidationError
+from typing import ClassVar
 import re
 
 
@@ -42,24 +42,24 @@ class ParseResult:
         return len(self.errors) == 0
 
 
-class MapLoader(BaseModel):
+class MapLoader:
     """Loads and parses map files to create map objects.
 
     Attributes:
         filepath: Path to the map file to load.
         verbose: Whether to enable verbose logging.
     """
-    filepath: str = Field()
-    verbose: bool = Field(default=False)
+    filepath: str
+    verbose: bool
 
     _RE_NB_DRONES: ClassVar[t_re] = re.compile(r'^nb_drones:\s*(\d+)$')
     _RE_NODE: ClassVar[t_re] = re.compile(r'^(start_hub|end_hub|hub):')
     _RE_CONNECTION: ClassVar[t_re] = re.compile(r'^connection:\s*')
 
-    _logger: Logger = PrivateAttr()
-    _result: ParseResult = PrivateAttr()
-    _start_node: Node = PrivateAttr()
-    _end_node: Node = PrivateAttr()
+    _logger: Logger
+    _result: ParseResult
+    _start_node: Node
+    _end_node: Node
 
     @property
     def nb_drones(self) -> int:
@@ -97,9 +97,8 @@ class MapLoader(BaseModel):
         """
         return self._result.errors
 
-    def model_post_init(self, context: Any) -> None:
-        """Initialize the loader after model creation.
-
+    def __init__(self, filepath: str, verbose: bool = False) -> None:
+        """
         Loads and parses the map file.
 
         Args:
@@ -112,10 +111,12 @@ class MapLoader(BaseModel):
             ValueError: If parsing produces errors.
         """
         self._logger = Logger(
-            print_log=self.verbose,
+            print_log=verbose,
             name='MapLoader',
             color=Color.YELLOW
         )
+        self.filepath = filepath
+        self.verbose = verbose
         self._result = ParseResult()
         self._logger.log(f'Loading map from {self.filepath!r}...')
 
@@ -143,8 +144,6 @@ class MapLoader(BaseModel):
             f'{len(self.nodes)} nodes and {len(self.connections.all)} '
             'connections.'
         )
-
-        return super().model_post_init(context)
 
     def _check_map_validity(self) -> None:
         """Validate that the map has required start and end nodes.

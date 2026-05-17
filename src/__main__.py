@@ -1,13 +1,12 @@
+from .network import Network
 from .MapSelector import MapSelector
 from .ArgsParser import ArgsParser
-from .utils import Logger, Color
-from .network import Network
-from .map_loader import MapLoader
-from .renderer import CoreRenderer
 from .OutputFile import OutputFile
+from .renderer import CoreRenderer
+from .map_loader import MapLoader
+from .utils import Logger, Color
 
 from .algo.dinic import Dinic
-
 
 from pydantic import ValidationError
 from argparse import Namespace
@@ -73,10 +72,12 @@ def run() -> None:
     except ValidationError as e:
         for error in e.errors():
             if error.get('ctx') and error.get('ctx', {}).get('error'):
-                logger.error(f'Error: {error.get('ctx', {}).get('error')}')
+                logger.error(f'Error: {error.get("ctx", {}).get("error")}')
             else:
-                logger.error(f'Error: {error['msg']}')
+                logger.error(f'Error: {error["msg"]}')
         logger.error(f'Error: {e.__cause__ or e}')
+    except ValueError as e:
+        logger.error(f'Error: {e}')
     # except Exception as e:
     #     logger.error(f'Unexpected error: {e}')
 

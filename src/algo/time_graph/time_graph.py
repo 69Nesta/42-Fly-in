@@ -1,7 +1,7 @@
 from ...network import Node as NetworkNode, Connection
 from .connection_node import ConnectionNode
 from ...utils import Logger, Color
-from .grah_node import GraphNode
+from .graph_node import GraphNode
 from .node import Node
 
 from functools import lru_cache

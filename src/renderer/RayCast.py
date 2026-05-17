@@ -15,7 +15,6 @@ class RayCast:
         verbose: Whether to enable verbose logging.
 
     Attributes:
-        verbose: Whether to enable verbose logging.
         _entries: Dictionary mapping collision models to their bounding boxes.
     """
     level: Level
