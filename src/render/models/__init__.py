@@ -10,13 +10,14 @@ Manages PyRay model instances for all scene elements:
 - SDModel: Start/end node indicators
 """
 
-from .EnvironmentModel import EnvironmentModel
-from .ConnectionModel import ConnectionModel
-from .CollisionModel import CollisionModel
-from .PlatformModel import PlatformModel
-from .DroneModel import DroneModel
-from .NodeModel import NodeModel
-from .SDModel import SDModel
+from .environment_model import EnvironmentModel
+from .connection_model import ConnectionModel
+from .collision_model import CollisionModel
+from .platform_model import PlatformModel
+from .drone_model import DroneModel
+from .node_model import NodeModel
+from .sky_model import SkyModel
+from .SD_model import SDModel
 
 
 __all__: list[str] = [
@@ -26,5 +27,6 @@ __all__: list[str] = [
     'PlatformModel',
     'DroneModel',
     'NodeModel',
+    'SkyModel',
     'SDModel'
 ]

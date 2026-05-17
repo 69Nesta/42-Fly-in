@@ -1,8 +1,8 @@
 from ..algo.time_graph import ConnectionNode
 from ..map_loader import MapLoader
 from ..utils import Logger, Color
-from ..Drone import Drone
 from . import Node, Connection
+from .drone import Drone
 
 from collections import defaultdict
 from pyray import Vector2

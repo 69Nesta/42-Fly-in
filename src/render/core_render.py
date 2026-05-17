@@ -1,18 +1,18 @@
-from .EnvironmentRenderer import EnvironmentRenderer
-from .ConnectionRenderer import ConnectionRenderer
-from .InputController import InputController
-from .DronesRenderer import DronesRenderer
-from .NodeRenderer import NodeRenderer
-from .UIRenderer import UIRenderer
+from .renderer.environment_renderer import EnvironmentRenderer
+from .renderer.connection_renderer import ConnectionRenderer
+from .controller.input_controller import InputController
+from .renderer.drones_renderer import DronesRenderer
+from .renderer.nodes_renderer import NodesRenderer
+from .renderer.ui_renderer import UIRenderer
 from ..utils import Logger, Color
 from ..network import Network
-from .RayCast import RayCast
+from .utils.ray_cast import RayCast
 
 from pyray import Vector3
 import pyray as pr
 
 
-class CoreRenderer:
+class CoreRender:
     """Main 3D renderer for the Fly In simulation visualization.
 
     Manages all rendering components including hubs, connections, drones,
@@ -43,7 +43,7 @@ class CoreRenderer:
     input_controller: InputController
     ray_cast: RayCast
 
-    node_renderer: NodeRenderer
+    node_renderer: NodesRenderer
     connection_renderer: ConnectionRenderer
     drones_renderer: DronesRenderer
     ui_renderer: UIRenderer
@@ -90,7 +90,7 @@ class CoreRenderer:
         self.ray_cast = RayCast(verbose)
 
         self.environment_renderer = EnvironmentRenderer(self.network)
-        self.node_renderer = NodeRenderer(self.network, self.ray_cast)
+        self.node_renderer = NodesRenderer(self.network, self.ray_cast)
         self.connection_renderer = ConnectionRenderer(self.network)
         self.drones_renderer = DronesRenderer(self.network, self.ray_cast)
         self.ui_renderer = UIRenderer(

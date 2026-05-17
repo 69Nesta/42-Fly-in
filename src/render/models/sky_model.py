@@ -2,7 +2,7 @@ from pyray import Mesh, Model, Image
 import pyray as pr
 
 
-class SkyBox:
+class SkyModel:
     """Renders the background skybox environment.
 
     Attributes:

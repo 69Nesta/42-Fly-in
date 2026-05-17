@@ -1,4 +1,4 @@
-from ..Environment import Environment, EEnvironmentObject
+from ..environment import Environment, EEnvironmentObject
 from pyray import Model, Vector3
 import pyray as pr
 

@@ -1,4 +1,4 @@
-from .CollisionModel import CollisionModel
+from .collision_model import CollisionModel
 from pyray import Model, Vector3, Vector2
 from ...utils import Bezier
 import pyray as pr
