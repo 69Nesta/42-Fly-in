@@ -1,7 +1,7 @@
-# from ...network import Network, Node as NetworkNode, Connection
-from .connection_node import ConnectionNode
 from ...network import Node as NetworkNode, Connection
+from .connection_node import ConnectionNode
 from ...utils import Logger, Color
+from .grah_node import GraphNode
 from .node import Node
 
 from functools import lru_cache
@@ -39,7 +39,7 @@ class TimeGraph:
                 time: int,
                 object: NetworkNode,
             ) -> Node:
-        return Node(time, object)
+        return GraphNode(time, object)
 
     @lru_cache(maxsize=None)
     def create_connection_node(

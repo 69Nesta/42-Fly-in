@@ -1,8 +1,10 @@
+from ..algo.time_graph import ConnectionNode
 from ..map_loader import MapLoader
 from ..utils import Logger, Color
 from ..Drone import Drone
 from . import Node, Connection
 
+from collections import defaultdict
 from pyray import Vector2
 from math import inf
 
@@ -21,6 +23,8 @@ class Network:
 
     simulation_length: int
     current_step: int
+
+    load_map: dict[tuple[Node, int], list[Drone]]
 
     min_pos: Vector2
     max_pos: Vector2
@@ -50,8 +54,6 @@ class Network:
 
         self._calculate_height_and_width()
         self._create_drones()
-
-    # def create_load_map()
 
     def update_step(self, move: int) -> bool:
         """Move the simulation step forward or backward.
@@ -108,7 +110,26 @@ class Network:
             ))
         self.logger.log('Drones initialized successfully.')
 
-    def _update_simlation_length(self) -> None:
+    def create_load_map(self) -> None:
+        self.load_map = defaultdict(list)
+
+        for drone in self.drones:
+            if drone.path is None:
+                continue
+            for step, node in enumerate(drone.path):
+                if isinstance(node, ConnectionNode):
+                    continue
+                key = (node.object, step)
+                if key not in self.load_map:
+                    self.load_map[key] = []
+                self.load_map[key].append(drone)
+            for step in range(len(drone.path), self.simulation_length + 1):
+                key = (self.end_node, step)
+                if key not in self.load_map:
+                    self.load_map[key] = []
+                self.load_map[key].append(drone)
+
+    def update_simlation_length(self) -> None:
         self.simulation_length = 0
         for drone in self.drones:
             if (drone.path is not None and

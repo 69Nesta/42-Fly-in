@@ -6,9 +6,7 @@ from .map_loader import MapLoader
 from .renderer import CoreRenderer
 from .OutputFile import OutputFile
 
-from .algo.time_graph import TimeGraph
-from .algo.bfs import BFS, BFSNode
-from .algo.dfs import DFS
+from .algo.dinic import Dinic
 
 
 from pydantic import ValidationError
@@ -56,28 +54,9 @@ def run() -> None:
             verbose=args.verbose
         )
 
-        time_graph: TimeGraph = TimeGraph(
-            verbose=args.verbose,
-            network=network
-        )
-        bfs: BFS = BFS(args.verbose, time_graph)
-        dfs: DFS = DFS(args.verbose, bfs, network)
-        dfs.solve()
+        dinic: Dinic = Dinic(network, args.verbose)
+        dinic.solve()
 
-        for idx, drone in enumerate(network.drones):
-            drone.path = [
-                step.node
-                for step in (dfs.paths[idx] if idx < len(dfs.paths) else [])
-                if isinstance(step, BFSNode)
-            ]
-            logger.log(
-                f'Drone {drone.id} path: ' +
-                str([
-                    f'{obj.get_name()} at time {obj.time}'
-                    for obj in drone.path
-                ])
-            )
-        network._update_simlation_length()
         output: OutputFile = OutputFile(
             filepath=args.output,
             network=network

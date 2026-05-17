@@ -178,9 +178,10 @@ class UIRenderer:
         """Draw information about the currently targeted node."""
         if not isinstance(self._current_targeting, Node):
             return
-        # reservation: dict[int, int] = self.network.reservations.get(
-        #     self._current_targeting, {}
-        # )
+        load: int = len(self.network.load_map.get(
+            (self._current_targeting, self.network.current_step),
+            []
+        ))
         cost: int = self._current_targeting.metadata.get_travel_time()
         lines: list[str] = [
             'Type: Node',
@@ -196,18 +197,9 @@ class UIRenderer:
             f'Color: {self._current_targeting.metadata.color}',
             f'Cost: {cost} turn',
             (
-                f'Load: {0} /'
-                f' {self._current_targeting.metadata.max_drones}'
+                f'Load: {load} / {self._current_targeting.metadata.max_drones}'
             )
         ]
-        # if self._current_targeting.is_end():
-        #     lines[-1] = (
-        #         'Load: ' +
-        #         str(self.network.drones_reached_end.get(
-        #             self.network.current_step, 0
-        #         )) +
-        #         f' / {self._current_targeting.metadata.max_drones}'
-        #     )
         self.text_box_node.set_lines(lines)
         self.text_box_node.draw()
 
@@ -255,6 +247,10 @@ class UIRenderer:
 
     def _draw_state(self) -> None:
         """Draw current simulation state (FPS, step, drone count)."""
+        drone_reached_end: int = len(self.network.load_map.get(
+            (self.network.end_node, self.network.current_step),
+            []
+        ))
         self.text_box_state.set_lines(
             [
                 f'FPS: {pr.get_fps()}',
@@ -263,11 +259,8 @@ class UIRenderer:
                     f'{self.network.simulation_length}'
                 ),
                 f'Number of drones: {len(self.network.drones)}',
-                # 'Drones reached end: ' +
-                # str(self.network.drones_reached_end.get(
-                #     self.network.current_step, 0
-                # )) +
-                # f' / {len(self.network.drones)}'
+                f'Drones reached end: {drone_reached_end}'
+                f' / {len(self.network.drones)}'
             ],
             {
                 0: pr.GREEN,
@@ -307,29 +300,21 @@ class UIRenderer:
         if not self.input_controller.get_setting(ESettings.SHOW_UI_DEBUG):
             return
 
-        # self.text_box_debug.set_lines([
-        #     'Debug info:',
-        #     'Connections Reservations: ',
-        #     *[
-        #         (
-        #             f'- {conn.nodes[0].name} <-> {conn.nodes[1].name}: ' +
-        #             str(self.network.reservations_connection.get(conn, {}).get(
-        #                 self.network.current_step, 0
-        #             )) + f' / {conn.get_capacity()}'
-        #         )
-        #         for conn in self.network.connections.all
-        #     ],
-        #     'Nodes Reservations: ',
-        #     *[
-        #         (
-        #             f'- {node.get_name()}: ' +
-        #             str(self.network.reservations.get(node, {}).get(
-        #                 self.network.current_step, 0
-        #             )) + f' / {node.metadata.max_drones}'
-        #         )
-        #         for node in self.network.nodes.values()
-        #     ]
-        # ])
+        self.text_box_debug.set_lines([
+            'Debug info:',
+            'Nodes Load: ',
+            *[
+                (
+                    f'- {node.get_name()}: ' +
+                    str(len(self.network.load_map.get(
+                        (node, self.network.current_step),
+                        []
+                    ))) +
+                    f' / {node.metadata.max_drones}'
+                )
+                for node in self.network.nodes
+            ]
+        ])
 
         self.text_box_debug.draw()
 
