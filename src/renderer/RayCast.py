@@ -11,8 +11,11 @@ class RayCast:
     Manages collision detection between rays (e.g., mouse rays) and
     3D models in the scene.
 
+    Args:
+        verbose: Whether to enable verbose logging.
+
     Attributes:
-        level: The Level instance.
+        verbose: Whether to enable verbose logging.
         _entries: Dictionary mapping collision models to their bounding boxes.
     """
     level: Level

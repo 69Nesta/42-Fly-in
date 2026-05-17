@@ -1,7 +1,6 @@
 from .CollisionModel import CollisionModel
 from ..ColorMap import color_map
 from pyray import Model, Vector3
-# from ...Node import Node
 from ...network import Node
 import pyray as pr
 

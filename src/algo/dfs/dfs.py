@@ -26,7 +26,7 @@ class DFS:
         self.edges = []
         self.paths = []
 
-    def genetate_path(
+    def generate_path(
                 self,
                 path: list[BFSObject],
                 visited: set[BFSObject],
@@ -54,12 +54,13 @@ class DFS:
 
             path_length: int = len(path)
             path.append(edge)
+            visited.add(edge)
             path.append(other_node)
 
             if other_node.node.object.is_end():
                 return path
 
-            result = self.genetate_path(path, visited, deadlock)
+            result = self.generate_path(path, visited, deadlock)
             if result is not None:
                 return result
 
@@ -91,7 +92,7 @@ class DFS:
 
         total_flow: int = 0
         while total_flow < self.network.nb_drones:
-            path: list[BFSObject] | None = self.genetate_path(
+            path: list[BFSObject] | None = self.generate_path(
                 [self.bfs.start_node],
                 set(),
                 set()

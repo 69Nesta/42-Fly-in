@@ -164,23 +164,23 @@ class MapLoader(BaseModel):
         if not start_nodes:
             self._result.errors.append(ParseError(
                 0, '',
-                'Map must contain at least one start_node'
+                'Map must contain at least one start_hub'
             ))
         if not end_nodes:
             self._result.errors.append(ParseError(
                 0, '',
-                'Map must contain at least one end_node'
+                'Map must contain at least one end_hub'
             ))
         if len(start_nodes) > 1:
             self._result.errors.append(ParseError(
                 0, '',
-                'Map must contain at most one start_node, got '
+                'Map must contain at most one start_hub, got '
                 f'{len(start_nodes)}'
             ))
         if len(end_nodes) > 1:
             self._result.errors.append(ParseError(
                 0, '',
-                f'Map must contain at most one end_node, got {len(end_nodes)}'
+                f'Map must contain at most one end_hub, got {len(end_nodes)}'
             ))
         if start_nodes and end_nodes:
             self._start_node = start_nodes[0]
