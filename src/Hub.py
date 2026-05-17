@@ -44,12 +44,12 @@ class ENodeCost(Enum):
 
     Attributes:
         NORMAL: Cost for normal zones.
-        BLOCKED: Cost for blocked zones (infinite).
+        BLOCKED: Cost for blocked zones.
         RESTRICTED: Cost for restricted zones.
         PRIORITY: Cost for priority zones (lower than normal).
     """
     NORMAL = 1
-    BLOCKED = 2
+    BLOCKED = 1
     RESTRICTED = 2
     PRIORITY = 1
 

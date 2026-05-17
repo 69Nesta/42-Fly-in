@@ -1,7 +1,8 @@
+from .algo.time_graph import Node, ConnectionNode
+from .network import Node as NetworkNode
+
 from dataclasses import dataclass, field
-from .Connections import Connection
 from pyray import Vector2
-from .Hub import Hub
 
 
 @dataclass(slots=True)
@@ -19,7 +20,8 @@ class Drone:
     start_point: Vector2 = field()
     end_point: Vector2 = field()
 
-    path: list[tuple[Hub | Connection, int]] = field(default_factory=list)
+    path: list[Node] = field(default_factory=list)
+    _cached_positions: dict[int, Vector2] = field(default_factory=dict)
 
     def get_id(self) -> int:
         """Get the drone's unique identifier.
@@ -45,7 +47,7 @@ class Drone:
         """
         return self.start_point
 
-    def get_step_at_time(self, t: int) -> Hub | Connection | None:
+    def get_step_at_time(self, t: int) -> Node | None:
         """Get the path step (hub or connection) at a specific time.
 
         Args:
@@ -54,17 +56,21 @@ class Drone:
         Returns:
             The hub or connection at time t, or None if not available.
         """
-        for idx, (step, step_t) in enumerate(self.path):
-            if step_t == t:
-                next_step: tuple[Hub | Connection, int] | None = (
-                    self.path[idx + 1] if idx + 1 < len(self.path) else None
-                )
-                if (next_step and isinstance(step, Hub)
-                   and isinstance(next_step[0], Hub)
-                   and next_step[0].is_start()):
-                    return None
-                return step
-        return None
+        if t >= len(self.path) or t < 0:
+            return None
+
+        node: Node | None = self.path[t]
+        if not node:
+            return None
+        next_node: Node | None = (
+            self.path[t + 1] if t + 1 < len(self.path) else None
+        )
+        if not next_node:
+            return node
+        if next_node.object.is_start() and self.path[t].object.is_start():
+            return None
+
+        return node
 
     def get_position_at_step(self, t: int) -> Vector2:
         """Get the drone's position at a specific time step.
@@ -75,19 +81,25 @@ class Drone:
         Returns:
             The drone's position at time t as a Vector2.
         """
-        for idx, (step, step_t) in enumerate(self.path):
-            if step_t == t:
-                next_step: tuple[Hub | Connection, int] | None = (
-                    self.path[idx + 1] if idx + 1 < len(self.path) else None
-                )
-                if (next_step and isinstance(step, Hub)
-                   and isinstance(next_step[0], Hub)
-                   and next_step[0].is_start()):
-                    return self.get_position()
-                if isinstance(step, Hub) or isinstance(step, Connection):
-                    return step.get_position()
-                break
-        return self.get_end_postion()
+        if t in self._cached_positions:
+            return self._cached_positions[t]
+
+        node: Node | None = self.get_step_at_time(t)
+        if not node and t >= len(self.path):
+            return self.get_end_postion()
+        elif not node:
+            return self.get_position()
+
+        position: Vector2
+        if isinstance(node, ConnectionNode):
+            position = node.get_network_connection().get_position()
+        else:
+            position = Vector2(node.object.x, node.object.y)
+
+        return self._cached_positions.setdefault(
+            t,
+            position
+        )
 
     def get_first_position(self) -> Vector2:
         """Get the drone's first position in its planned path.
@@ -97,9 +109,7 @@ class Drone:
             if path is empty.
         """
         if len(self.path) > 0:
-            step, _ = self.path[0]
-            if isinstance(step, Hub):
-                return Vector2(step.x, step.y)
+            return self.path[0].object.get_position()
         return self.get_position()
 
     def get_end_postion(self) -> Vector2:

@@ -2,12 +2,13 @@ from .EnvironmentRenderer import EnvironmentRenderer
 from .ConnectionRenderer import ConnectionRenderer
 from .InputController import InputController
 from .DronesRenderer import DronesRenderer
-from .HubRenderer import HubRenderer
+from .NodeRenderer import NodeRenderer
 from .UIRenderer import UIRenderer
-from pyray import Vector3
 from ..utils import Logger, Color
+from ..network import Network
 from .RayCast import RayCast
-from ..Level import Level
+
+from pyray import Vector3
 import pyray as pr
 
 
@@ -35,19 +36,19 @@ class CoreRenderer:
     HEIGHT: int = 720
 
     logger: Logger
-    level: Level
+    network: Network
 
     title: str
     camera: pr.Camera3D
     input_controller: InputController
     ray_cast: RayCast
 
-    hub_renderer: HubRenderer
+    node_renderer: NodeRenderer
     connection_renderer: ConnectionRenderer
     drones_renderer: DronesRenderer
     ui_renderer: UIRenderer
 
-    def __init__(self, level: Level, verbose: bool = False) -> None:
+    def __init__(self, network: Network, verbose: bool = False) -> None:
         """Initialize the core renderer.
 
         Sets up the PyRay window, camera, and all rendering components.
@@ -64,7 +65,7 @@ class CoreRenderer:
         )
         self.logger.log('Initializing renderer...')
 
-        self.level = level
+        self.network = network
         pr.set_trace_log_level(pr.TraceLogLevel.LOG_NONE)
         pr.init_window(self.WIDTH, self.HEIGHT, self.title)
         pr.set_target_fps(60)
@@ -86,14 +87,14 @@ class CoreRenderer:
             self.WIDTH,
             self.HEIGHT
         )
-        self.ray_cast = RayCast(self.level)
+        self.ray_cast = RayCast(verbose)
 
-        self.environment_renderer = EnvironmentRenderer(self.level)
-        self.hub_renderer = HubRenderer(self.level, self.ray_cast)
-        self.connection_renderer = ConnectionRenderer(self.level)
-        self.drones_renderer = DronesRenderer(self.level, self.ray_cast)
+        self.environment_renderer = EnvironmentRenderer(self.network)
+        self.node_renderer = NodeRenderer(self.network, self.ray_cast)
+        self.connection_renderer = ConnectionRenderer(self.network)
+        self.drones_renderer = DronesRenderer(self.network, self.ray_cast)
         self.ui_renderer = UIRenderer(
-            self.level,
+            self.network,
             self.WIDTH, self.HEIGHT,
             self.ray_cast,
             self.camera,
@@ -112,7 +113,7 @@ class CoreRenderer:
             # Update
             self.input_controller.update()
             self.environment_renderer.update(time)
-            self.hub_renderer.update()
+            self.node_renderer.update()
             self.connection_renderer.update()
             self.drones_renderer.update()
 
@@ -131,7 +132,7 @@ class CoreRenderer:
             pr.begin_mode_3d(self.camera)
             self.environment_renderer.draw()
             self.connection_renderer.draw()
-            self.hub_renderer.draw()
+            self.node_renderer.draw()
             self.drones_renderer.draw()
             pr.end_mode_3d()
 
@@ -142,7 +143,7 @@ class CoreRenderer:
 
         self.logger.log('Closing renderer...')
         self.environment_renderer.unload()
-        self.hub_renderer.unload()
+        self.node_renderer.unload()
         self.connection_renderer.unload()
         self.drones_renderer.unload()
         pr.close_window()

@@ -1,12 +1,18 @@
-from .renderer.CoreRenderer import CoreRenderer
-from pydantic import ValidationError
 from .MapSelector import MapSelector
 from .ArgsParser import ArgsParser
-from .OutputFile import OutputFile
 from .utils import Logger, Color
+from .network import Network
+from .map_loader import MapLoader
+from .renderer import CoreRenderer
+from .OutputFile import OutputFile
+
+from .algo.time_graph import TimeGraph
+from .algo.bfs import BFS, BFSNode
+from .algo.dfs import DFS
+
+
+from pydantic import ValidationError
 from argparse import Namespace
-from .Solver import Solver
-from .Level import Level
 import sys
 
 
@@ -40,36 +46,67 @@ def run() -> None:
         else:
             map_path = args.input
 
-        level: Level = Level(
-            map_path=map_path,
+        loaded_map: MapLoader = MapLoader(
+            filepath=map_path,
             verbose=args.verbose
         )
 
-        solver: Solver = Solver(
-            level=level
+        network: Network = Network(
+            loaded_map=loaded_map,
+            verbose=args.verbose
         )
-        solver.plan_all_drones()
 
+        time_graph: TimeGraph = TimeGraph(
+            verbose=args.verbose,
+            network=network
+        )
+        bfs: BFS = BFS(args.verbose, time_graph)
+        dfs: DFS = DFS(args.verbose, bfs, network)
+        dfs.solve()
+
+        # for path in dfs.paths:
+        #     logger.log(
+        #         'Found path: ' +
+        #         str([
+        #             f'{obj.node.object.get_name()} at time {obj.node.time}'
+        #             for obj in path
+        #             if isinstance(obj, BFSNode)
+        #         ])
+        #     )
+
+        for idx, drone in enumerate(network.drones):
+            drone.path = [
+                step.node
+                for step in (dfs.paths[idx] if idx < len(dfs.paths) else [])
+                if isinstance(step, BFSNode)
+            ]
+            logger.log(
+                f'Drone {drone.id} path: ' +
+                str([
+                    f'{obj.get_name()} at time {obj.time}'
+                    for obj in drone.path
+                ])
+            )
+        network._update_simlation_length()
         output: OutputFile = OutputFile(
             filepath=args.output,
-            level=level
+            network=network
         )
         output.generate()
         output.write()
 
         renderer: CoreRenderer = CoreRenderer(
-            level=level,
+            network=network,
             verbose=args.verbose
         )
         renderer.run()
 
     except ValidationError as e:
         for error in e.errors():
-            if error.get("ctx") and error.get("ctx", {}).get("error"):
-                logger.error(f"Error: {error.get('ctx', {}).get('error')}")
+            if error.get('ctx') and error.get('ctx', {}).get('error'):
+                logger.error(f'Error: {error.get('ctx', {}).get('error')}')
             else:
-                logger.error(f"Error: {error['msg']}")
-    except ValueError as e:
+                logger.error(f'Error: {error['msg']}')
         logger.error(f'Error: {e.__cause__ or e}')
     # except Exception as e:
     #     logger.error(f'Unexpected error: {e}')

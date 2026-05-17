@@ -1,6 +1,6 @@
 from collections import defaultdict
 from ..utils import Logger, Color
-from ..Level import Level
+from ..network import Network
 from pyray import Vector2
 from enum import Enum
 import random
@@ -50,18 +50,18 @@ class Environment:
 
     Attributes:
         logger: Logger for debug output.
-        level: The Level instance.
+        network: The network instance.
         environment_height: Grid height in cells.
         environment_width: Grid width in cells.
         SCALE: Scaling factor for grid granularity.
-        PADDING_X: Horizontal padding around level bounds.
-        PADDING_Y: Vertical padding around level bounds.
+        PADDING_X: Horizontal padding around network bounds.
+        PADDING_Y: Vertical padding around network bounds.
         offset_x: X offset for grid-to-world conversion.
         offset_y: Y offset for grid-to-world conversion.
         environment_map: 2D grid mapping positions to objects.
     """
     logger: Logger
-    level: Level
+    network: Network
 
     environment_height: int
     environment_width: int
@@ -73,24 +73,24 @@ class Environment:
 
     environment_map: dict[int, dict[int, EEnvironmentObject]]
 
-    def __init__(self, level: Level) -> None:
+    def __init__(self, network: Network) -> None:
         """Initialize the environment grid.
 
         Args:
-            level: The Level instance.
+            network: The network instance.
         """
         self.logger = Logger(
-            print_log=level.logger.print_log,
+            print_log=network.logger.print_log,
             name='Environment',
             color=Color.CYAN
         )
-        self.level = level
+        self.network = network
 
         self.offset_x = -self.PADDING_X + (
-            self.level.min_pos.x * self.SCALE
+            self.network.min_pos.x * self.SCALE
         )
         self.offset_y = -self.PADDING_Y + (
-            self.level.min_pos.y * self.SCALE
+            self.network.min_pos.y * self.SCALE
         )
 
         self.init_environment()
@@ -104,30 +104,30 @@ class Environment:
         )
 
     def init_environment(self) -> None:
-        """Calculate grid dimensions based on level bounds and scale."""
+        """Calculate grid dimensions based on network bounds and scale."""
         self.logger.log('Initializing environment...')
         self.environment_height = 1 + (
-            self.level.height * self.SCALE + (self.PADDING_Y * 2)
+            self.network.height * self.SCALE + (self.PADDING_Y * 2)
         )
         self.environment_width = 1 + (
-            self.level.width * self.SCALE + (self.PADDING_X * 2)
+            self.network.width * self.SCALE + (self.PADDING_X * 2)
         )
 
     def pre_fill_environment_map(self) -> None:
         """Populate grid with hubs, start, and end positions."""
         pos: Vector2
         pos = self.calculate_2d_position_vec(
-            self.level.get_drone_start_position()
+            self.network.get_drone_start_position()
         )
         self.environment_map[get_y(pos)][get_x(pos)] = \
             EEnvironmentObject.START_NODE
         pos = self.calculate_2d_position_vec(
-            self.level.get_drone_end_position()
+            self.network.get_drone_end_position()
         )
         self.environment_map[get_y(pos)][get_x(pos)] = \
             EEnvironmentObject.END_NODE
 
-        for node in self.level.hubs.values():
+        for node in self.network.nodes:
             pos = self.calculate_2d_position(node.x, node.y)
             self.environment_map[get_y(pos)][get_x(pos)] = (
                 EEnvironmentObject.NODE
@@ -145,8 +145,8 @@ class Environment:
         Returns:
             Vector2 with grid coordinates.
         """
-        normalized_x = x - self.level.min_pos.x
-        normalized_y = y - self.level.min_pos.y
+        normalized_x = x - self.network.min_pos.x
+        normalized_y = y - self.network.min_pos.y
         return Vector2(
             normalized_x * self.SCALE + self.PADDING_X,
             normalized_y * self.SCALE + self.PADDING_Y
