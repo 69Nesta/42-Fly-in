@@ -5,7 +5,8 @@ for consistent color rendering throughout the application.
 """
 
 import pyray as pr
-from ..Enums import EColor as Color
+# from ..Enums import EColor as Color
+from ..network.metadata import ColorMetadata as Color
 
 
 color_map: dict[Color, pr.Color] = {

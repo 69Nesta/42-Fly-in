@@ -24,5 +24,8 @@ class Node:
             return
         self.connections.append((node, connection))
 
+    def get_name(self) -> str:
+        return self.object.get_name()
+
     def get_connections(self) -> list[tuple['Node', Connection | None]]:
         return self.connections

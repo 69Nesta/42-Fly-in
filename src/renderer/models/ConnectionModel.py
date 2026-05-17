@@ -1,15 +1,15 @@
 from pyray import Mesh, Model, Vector2, Vector3, Color
-from ...Connections import Connection
+from ...network import Connection
 from ...utils import MathUtils
 import pyray as pr
 import math
 
 
 class ConnectionModel:
-    """Visual 3D model for a connection between two hubs.
+    """Visual 3D model for a connection between two nodes.
 
     Renders connections as cylinders with proper positioning and rotation
-    based on the connected hubs' positions.
+    based on the connected nodes' positions.
 
     Attributes:
         WORLD_SCALE: Scale factor for converting map coordinates to world space
@@ -45,11 +45,11 @@ class ConnectionModel:
     def _generate_models(self) -> None:
         """Generate the 3D cylinder model for the connection.
 
-        Calculates distance and angle between hubs and creates a cylinder
+        Calculates distance and angle between nodes and creates a cylinder
         mesh rotated to connect them.
         """
-        p1 = Vector2(self.connection.hubs[0].x, self.connection.hubs[0].y)
-        p2 = Vector2(self.connection.hubs[1].x, self.connection.hubs[1].y)
+        p1 = Vector2(self.connection.nodes[0].x, self.connection.nodes[0].y)
+        p2 = Vector2(self.connection.nodes[1].x, self.connection.nodes[1].y)
         length = (
             MathUtils.get_distance_between_points(p1, p2) * self.WORLD_SCALE
         )
@@ -65,9 +65,9 @@ class ConnectionModel:
         self.model.transform = transform
 
         position = Vector3(
-            self.connection.hubs[0].x * self.WORLD_SCALE,
+            self.connection.nodes[0].x * self.WORLD_SCALE,
             self.CONNECTION_Y,
-            self.connection.hubs[0].y * self.WORLD_SCALE
+            self.connection.nodes[0].y * self.WORLD_SCALE
         )
         self.position = position
 

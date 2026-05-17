@@ -1,37 +1,38 @@
 from .CollisionModel import CollisionModel
 from ..ColorMap import color_map
 from pyray import Model, Vector3
-from ...Hub import Hub
+# from ...Node import Node
+from ...network import Node
 import pyray as pr
 
 
-class HubModel(CollisionModel):
-    """3D visual model for a hub with color indicator.
+class NodeModel(CollisionModel):
+    """3D visual model for a node with color indicator.
 
-    Renders hub geometry with a color cylinder to indicate hub properties.
+    Renders node geometry with a color cylinder to indicate node properties.
 
     Attributes:
-        model: PyRay model for hub geometry.
+        model: PyRay model for node geometry.
         color_model: PyRay model for the color indicator.
         collision_model: Flat cube mesh for collision detection.
-        hub: The Hub object this model represents.
+        node: The Node object this model represents.
     """
     model: Model
     color_model: Model
 
     collision_model: Model
-    hub: Hub
+    node: Node
 
-    def __init__(self, hub: Hub, model: Model, color_model: Model) -> None:
-        """Initialize a hub model.
+    def __init__(self, node: Node, model: Model, color_model: Model) -> None:
+        """Initialize a node model.
 
         Args:
-            hub: The Hub object to visualize.
-            model: PyRay model for hub geometry.
+            node: The Node object to visualize.
+            model: PyRay model for node geometry.
             color_model: PyRay model for color indicator.
         """
         super().__init__()
-        self.hub = hub
+        self.node = node
         self.model = model
         self.color_model = color_model
         self.collision_model = pr.load_model_from_mesh(
@@ -47,24 +48,24 @@ class HubModel(CollisionModel):
         return self.collision_model
 
     def get_position(self) -> Vector3:
-        """Get the hub's 3D world position.
+        """Get the node's 3D world position.
 
         Returns:
             Vector3 position in world space.
         """
-        return Vector3(self.hub.x * 3, 1, self.hub.y * 3)
+        return Vector3(self.node.x * 3, 1, self.node.y * 3)
 
     def get_collision_position(self) -> Vector3:
         """Get the collision model's world position.
 
         Returns:
-            Vector3 position slightly above the hub.
+            Vector3 position slightly above the node.
         """
-        return Vector3(self.hub.x * 3, 1.05, self.hub.y * 3)
+        return Vector3(self.node.x * 3, 1.05, self.node.y * 3)
 
     def draw(self) -> None:
         """
-        Draw the hub model with color indicator and optional collision
+        Draw the node model with color indicator and optional collision
         wireframe
         """
         pr.draw_model_ex(
@@ -82,7 +83,7 @@ class HubModel(CollisionModel):
             0,
             Vector3(1, 0.4, 1),
             color_map.get(
-                self.hub.metadata.get_color(),
+                self.node.metadata.get_color(),
                 pr.RAYWHITE
             )
         )

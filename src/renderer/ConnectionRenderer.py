@@ -1,32 +1,32 @@
 from .models import ConnectionModel
 from ..utils import Logger, Color
-from ..Level import Level
+from ..network import Network
 
 
 class ConnectionRenderer:
     """Renderer for connection visualization in the 3D environment.
 
-    Manages rendering of all connections between hubs using connection models.
+    Manages rendering of all connections between nodes using connection models.
 
     Attributes:
         level: The level containing connection data.
         logger: Logger instance for debug output.
         connections_models: List of connection models to render.
     """
-    level: Level
+    network: Network
     logger: Logger
 
     connections_models: list[ConnectionModel]
 
-    def __init__(self, level: Level) -> None:
+    def __init__(self, network: Network) -> None:
         """Initialize the connection renderer.
 
         Args:
             level: The level instance containing connection data.
         """
-        self.level = level
+        self.network = network
         self.logger = Logger(
-            print_log=level.logger.print_log,
+            print_log=network.logger.print_log,
             name='ConnectionRenderer',
             color=Color.BLUE
         )
@@ -36,7 +36,7 @@ class ConnectionRenderer:
 
     def _generate_models(self) -> None:
         """Generate visual models for all connections in the level."""
-        for connection in self.level.connections.all:
+        for connection in self.network.connections:
             model = ConnectionModel(connection)
             self.connections_models.append(model)
 

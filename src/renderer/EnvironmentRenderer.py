@@ -1,7 +1,7 @@
 from .models import PlatformModel, SDModel, EnvironmentModel
 from .Environment import Environment
 from ..utils import Logger, Color
-from ..Level import Level
+from ..network import Network
 from .SkyBox import SkyBox
 
 
@@ -20,7 +20,7 @@ class EnvironmentRenderer:
         sd_model: Start/end hub indicator model.
         environment_model: Environment object models.
     """
-    level: Level
+    network: Network
     logger: Logger
 
     skybox: SkyBox
@@ -30,22 +30,22 @@ class EnvironmentRenderer:
     sd_model: SDModel
     environment_model: EnvironmentModel
 
-    def __init__(self, level: Level) -> None:
+    def __init__(self, network: Network) -> None:
         """Initialize the environment renderer.
 
         Args:
             level: The Level instance.
         """
-        self.level = level
+        self.network = network
         self.logger = Logger(
-            print_log=level.logger.print_log,
+            print_log=network.logger.print_log,
             name='EnvironmentRenderer',
             color=Color.BRIGHT_YELLOW
         )
         self.logger.log('Initializing environment renderer...')
 
         self.skybox = SkyBox()
-        self.environment = Environment(self.level)
+        self.environment = Environment(self.network)
         self.environment_model = EnvironmentModel(self.environment)
         self.platform = PlatformModel(self.environment)
         self.sd_model = SDModel(self.environment)

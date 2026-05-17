@@ -13,23 +13,20 @@ class RayCast:
 
     Attributes:
         level: The Level instance.
-        logger: Logger instance for debug output.
         _entries: Dictionary mapping collision models to their bounding boxes.
     """
     level: Level
-    logger: Logger
 
     _entries: dict[CollisionModel, BoundingBox]
 
-    def __init__(self, level: Level) -> None:
+    def __init__(self, verbose: bool) -> None:
         """Initialize the ray casting system.
 
         Args:
             level: The Level instance containing scene data.
         """
-        self.level = level
         self.logger = Logger(
-            print_log=level.logger.print_log,
+            print_log=verbose,
             name='RayCast',
             color=Color.YELLOW
         )

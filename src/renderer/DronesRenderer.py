@@ -1,7 +1,7 @@
 from ..utils import Logger, Color, MathUtils
 from .models import DroneModel
 from .RayCast import RayCast
-from ..Level import Level
+from ..network import Network
 from pyray import Model
 import pyray as pr
 
@@ -13,7 +13,7 @@ class DronesRenderer:
     and integrates with the raycasting system for collision detection.
 
     Attributes:
-        level: The Level instance.
+        network: The Network instance.
         logger: Logger for debug output.
         raycast: RayCast system for collision detection.
         drone_model: Shared PyRay model for all drones.
@@ -21,7 +21,7 @@ class DronesRenderer:
         current_step: Current simulation step.
         ANNIMATION_DURATION: Duration of drone movement animation in ms.
     """
-    level: Level
+    network: Network
     logger: Logger
     raycast: RayCast
     drone_model: Model
@@ -30,16 +30,16 @@ class DronesRenderer:
     current_step: int = 0
     ANNIMATION_DURATION: int = 500
 
-    def __init__(self, level: Level, ray_cast: RayCast) -> None:
+    def __init__(self, network: Network, ray_cast: RayCast) -> None:
         """Initialize the drones renderer.
 
         Args:
-            level: The Level instance.
+            network: The Network instance.
             ray_cast: The RayCast system for collision detection.
         """
-        self.level = level
+        self.network = network
         self.logger = Logger(
-            print_log=level.logger.print_log,
+            print_log=network.logger.print_log,
             name='DronesRenderer',
             color=Color.BRIGHT_YELLOW
         )
@@ -48,7 +48,7 @@ class DronesRenderer:
         self.drone_model = pr.load_model('src/assets/models/bb8.glb')
 
         self.drones = []
-        for idx, drone in enumerate(self.level.drones):
+        for idx, drone in enumerate(self.network.drones):
             model: DroneModel = DroneModel(
                 idx=idx,
                 frame_rate=60,
@@ -64,10 +64,10 @@ class DronesRenderer:
         RIGHT arrow advances simulation step, LEFT arrow goes back one step.
         """
         if (pr.is_key_pressed(pr.KeyboardKey.KEY_RIGHT)):
-            if self.level.update_step(1):
+            if self.network.update_step(1):
                 for idx, drone in enumerate(self.drones):
-                    drone_pos = self.level.drones[idx].get_position_at_step(
-                        self.level.current_step
+                    drone_pos = self.network.drones[idx].get_position_at_step(
+                        self.network.current_step
                     )
                     drone.move_to(
                         position=drone_pos,
@@ -78,10 +78,10 @@ class DronesRenderer:
                         animation_time=self.ANNIMATION_DURATION,
                     )
         elif (pr.is_key_pressed(pr.KeyboardKey.KEY_LEFT)):
-            if self.level.update_step(-1):
+            if self.network.update_step(-1):
                 for idx, drone in enumerate(self.drones):
-                    drone_pos = self.level.drones[idx].get_position_at_step(
-                        self.level.current_step
+                    drone_pos = self.network.drones[idx].get_position_at_step(
+                        self.network.current_step
                     )
                     drone.back_to(
                         position=drone_pos,

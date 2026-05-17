@@ -3,11 +3,11 @@ from .errors import (
     PermissionError as _PermissionError,
     NotAFileError
 )
-from collections import defaultdict
-from .Connections import Connection
+from .network import Network
 from .utils import Logger, Color
-from .Level import Level
-from .Hub import Hub
+
+
+from collections import defaultdict
 import os
 
 
@@ -16,26 +16,26 @@ class OutputFile:
 
     Attributes:
         filepath: Path where the output file will be written.
-        level: The Level instance containing drone and step information.
+        network: The Network instance containing drone and step information.
         logger: Logger instance for debug/info messages.
         lines: Dictionary mapping step numbers to lists of drone position str.
     """
     filepath: str
-    level: Level
+    network: Network
     logger: Logger
     lines: dict[int, list[str]]
 
-    def __init__(self, filepath: str, level: Level) -> None:
+    def __init__(self, filepath: str, network: Network) -> None:
         """Initialize the output file generator.
 
         Args:
             filepath: Path where the output will be written.
-            level: The Level instance to generate output from.
+            network: The Network instance to generate output from.
         """
         self.filepath = filepath
-        self.level = level
+        self.network = network
         self.logger = Logger(
-            print_log=level.logger.print_log,
+            print_log=network.logger.print_log,
             name='OutputFile',
             color=Color.BLUE
         )
@@ -47,20 +47,15 @@ class OutputFile:
         Populates self.lines with drone-to-location mappings for each step.
         """
         self.logger.log('Generating output file...')
-        for step in range(self.level.number_of_steps):
-            for drone in self.level.drones:
-                hub_or_conn = drone.get_step_at_time(step)
+        for step in range(self.network.simulation_length + 1):
+            for drone in self.network.drones:
+                node = drone.get_step_at_time(step)
 
-                if hub_or_conn is None:
+                if node is None:
                     continue
-                if isinstance(hub_or_conn, Hub):
-                    self.lines[step].append(
-                        f'{drone.get_name()}-{hub_or_conn.name}'
-                    )
-                elif isinstance(hub_or_conn, Connection):
-                    self.lines[step].append(
-                        f'{drone.get_name()}-{hub_or_conn.get_id()}'
-                    )
+                self.lines[step].append(
+                    f'{drone.get_name()}-{node.get_name()}'
+                )
 
     def write(self) -> None:
         """Write the generated output to the file.

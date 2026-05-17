@@ -1,47 +1,47 @@
-from .models import HubModel
+from .models import NodeModel
 from ..utils import Logger, Color
 from .RayCast import RayCast
-from ..Level import Level
+from ..network import Network
 from pyray import Model
 import pyray as pr
 
 
-class HubRenderer:
-    """Renderer for hub visualization in the 3D environment.
+class NodeRenderer:
+    """Renderer for node visualization in the 3D environment.
 
-    Manages rendering of all hub nodes and their color indicators,
+    Manages rendering of all node nodes and their color indicators,
     with support for selection via raycasting.
 
     Attributes:
-        level: The level containing hub data.
+        network: The network containing node data.
         logger: Logger instance for debug output.
         ray_cast: Ray casting system for intersection detection.
-        node_model: 3D model for hub geometry.
-        node_color_model: 3D model for hub color indicator.
-        nodes: List of hub models to render.
+        node_model: 3D model for node geometry.
+        node_color_model: 3D model for node color indicator.
+        nodes: List of node models to render.
     """
-    level: Level
+    network: Network
     logger: Logger
     ray_cast: RayCast
 
     node_model: Model
     node_es_model: Model
-    nodes: list[HubModel]
+    nodes: list[NodeModel]
 
-    def __init__(self, level: Level, ray_cast: RayCast) -> None:
-        """Initialize the hub renderer.
+    def __init__(self, network: Network, ray_cast: RayCast) -> None:
+        """Initialize the node renderer.
 
         Args:
-            level: The level instance containing hub data.
+            network: The network instance containing node data.
             ray_cast: The ray casting system for intersection detection.
         """
-        self.level = level
+        self.network = network
         self.logger = Logger(
-            print_log=level.logger.print_log,
-            name='HubRenderer',
+            print_log=network.logger.print_log,
+            name='NodeRenderer',
             color=Color.GREEN
         )
-        self.logger.log('Initializing hub renderer...')
+        self.logger.log('Initializing node renderer...')
         self.ray_cast = ray_cast
 
         self.node_model = pr.load_model('src/assets/models/node.glb')
@@ -50,23 +50,23 @@ class HubRenderer:
         )
 
         self.nodes = []
-        for hub in self.level.hubs.values():
-            model = HubModel(hub, self.node_model, self.node_color_model)
+        for node in self.network.nodes:
+            model = NodeModel(node, self.node_model, self.node_color_model)
             self.nodes.append(model)
             self.ray_cast.register(model)
             pass
 
     def update(self) -> None:
-        """Update hub models (placeholder for future logic)."""
+        """Update node models (placeholder for future logic)."""
         pass
 
     def draw(self) -> None:
-        """Draw all hub models to the screen."""
+        """Draw all node models to the screen."""
         for node in self.nodes:
             node.draw()
 
     def unload(self) -> None:
-        """Unload and clean up hub models."""
-        self.logger.log('Unloading hub renderer...')
+        """Unload and clean up node models."""
+        self.logger.log('Unloading node renderer...')
         pr.unload_model(self.node_model)
         pr.unload_model(self.node_color_model)

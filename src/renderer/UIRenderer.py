@@ -1,11 +1,11 @@
-from .models import DroneModel, HubModel, CollisionModel
+from .models import DroneModel, NodeModel, CollisionModel
 from .InputController import InputController, ESettings
-from pyray import Ray, RayCollision, Camera3D
 from ..utils import Logger, Color, StrUtils
 from .components import TextBox, NameTag
+from ..network import Network, Node
 from .RayCast import RayCast
-from ..Level import Level
-from ..Hub import Hub
+
+from pyray import Ray, RayCollision, Camera3D
 import pyray as pr
 
 
@@ -16,21 +16,21 @@ class UIRenderer:
     based on raycasting and user input.
 
     Attributes:
-        level: The Level instance.
+        network: The Network instance.
         logger: Logger for debug output.
         width: Screen width in pixels.
         height: Screen height in pixels.
         ray_cast: RayCast system for picking.
         camera: PyRay Camera3D.
         input_controller: Input controller for settings.
-        _current_targeting: Currently targeted hub or drones.
+        _current_targeting: Currently targeted node or drones.
         text_box_drone: Text box for drone information.
-        text_box_hub: Text box for hub information.
+        text_box_node: Text box for node information.
         text_box_state: Text box for simulation state.
         text_box_debug: Text box for debug information.
         stack_count_name_tag: Name tag for drone stack counts.
     """
-    level: Level
+    network: Network
     logger: Logger
     width: int
     height: int
@@ -38,9 +38,9 @@ class UIRenderer:
     camera: Camera3D
     input_controller: InputController
 
-    _current_targeting: Hub | list[DroneModel] | None
+    _current_targeting: Node | list[DroneModel] | None
     text_box_drone: TextBox
-    text_box_hub: TextBox
+    text_box_node: TextBox
     text_box_state: TextBox
     text_box_debug: TextBox
 
@@ -48,7 +48,7 @@ class UIRenderer:
 
     def __init__(
                 self,
-                level: Level,
+                network: Network,
                 width: int,
                 height: int,
                 ray_cast: RayCast,
@@ -58,16 +58,16 @@ class UIRenderer:
         """Initialize the UI renderer.
 
         Args:
-            level: The Level instance.
+            network: The Network instance.
             width: Screen width in pixels.
             height: Screen height in pixels.
             ray_cast: The RayCast system for picking.
             camera: PyRay Camera3D.
             input_controller: Input controller for settings.
         """
-        self.level = level
+        self.network = network
         self.logger = Logger(
-            print_log=level.logger.print_log,
+            print_log=network.logger.print_log,
             name='UIRenderer',
             color=Color.GREEN
         )
@@ -103,7 +103,7 @@ class UIRenderer:
             top_align=True,
             left_align=False,
         )
-        self.text_box_hub = TextBox(
+        self.text_box_node = TextBox(
             font_size=20,
             text_color=pr.BLUE,
             background_color=pr.fade(pr.SKYBLUE, 0.2),
@@ -148,8 +148,8 @@ class UIRenderer:
 
         first_object, _ = objects[0]
         first_object.set_selected(True)
-        if isinstance(first_object, HubModel):
-            self._current_targeting = first_object.hub
+        if isinstance(first_object, NodeModel):
+            self._current_targeting = first_object.node
         elif isinstance(first_object, DroneModel):
             self._current_targeting = [first_object]
             for obj, _ in objects[1:]:
@@ -174,16 +174,16 @@ class UIRenderer:
             pr.fade(pr.GRAY, 0.8)
         )
 
-    def _draw_current_target_hub(self) -> None:
-        """Draw information about the currently targeted hub."""
-        if not isinstance(self._current_targeting, Hub):
+    def _draw_current_target_node(self) -> None:
+        """Draw information about the currently targeted node."""
+        if not isinstance(self._current_targeting, Node):
             return
-        reservation: dict[int, int] = self.level.reservations.get(
-            self._current_targeting, {}
-        )
+        # reservation: dict[int, int] = self.network.reservations.get(
+        #     self._current_targeting, {}
+        # )
         cost: int = self._current_targeting.metadata.get_travel_time()
         lines: list[str] = [
-            'Type: Hub',
+            'Type: Node',
             (
                 f'Node: {StrUtils.truncate(self._current_targeting.name, 15)}'
                 f' ({self._current_targeting.get_position().x:.0f}, '
@@ -196,20 +196,20 @@ class UIRenderer:
             f'Color: {self._current_targeting.metadata.color}',
             f'Cost: {cost} turn',
             (
-                f'Load: {reservation.get(self.level.current_step, 0)} /'
+                f'Load: {0} /'
                 f' {self._current_targeting.metadata.max_drones}'
             )
         ]
-        if self._current_targeting.is_end():
-            lines[-1] = (
-                'Load: ' +
-                str(self.level.drones_reached_end.get(
-                    self.level.current_step, 0
-                )) +
-                f' / {self._current_targeting.metadata.max_drones}'
-            )
-        self.text_box_hub.set_lines(lines)
-        self.text_box_hub.draw()
+        # if self._current_targeting.is_end():
+        #     lines[-1] = (
+        #         'Load: ' +
+        #         str(self.network.drones_reached_end.get(
+        #             self.network.current_step, 0
+        #         )) +
+        #         f' / {self._current_targeting.metadata.max_drones}'
+        #     )
+        self.text_box_node.set_lines(lines)
+        self.text_box_node.draw()
 
     def _draw_current_target_drone(self) -> None:
         """Draw information about currently targeted drone(s)."""
@@ -244,12 +244,12 @@ class UIRenderer:
         self.text_box_drone.draw()
 
     def _draw_current_target(self) -> None:
-        """Draw information about the current target (hub or drone(s))."""
+        """Draw information about the current target (node or drone(s))."""
         if self._current_targeting is None:
             return
 
-        if isinstance(self._current_targeting, Hub):
-            self._draw_current_target_hub()
+        if isinstance(self._current_targeting, Node):
+            self._draw_current_target_node()
         elif isinstance(self._current_targeting, list):
             self._draw_current_target_drone()
 
@@ -259,15 +259,15 @@ class UIRenderer:
             [
                 f'FPS: {pr.get_fps()}',
                 (
-                    f'STEP: {self.level.current_step} / '
-                    f'{self.level.number_of_steps - 1}'
+                    f'STEP: {self.network.current_step} / '
+                    f'{self.network.simulation_length}'
                 ),
-                f'Number of drones: {len(self.level.drones)}',
-                'Drones reached end: ' +
-                str(self.level.drones_reached_end.get(
-                    self.level.current_step, 0
-                )) +
-                f' / {len(self.level.drones)}'
+                f'Number of drones: {len(self.network.drones)}',
+                # 'Drones reached end: ' +
+                # str(self.network.drones_reached_end.get(
+                #     self.network.current_step, 0
+                # )) +
+                # f' / {len(self.network.drones)}'
             ],
             {
                 0: pr.GREEN,
@@ -302,34 +302,34 @@ class UIRenderer:
     def _draw_debug(self) -> None:
         """Draw debug information if enabled.
 
-        Shows connection and hub reservations at the current step.
+        Shows connection and node reservations at the current step.
         """
         if not self.input_controller.get_setting(ESettings.SHOW_UI_DEBUG):
             return
 
-        self.text_box_debug.set_lines([
-            'Debug info:',
-            'Connections Reservations: ',
-            *[
-                (
-                    f'- {conn.hubs[0].name} <-> {conn.hubs[1].name}: ' +
-                    str(self.level.reservations_connection.get(conn, {}).get(
-                        self.level.current_step, 0
-                    )) + f' / {conn.get_capacity()}'
-                )
-                for conn in self.level.connections.all
-            ],
-            'Hubs Reservations: ',
-            *[
-                (
-                    f'- {hub.get_name()}: ' +
-                    str(self.level.reservations.get(hub, {}).get(
-                        self.level.current_step, 0
-                    )) + f' / {hub.metadata.max_drones}'
-                )
-                for hub in self.level.hubs.values()
-            ]
-        ])
+        # self.text_box_debug.set_lines([
+        #     'Debug info:',
+        #     'Connections Reservations: ',
+        #     *[
+        #         (
+        #             f'- {conn.nodes[0].name} <-> {conn.nodes[1].name}: ' +
+        #             str(self.network.reservations_connection.get(conn, {}).get(
+        #                 self.network.current_step, 0
+        #             )) + f' / {conn.get_capacity()}'
+        #         )
+        #         for conn in self.network.connections.all
+        #     ],
+        #     'Nodes Reservations: ',
+        #     *[
+        #         (
+        #             f'- {node.get_name()}: ' +
+        #             str(self.network.reservations.get(node, {}).get(
+        #                 self.network.current_step, 0
+        #             )) + f' / {node.metadata.max_drones}'
+        #         )
+        #         for node in self.network.nodes.values()
+        #     ]
+        # ])
 
         self.text_box_debug.draw()
 

@@ -1,12 +1,15 @@
 from .MapSelector import MapSelector
 from .ArgsParser import ArgsParser
+from .utils import Logger, Color
 from .network import Network
 from .map_loader import MapLoader
-from .utils import Logger, Color
+from .renderer import CoreRenderer
+from .OutputFile import OutputFile
 
 from .algo.time_graph import TimeGraph
 from .algo.bfs import BFS, BFSNode
 from .algo.dfs import DFS
+
 
 from pydantic import ValidationError
 from argparse import Namespace
@@ -61,28 +64,42 @@ def run() -> None:
         dfs: DFS = DFS(args.verbose, bfs, network)
         dfs.solve()
 
-        for path in dfs.paths:
+        # for path in dfs.paths:
+        #     logger.log(
+        #         'Found path: ' +
+        #         str([
+        #             f'{obj.node.object.get_name()} at time {obj.node.time}'
+        #             for obj in path
+        #             if isinstance(obj, BFSNode)
+        #         ])
+        #     )
+
+        for idx, drone in enumerate(network.drones):
+            drone.path = [
+                step.node
+                for step in (dfs.paths[idx] if idx < len(dfs.paths) else [])
+                if isinstance(step, BFSNode)
+            ]
             logger.log(
-                'Found path: ' +
+                f'Drone {drone.id} path: ' +
                 str([
-                    f'{obj.node.object.get_name()} at time {obj.node.time}'
-                    for obj in path
-                    if isinstance(obj, BFSNode)
+                    f'{obj.get_name()} at time {obj.time}'
+                    for obj in drone.path
                 ])
             )
+        network._update_simlation_length()
+        output: OutputFile = OutputFile(
+            filepath=args.output,
+            network=network
+        )
+        output.generate()
+        output.write()
 
-        # # output: OutputFile = OutputFile(
-        #     filepath=args.output,
-        #     level=level
-        # )
-        # output.generate()
-        # output.write()
-
-        # renderer: CoreRenderer = CoreRenderer(
-        #     level=level,
-        #     verbose=args.verbose
-        # )
-        # renderer.run()
+        renderer: CoreRenderer = CoreRenderer(
+            network=network,
+            verbose=args.verbose
+        )
+        renderer.run()
 
     except ValidationError as e:
         for error in e.errors():

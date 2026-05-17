@@ -3,7 +3,8 @@ from ..metadata import ConnectionMetadata
 from ...utils import Logger
 from ..node import Node
 
-from typing import Match
+from typing import Match, Optional
+from pyray import Vector2
 import re
 
 
@@ -24,6 +25,7 @@ class Connection(NetworkObject):
     drones: list[NetworkObject]
 
     _hash: int
+    _position_cache: Optional[Vector2]
 
     def __init__(
                 self,
@@ -35,8 +37,12 @@ class Connection(NetworkObject):
         self.metadata = metadata
         self.drones = []
 
+        self._position_cache = None
         node_a._connections.append(self)
         node_b._connections.append(self)
+
+    def get_position(self) -> Vector2:
+        return self._position_cache or self._calculate_position()
 
     def get_name(self) -> str:
         return f'{self.nodes[0].name}-{self.nodes[1].name}'
@@ -79,6 +85,18 @@ class Connection(NetworkObject):
         if not hasattr(self, '_hash'):
             self._calculate_hash()
         return self._hash
+
+    def _calculate_position(self) -> Vector2:
+        """Calculate the midpoint between the two nodes.
+
+        Returns:
+            Vector2 at the center point between both nodes.
+        """
+        x: float = (self.nodes[0].x + self.nodes[1].x) / 2
+        y: float = (self.nodes[0].y + self.nodes[1].y) / 2
+        self._position_cache = Vector2(x, y)
+
+        return self._position_cache
 
     @classmethod
     def from_str(

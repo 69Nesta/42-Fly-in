@@ -1,22 +1,25 @@
+# from ...network import Network, Node as NetworkNode, Connection
 from .connection_node import ConnectionNode
-from ...network.network import Network
-from ...network import Node as NetworkNode
+from ...network import Node as NetworkNode, Connection
 from ...utils import Logger, Color
 from .node import Node
 
 from functools import lru_cache
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ...network import Network
 
 
 class TimeGraph:
     logger: Logger
 
-    network: Network
-    nodes: list[Node]
+    network: 'Network'
 
     step: int
     step_dict: dict[int, set[Node]]
 
-    def __init__(self, verbose: bool, network: Network) -> None:
+    def __init__(self, verbose: bool, network: 'Network') -> None:
         self.logger = Logger(
             name='TimeGraph',
             print_log=verbose,
@@ -25,7 +28,6 @@ class TimeGraph:
         self.logger.log('Initializing TimeGraph...')
         self.network = network
 
-        self.nodes = []
         self.step = 0
         self.step_dict = {
             0: set({self.create_node(0, self.network.start_node)})
@@ -36,12 +38,17 @@ class TimeGraph:
                 self,
                 time: int,
                 object: NetworkNode,
-                node_type: type[Node] = Node
             ) -> Node:
-        node: Node = node_type(time, object)
-        self.nodes.append(node)
+        return Node(time, object)
 
-        return node
+    @lru_cache(maxsize=None)
+    def create_connection_node(
+                self,
+                time: int,
+                object: NetworkNode,
+                connection: Connection
+            ) -> ConnectionNode:
+        return ConnectionNode(time, object, connection)
 
     def add_connection(
                 self,
@@ -81,10 +88,10 @@ class TimeGraph:
 
                 new_neighbor: Node
                 if zone.is_restricted():
-                    new_neighbor = self.create_node(
+                    new_neighbor = self.create_connection_node(
                         new_step,
                         zone,
-                        node_type=ConnectionNode
+                        connection
                     )
                 else:
                     new_neighbor = self.create_node(
