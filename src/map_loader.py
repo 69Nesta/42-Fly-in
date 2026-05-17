@@ -49,6 +49,9 @@ class MapLoader:
         filepath: Path to the map file to load.
         verbose: Whether to enable verbose logging.
     """
+    filepath: str
+    verbose: bool
+
     _RE_NB_DRONES: ClassVar[t_re] = re.compile(r'^nb_drones:\s*(\d+)$')
     _RE_NODE: ClassVar[t_re] = re.compile(r'^(start_hub|end_hub|hub):')
     _RE_CONNECTION: ClassVar[t_re] = re.compile(r'^connection:\s*')
