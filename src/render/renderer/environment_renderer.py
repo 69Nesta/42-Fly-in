@@ -12,7 +12,7 @@ class EnvironmentRenderer:
     indicators.
 
     Attributes:
-        level: The Level instance.
+        network: The Network instance.
         logger: Logger for debug output.
         sky_model: The SkyBox renderer.
         environment: The Environment grid.
@@ -34,7 +34,7 @@ class EnvironmentRenderer:
         """Initialize the environment renderer.
 
         Args:
-            level: The Level instance.
+            network: The Network instance.
         """
         self.network = network
         self.logger = Logger(

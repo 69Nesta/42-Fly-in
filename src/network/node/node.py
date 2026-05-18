@@ -75,12 +75,24 @@ class Node(NetworkObject, BaseModel):
         )
 
     def get_connections(self) -> list[tuple['Node', 'Connection']]:
+        """
+        Get all connections (edges) from this node.
+
+        Returns:
+            A list of tuples containing connected nodes and their connections.
+        """
         return self._get_connections_cached()
 
     @lru_cache(maxsize=None)
     def _get_connections_cached(
                 self
             ) -> list[tuple['Node', 'Connection']]:
+        """
+        Get all connections (edges) from this node, with caching.
+
+        Returns:
+            A list of tuples containing connected nodes and their connections.
+        """
         connections: list[tuple['Node', 'Connection']] = []
 
         for connection in self._connections:

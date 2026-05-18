@@ -111,6 +111,11 @@ class Network:
         self.logger.log('Drones initialized successfully.')
 
     def create_load_map(self) -> None:
+        """Create a mapping of drones to node/step positions.
+
+        Builds a dictionary keyed by (node, step) containing lists of drones
+        at those positions during simulation.
+        """
         self.load_map = defaultdict(list)
 
         for drone in self.drones:
@@ -127,6 +132,10 @@ class Network:
                 self.load_map[key].append(drone)
 
     def update_simlation_length(self) -> None:
+        """Update the total simulation length based on drone paths.
+
+        Sets simulation_length to the maximum path length minus one.
+        """
         self.simulation_length = 0
         for drone in self.drones:
             if (drone.path is not None and
@@ -135,6 +144,10 @@ class Network:
         self.simulation_length -= 1
 
     def _calculate_height_and_width(self) -> None:
+        """Calculate network dimensions from node positions.
+
+        Computes min/max coordinates and calculates width and height.
+        """
         self.logger.log('Calculating network dimensions...')
         self.min_pos = Vector2(inf, inf)
         self.max_pos = Vector2(-inf, -inf)

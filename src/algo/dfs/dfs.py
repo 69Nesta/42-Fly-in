@@ -4,6 +4,19 @@ from ...network import Network
 
 
 class DFS:
+    """Depth-First Search for finding augmenting paths in flow network.
+
+    Uses DFS to find augmenting paths from start to end nodes, computing
+    blocking flows and updating residual capacities.
+
+    Attributes:
+        logger: Logger instance for algorithm progress.
+        bfs: The BFS instance providing the level graph.
+        network: The Network instance being solved.
+        nodes: BFS nodes encountered during search.
+        edges: BFS edges encountered during search.
+        paths: List of computed paths, each a list of BFSObjects.
+    """
     logger: Logger
     bfs: BFS
     network: Network
@@ -13,6 +26,13 @@ class DFS:
     paths: list[list[BFSObject]]
 
     def __init__(self, verbose: bool, bfs: BFS, network: Network) -> None:
+        """Initialize the DFS algorithm.
+
+        Args:
+            verbose: Whether to enable verbose logging.
+            bfs: The BFS instance providing the level graph.
+            network: The Network instance to solve.
+        """
         self.logger = Logger(
             name='DFS',
             print_log=verbose,
@@ -32,6 +52,18 @@ class DFS:
                 visited: set[BFSObject],
                 deadlock: set[BFSNode]
             ) -> list[BFSObject] | None:
+        """Generate an augmenting path from start to end node.
+
+        Uses DFS to find a valid path avoiding full edges and deadlock nodes.
+
+        Args:
+            path: Current path being built.
+            visited: Set of visited nodes and edges to avoid cycles.
+            deadlock: Set of nodes identified as deadlocked (no way forward).
+
+        Returns:
+            Complete augmenting path if found, None otherwise.
+        """
         if not path:
             return None
 
@@ -73,6 +105,16 @@ class DFS:
 
     @staticmethod
     def get_blocking_flow(path: list[BFSObject]) -> int:
+        """Calculate the maximum flow that can traverse the path.
+
+        The flow is limited by the object with minimum capacity.
+
+        Args:
+            path: List of BFSObjects (nodes and edges) in the path.
+
+        Returns:
+            The bottleneck (minimum) capacity along the path.
+        """
         return min(
             current_object.get_remaining_capacity()
             for current_object in path
@@ -80,14 +122,30 @@ class DFS:
 
     @staticmethod
     def apply_flow(path: list[BFSObject], flow: int) -> None:
+        """Apply flow to all objects in a path, reducing their capacity.
+
+        Args:
+            path: List of BFSObjects to apply flow to.
+            flow: Amount of flow to apply.
+        """
         for current_object in path:
             current_object.add_load(flow)
 
     def store_path(self, path: list[BFSObject], flow: int) -> None:
+        """Store multiple copies of a path for each unit of flow.
+
+        Args:
+            path: The path to store.
+            flow: Number of copies to store.
+        """
         for _ in range(flow):
             self.paths.append(path.copy())
 
     def solve(self) -> None:
+        """Solve using Dinic's algorithm (BFS + DFS).
+
+        Iteratively finds blocking flows until all drones are routed.
+        """
         self.logger.log('Running DFS...')
 
         total_flow: int = 0

@@ -22,7 +22,7 @@ class ConnectionRenderer:
         """Initialize the connection renderer.
 
         Args:
-            level: The level instance containing connection data.
+            network: The network instance containing connection data.
         """
         self.network = network
         self.logger = Logger(

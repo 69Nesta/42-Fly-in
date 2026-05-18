@@ -8,6 +8,21 @@ from functools import lru_cache
 
 
 class BFS:
+    """Breadth-First Search in a time-expanded network graph.
+
+    Performs BFS to explore reachable nodes from the start node, expanding
+    the time graph dynamically and detecting if the end node is reachable.
+
+    Attributes:
+        logger: Logger instance for BFS progress.
+        time_graph: The TimeGraph instance to search.
+        network: The Network instance from the time graph.
+        steps: Dictionary mapping time steps to sets of reachable BFSNodes.
+        current_step: Current time step being explored.
+        start_node: BFSNode representing the start at time 0.
+        reached_end_node: Flag indicating if end node has been reached.
+        LOOK_UP_HISTORY: Steps to look back for convergence detection.
+    """
     logger: Logger
     time_graph: TimeGraph
     network: Network
@@ -20,6 +35,12 @@ class BFS:
     LOOK_UP_HISTORY: int = 3
 
     def __init__(self, verbose: bool, time_graph: TimeGraph) -> None:
+        """Initialize BFS with a time-expanded graph.
+
+        Args:
+            verbose: Whether to enable verbose logging.
+            time_graph: The TimeGraph instance to search.
+        """
         self.logger = Logger(
             name='BFS',
             print_log=verbose,
@@ -44,11 +65,20 @@ class BFS:
         self.reached_end_node = self.start_node.node.object.is_end()
 
     def get_step(self, step: int) -> list[BFSNode]:
+        """Get all reachable nodes at a given time step.
+
+        Args:
+            step: The time step to retrieve nodes for.
+
+        Returns:
+            List of BFSNode objects reachable at the specified step.
+        """
         while self.current_step < step:
             self.expend()
         return list(self.steps.get(step, set()))
 
     def next_step(self) -> None:
+        """Advance to the next time step by expanding edges."""
         nodes: set[BFSNode] = self.steps.get(self.current_step, set())
         if not nodes:
             return
@@ -70,6 +100,11 @@ class BFS:
             self.create_edges_of_node(node)
 
     def expend(self) -> None:
+        """Expand the search to the next time step.
+
+        Raises:
+            FlyInError: If the end node becomes unreachable (path converged).
+        """
         self.time_graph.next_step()
 
         max_step: int = max(self.steps.keys(), default=0)
@@ -115,6 +150,16 @@ class BFS:
                 level: int,
                 capacity: int
             ) -> BFSNode:
+        """Create or retrieve a cached BFSNode.
+
+        Args:
+            node: The time-graph node to wrap.
+            level: The BFS level (distance from start).
+            capacity: The flow capacity of the node.
+
+        Returns:
+            A BFSNode wrapper around the time-graph node.
+        """
         return BFSNode(node, level, capacity)
 
     def create_edge(
@@ -123,6 +168,16 @@ class BFS:
                 to_node: BFSNode,
                 connection: Connection | None = None
                 ) -> BFSEdge:
+        """Create a BFS edge between two nodes.
+
+        Args:
+            from_node: Source BFSNode.
+            to_node: Target BFSNode.
+            connection: Optional Connection object representing the link.
+
+        Returns:
+            A BFSEdge connecting the two nodes.
+        """
         edge: BFSEdge = BFSEdge(
             nodes=(from_node, to_node),
             capacity=to_node.capacity,
@@ -132,6 +187,11 @@ class BFS:
         return edge
 
     def create_edges_of_node(self, node: BFSNode) -> None:
+        """Create edges from a node to all connected neighbors.
+
+        Args:
+            node: The BFSNode to create edges from.
+        """
         for connected_node, connection in node.node.get_connections():
             if connected_node.time <= node.node.time:
                 continue

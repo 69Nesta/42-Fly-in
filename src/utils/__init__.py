@@ -8,11 +8,11 @@ Provides helper utilities:
 - Color: Color definition and management
 """
 
-from .MathUtils import MathUtils
-from .StrUtils import StrUtils
-from .Bezier import Bezier
-from .Logger import Logger
-from .Color import Color
+from .math_utils import MathUtils
+from .str_utils import StrUtils
+from .bezier import Bezier
+from .logger import Logger
+from .color import Color
 
 
 __all__: list[str] = [
