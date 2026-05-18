@@ -113,12 +113,14 @@ class InputController:
         self._update_camera_rotation()
 
     def _update_settings(self) -> None:
+        """Handle keyboard input for toggling settings."""
         if pr.is_key_pressed(pr.KeyboardKey.KEY_H):
             self.toggle_setting(ESettings.SHOW_UI_HELP)
         if pr.is_key_pressed(pr.KeyboardKey.KEY_O):
             self.toggle_setting(ESettings.SHOW_UI_DEBUG)
 
     def _update_focused_mouse(self) -> None:
+        """Toggle between focused and free mouse control."""
         if pr.is_mouse_button_pressed(pr.MouseButton.MOUSE_BUTTON_RIGHT):
             self.focused_mouse = not self.focused_mouse
             if self.focused_mouse:
@@ -127,6 +129,7 @@ class InputController:
                 pr.enable_cursor()
 
     def _update_camera_position(self) -> None:
+        """Update camera position based on keyboard input."""
         dx = self.camera.target.x - self.camera.position.x
         dz = self.camera.target.z - self.camera.position.z
         dy = self.camera.target.y - self.camera.position.y
@@ -173,6 +176,7 @@ class InputController:
                 self.camera.target.y -= self.move_speed
 
     def _update_camera_rotation(self) -> None:
+        """Update camera rotation based on mouse movement."""
         if self.focused_mouse:
             mouse_delta = pr.get_mouse_delta()
             rotation = pr.Vector3(
@@ -185,10 +189,16 @@ class InputController:
             pr.update_camera_pro(self.camera, movement, rotation, zoom)
 
     def _update_movement_speed(self) -> None:
+        """Update movement speed based on control key state."""
         if pr.is_key_down(pr.KeyboardKey.KEY_LEFT_CONTROL):
             self.move_speed = self.base_move_speed * 2.0
         else:
             self.move_speed = self.base_move_speed
 
     def is_mouse_focused(self) -> bool:
+        """Check if mouse is in focused camera control mode.
+
+        Returns:
+            True if mouse controls camera rotation, False otherwise.
+        """
         return self.focused_mouse

@@ -1,4 +1,4 @@
-from .Color import Color
+from .color import Color
 import datetime
 
 
@@ -20,6 +20,13 @@ class Logger:
                 name: str = 'Logger',
                 color: Color = Color.GRAY
             ) -> None:
+        """Initialize a logger instance.
+
+        Args:
+            print_log: Whether to enable logging output. Defaults to False.
+            name: Display name for log messages. Defaults to 'Logger'.
+            color: ANSI color for the name tag. Defaults to Color.GRAY.
+        """
         self.print_log = print_log
         self.name = name
         self.color = color

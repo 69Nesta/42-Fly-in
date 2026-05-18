@@ -12,7 +12,7 @@ class Drone:
         id: Unique identifier for the drone.
         start_point: Starting position of the drone.
         end_point: Destination position of the drone.
-        path: List of (hub or connection, time) tuples representing the
+        path: List of node representing the
         planned route.
     """
     id: int = field()
@@ -47,13 +47,13 @@ class Drone:
         return self.start_point
 
     def get_step_at_time(self, t: int) -> Node | None:
-        """Get the path step (hub or connection) at a specific time.
+        """Get the path step node at a specific time.
 
         Args:
             t: The time step.
 
         Returns:
-            The hub or connection at time t, or None if not available.
+            The node or connection at time t, or None if not available.
         """
         if t >= len(self.path) or t < 0:
             return None

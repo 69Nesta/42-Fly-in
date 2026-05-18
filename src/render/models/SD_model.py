@@ -39,7 +39,6 @@ class SDModel:
 
     def draw(self) -> None:
         """Draw indicators for start and end nodes."""
-        """Draw indicators for start and end nodes."""
         pr.draw_model_ex(
             self.model,
             Vector3(

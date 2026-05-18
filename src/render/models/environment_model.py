@@ -39,7 +39,6 @@ class EnvironmentModel:
 
     def draw(self) -> None:
         """Draw all environment objects in their grid positions."""
-        """Draw all environment objects in their grid positions."""
         for y, row in self.environment.environment_map.items():
             for x, obj in row.items():
                 if obj in self.models:

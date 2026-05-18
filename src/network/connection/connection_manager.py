@@ -23,7 +23,7 @@ class ConnectionManager:
             The updated list of all connections.
 
         Raises:
-            ValueError: If a connection between these hubs already exists.
+            ValueError: If a connection between these nodes already exists.
         """
         if hash(connection) in [
                     hash(_connection) for _connection in self._connections

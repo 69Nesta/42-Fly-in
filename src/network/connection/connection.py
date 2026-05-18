@@ -33,6 +33,13 @@ class Connection(NetworkObject):
                 node_b: Node,
                 metadata: ConnectionMetadata
             ) -> None:
+        """Initialize a connection between two nodes.
+
+        Args:
+            node_a: First node to connect.
+            node_b: Second node to connect.
+            metadata: Connection metadata (capacity, blocked status).
+        """
         self.nodes = (node_a, node_b)
         self.metadata = metadata
         self.drones = []
@@ -42,9 +49,19 @@ class Connection(NetworkObject):
         node_b._connections.append(self)
 
     def get_position(self) -> Vector2:
+        """Get the midpoint position of the connection.
+
+        Returns:
+            Vector2 position at the center between both nodes.
+        """
         return self._position_cache or self._calculate_position()
 
     def get_name(self) -> str:
+        """Get the connection's display name.
+
+        Returns:
+            String formatted as 'node1-node2'.
+        """
         return f'{self.nodes[0].name}-{self.nodes[1].name}'
 
     def get_other(self, node: Node) -> Node:
@@ -70,18 +87,43 @@ class Connection(NetworkObject):
             )
 
     def get_capacity(self) -> int:
+        """Get the connection's capacity.
+
+        Returns:
+            Maximum number of drones allowed on the connection.
+        """
         return self.metadata.capacity
 
     def get_capacity_from(self, node: Node) -> int:
+        """Get the capacity available from a specific node.
+
+        Returns the minimum of the connection capacity and the other node's
+        capacity.
+
+        Args:
+            node: One of the connected nodes.
+
+        Returns:
+            Available capacity from the specified node.
+        """
         return min(self.get_other(node).get_capacity(), self.get_capacity())
 
     def _calculate_hash(self) -> None:
+        """Calculate and cache hash based on node names.
+
+        Hash is computed from sorted node names to be independent of order.
+        """
         self._hash = hash(tuple(sorted((
             self.nodes[0].name,
             self.nodes[1].name
         ))))
 
     def __hash__(self) -> int:
+        """Get the hash value for this connection.
+
+        Returns:
+            Hash based on the connection's node pair.
+        """
         if not hasattr(self, '_hash'):
             self._calculate_hash()
         return self._hash
@@ -108,14 +150,15 @@ class Connection(NetworkObject):
         """Parse a connection from a formatted string line.
 
         Args:
-            line: String in format 'connection: hub1-hub2 [key=value ...]'.
-            hubs: Dictionary mapping hub IDs to Hub objects.
+            line: String in format 'connection: node1-node2 [key=value ...]'.
+            nodes: Dictionary mapping Node IDs to node objects.
+            logger: Logger for reporting parsing issues.
 
         Returns:
             A new Connection instance.
 
         Raises:
-            ValueError: If line format is invalid or references unknown hubs.
+            ValueError: If line format is invalid or references unknown nodes.
         """
         match: Match[str] | None = CONNECTION_PATTERN.match(line.strip())
         if not match:

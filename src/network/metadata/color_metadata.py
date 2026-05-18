@@ -2,7 +2,7 @@ from enum import Enum
 
 
 class ColorMetadata(Enum):
-    """Enumeration of available colors for hubs and UI elements.
+    """Enumeration of available colors for nodes and UI elements.
 
     Attributes:
         NONE: No color specified.

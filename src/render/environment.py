@@ -114,7 +114,7 @@ class Environment:
         )
 
     def pre_fill_environment_map(self) -> None:
-        """Populate grid with hubs, start, and end positions."""
+        """Populate grid with nodes, start, and end positions."""
         pos: Vector2
         pos = self.calculate_2d_position_vec(
             self.network.get_drone_start_position()

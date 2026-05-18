@@ -7,10 +7,25 @@ from .dfs import DFS
 
 
 class Dinic:
+    """Implements Dinic's algorithm for maximum flow in a time-expanded graph.
+
+    Uses BFS and DFS to compute maximum flow paths for drones from start to
+    end nodes in a time-expanded network, considering capacity constraints.
+
+    Attributes:
+        logger: Logger instance for algorithm progress reporting.
+        network: The Network instance containing drones and nodes.
+    """
     logger: Logger
     network: Network
 
     def __init__(self, network: Network, verbose: bool) -> None:
+        """Initialize the Dinic algorithm with a network.
+
+        Args:
+            network: The Network instance to solve.
+            verbose: Whether to enable verbose logging.
+        """
         self.logger = Logger(
             print_log=verbose,
             name='Dinic',
@@ -19,6 +34,11 @@ class Dinic:
         self.network = network
 
     def solve(self) -> None:
+        """Solve the drone routing problem using Dinic's algorithm.
+
+        Computes optimal paths for all drones from start to end nodes
+        considering time, capacity, and zone constraints.
+        """
         self.logger.log('Running Dinic\'s algorithm...')
         verbose: bool = self.logger.print_log
 

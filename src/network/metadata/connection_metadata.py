@@ -3,6 +3,12 @@ from pydantic import BaseModel, Field
 
 
 class ConnectionMetadata(BaseModel):
+    """Metadata for a connection between two nodes.
+
+    Attributes:
+        capacity: Maximum number of drones allowed on the connection.
+        blocked: Whether the connection is impassable.
+    """
     capacity: int = Field(default=1, ge=0)
     blocked: bool = Field(default=False)
 
@@ -13,6 +19,19 @@ class ConnectionMetadata(BaseModel):
                 line: str,
                 logger: Logger
             ) -> 'ConnectionMetadata':
+        """Create ConnectionMetadata from a string of attributes.
+
+        Args:
+            s: String containing space-separated key=value pairs.
+            line: The original parsed line (for error messages).
+            logger: Logger instance for warnings.
+
+        Returns:
+            A new ConnectionMetadata instance.
+
+        Raises:
+            ValueError: If attribute format is invalid.
+        """
         attrs: dict[str, str] = {}
         allowed_keys = {'max_link_capacity', 'blocked'}
 

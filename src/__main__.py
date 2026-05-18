@@ -18,7 +18,7 @@ def run() -> None:
 
     Orchestrates the complete workflow:
     1. Parses command-line arguments
-    2. Loads the selected map/level
+    2. Loads the selected map
     3. Solves drone routing paths
     4. Generates output file
     5. Runs the 3D renderer
