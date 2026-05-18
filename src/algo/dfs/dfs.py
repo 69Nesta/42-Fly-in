@@ -107,4 +107,6 @@ class DFS:
             self.logger.log(f'Found path with flow {flow}!')
             total_flow += flow
 
-        self.logger.log(f'Found path with total flow {total_flow}!')
+        self.logger.log(
+            f'Successfully routed all {total_flow} drones!'
+        )

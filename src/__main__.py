@@ -55,6 +55,7 @@ def run() -> None:
 
         dinic: Dinic = Dinic(network, args.verbose)
         dinic.solve()
+        dinic.print_stats()
 
         output: OutputFile = OutputFile(
             filepath=args.output,
@@ -78,8 +79,8 @@ def run() -> None:
         logger.error(f'Error: {e.__cause__ or e}')
     except ValueError as e:
         logger.error(f'Error: {e}')
-    # except Exception as e:
-    #     logger.error(f'Unexpected error: {e}')
+    except Exception as e:
+        logger.error(f'Unexpected error: {e}')
 
 
 if __name__ == '__main__':

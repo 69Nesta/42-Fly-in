@@ -61,7 +61,7 @@ class CoreRender:
         self.logger = Logger(
             print_log=verbose,
             name='Renderer',
-            color=Color.CYAN
+            color=Color.BRIGHT_CYAN
         )
         self.logger.log('Initializing renderer...')
 

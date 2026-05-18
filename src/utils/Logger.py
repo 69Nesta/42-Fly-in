@@ -88,7 +88,8 @@ class Logger:
             end (str | None): End character appended to the message.
         """
         print(
-            f'{self._get_format()} {Color.RESET} {message}',
+            f'{self._get_format()} [{Color.BRIGHT_CYAN}INFO{Color.RESET}] '
+            f'{message}',
             end=end
         )
 
