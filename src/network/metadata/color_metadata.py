@@ -6,6 +6,9 @@ class ColorMetadata(Enum):
 
     Attributes:
         NONE: No color specified.
+        LIME: Lime color.
+        MAGENTA: Magenta color.
+        CYAN: Cyan color.
         BLUE: Blue color.
         RED: Red color.
         GREEN: Green color.
@@ -23,6 +26,9 @@ class ColorMetadata(Enum):
         RAINBOW: Rainbow color.
     """
     NONE = None
+    LIME = 'lime'
+    MAGENTA = 'magenta'
+    CYAN = 'cyan'
     BLUE = 'blue'
     RED = 'red'
     GREEN = 'green'
