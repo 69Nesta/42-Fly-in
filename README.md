@@ -177,6 +177,20 @@ Then we expand it in time, creating a new layer for each time step:
     Note: The solver design diagram is currently under development and will be added in the next iteration of the README.
 </p>
 
+## Performance Benchmarks
+| Map | Map Path | Target Turns | Your Solution |
+| --- | --- | --- | --- |
+| Linear path (2 drones) | maps/easy/01_linear_path_2_drones.txt | ≤6 | 4 |
+| Simple fork (4 drones) | maps/easy/02_simple_fork_4_drones.txt | ≤8 | 4 |
+| Basic capacity (4 drones) | maps/easy/03_basic_capacity_4_drones.txt | ≤6 | None |
+| Dead end trap (5 drones) | maps/medium/01_dead_end_trap_5_drones.txt | ≤12 | 8 |
+| Circular loop (6 drones) | maps/medium/02_circular_loop_6_drones.txt | ≤15 | 10 |
+| Priority puzzle (5 drones) | maps/medium/03_priority_puzzle_5_drones.txt | ≤12 | 6 |
+| Maze nightmare (8 drones) | maps/hard/01_maze_nightmare_8_drones.txt | ≤30 | 13 |
+| Capacity hell (12 drones) | maps/hard/02_capacity_hell_12_drones.txt | ≤35 | 16 |
+| Ultimate challenge (15 drones) | maps/hard/03_ultimate_challenge_15_drones.txt | ≤45 | None |
+| The Impossible Dream (25 drones, optional) | maps/challenger/01_the_impossible_dream_25_drones.txt | ≤45 | 43 |
+
 ## Architecture Overview # to rework
 <p style="color: red;">
     Change to only have main: -> map_loader -> network -> dinic -> output -> renderer
