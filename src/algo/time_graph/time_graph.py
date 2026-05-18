@@ -66,7 +66,6 @@ class TimeGraph:
         return self.step_dict.get(step, set())
 
     def next_step(self) -> None:
-        self.logger.log(f'Calculating time step {self.step + 1}...')
         new_step: int = self.step + 1
 
         for node in self.step_dict.get(self.step, set()):

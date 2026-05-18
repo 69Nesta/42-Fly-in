@@ -46,3 +46,10 @@ class Dinic:
 
         self.network.update_simlation_length()
         self.network.create_load_map()
+
+    def print_stats(self) -> None:
+        """Print statistics about the planned paths and reservations."""
+        self.logger.info('--- Solver Statistics ---')
+        self.logger.info(f'Total drones: {len(self.network.drones)}')
+        self.logger.info(f'Total steps: {self.network.simulation_length}')
+        self.logger.info('--- End of Statistics ---')

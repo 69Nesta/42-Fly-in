@@ -1,6 +1,7 @@
-from ...network import Network, Connection
+from ...network import Network, Connection, Node as NetworkNode
 from ...utils import Logger, Color
 from ..time_graph import TimeGraph, Node
+from ...errors import FlyInError
 from . import BFSNode, BFSEdge
 
 from functools import lru_cache
@@ -16,6 +17,7 @@ class BFS:
 
     start_node: BFSNode
     reached_end_node: bool
+    LOOK_UP_HISTORY: int = 3
 
     def __init__(self, verbose: bool, time_graph: TimeGraph) -> None:
         self.logger = Logger(
@@ -69,7 +71,30 @@ class BFS:
 
     def expend(self) -> None:
         self.time_graph.next_step()
+
         max_step: int = max(self.steps.keys(), default=0)
+        if not self.reached_end_node and max_step > 5:
+            old_nodes: set[NetworkNode] = {
+                node.node.object
+                for node in self.get_step(
+                    max_step - self.LOOK_UP_HISTORY
+                )
+            }
+            has_new_nodes: list[bool] = []
+            for i in range(self.LOOK_UP_HISTORY - 1, -1, -1):
+                step_nodes: set[NetworkNode] = {
+                    node.node.object
+                    for node in self.get_step(max_step - i)
+                }
+                if step_nodes - old_nodes:
+                    has_new_nodes.append(True)
+                    old_nodes = step_nodes
+                else:
+                    has_new_nodes.append(False)
+            if not any(has_new_nodes):
+                raise FlyInError(
+                    'End node is unreachable.'
+                )
 
         for step in range(max_step + 1):
             for _node in self.get_step(step):
