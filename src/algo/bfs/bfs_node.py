@@ -38,6 +38,9 @@ class BFSNode(BFSObject):
 
         self._need_to_be_sorted: bool = False
 
+    def get_name(self) -> str:
+        return self.node.get_name()
+
     def add_edge(self, edge: 'BFSEdge') -> None:
         """Add an edge connected to this node.
 

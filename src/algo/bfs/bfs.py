@@ -180,7 +180,11 @@ class BFS:
         """
         edge: BFSEdge = BFSEdge(
             nodes=(from_node, to_node),
-            capacity=to_node.capacity,
+            capacity=(
+                to_node.capacity
+                if not connection
+                else connection.get_capacity()
+            ),
             connection=connection
         )
         from_node.add_edge(edge)

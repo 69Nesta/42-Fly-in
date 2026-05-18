@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 
 
 class BFSObject(ABC):
@@ -59,3 +59,12 @@ class BFSObject(ABC):
         if self.load + load > self.capacity:
             raise ValueError('Load exceeds capacity')
         self.load += load
+
+    @abstractmethod
+    def get_name(self) -> str:
+        """Get a string name for this object.
+
+        Returns:
+            A string identifier for the object.
+        """
+        pass

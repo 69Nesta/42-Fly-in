@@ -34,6 +34,16 @@ class BFSEdge(BFSObject):
         self.nodes = nodes
         self.connection = connection
 
+    def get_name(self) -> str:
+        """Get a string name for the edge based on its nodes.
+
+        Returns:
+            A string in the format "NodeA-NodeB".
+        """
+        return (
+            f'{self.nodes[0].node.get_name()}-{self.nodes[1].node.get_name()}'
+        )
+
     def get_other(self, node: BFSNode) -> BFSNode:
         """Get the other endpoint of the edge.
 
@@ -59,7 +69,7 @@ class BFSEdge(BFSObject):
         Returns:
             True if edge or any node is full, False otherwise.
         """
-        return super().is_full() or any(node.is_full() for node in self.nodes)
+        return super().is_full()
 
     def get_connection(self) -> Connection | None:
         """Get the network connection associated with this edge.

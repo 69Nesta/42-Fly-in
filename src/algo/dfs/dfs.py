@@ -162,7 +162,6 @@ class DFS:
             flow: int = self.get_blocking_flow(path)
             self.apply_flow(path, flow)
             self.store_path(path, flow)
-            self.logger.log(f'Found path with flow {flow}!')
             total_flow += flow
 
         self.logger.log(
