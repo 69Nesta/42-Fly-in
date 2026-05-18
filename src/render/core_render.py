@@ -15,7 +15,7 @@ import pyray as pr
 class CoreRender:
     """Main 3D renderer for the Fly In simulation visualization.
 
-    Manages all rendering components including hubs, connections, drones,
+    Manages all rendering components including nodes, connections, drones,
     environment, and UI. Orchestrates the main render loop.
 
     Attributes:
@@ -27,7 +27,7 @@ class CoreRender:
         camera: PyRay 3D camera.
         input_controller: Handles user input and camera movement.
         ray_cast: Ray casting system for intersection detection.
-        hub_renderer: Renderer for hub objects.
+        node_renderer: Renderer for node objects.
         connection_renderer: Renderer for connections.
         drones_renderer: Renderer for drone models.
         ui_renderer: Renderer for UI overlay.

@@ -5,9 +5,9 @@ class NodeType(Enum):
     """Enumeration of node types in the network.
 
     Attributes:
-        HUB: Regular hub node.
-        START_NODE: Starting hub for drone routes.
-        END_NODE: Destination hub for drone routes.
+        HUB: Regular node node.
+        START_NODE: Starting node for drone routes.
+        END_NODE: Destination node for drone routes.
     """
     NODE = 'hub'
     START_NODE = 'start_hub'

@@ -7,7 +7,7 @@ from enum import Enum
 
 
 class ZoneType(Enum):
-    """Enumeration of zone types that affect hub properties.
+    """Enumeration of zone types that affect node properties.
 
     Attributes:
         NORMAL: Standard zone with normal weight and travel time.
@@ -37,12 +37,12 @@ class ZoneCost(Enum):
 
 
 class NodeMetadata(BaseModel):
-    """Metadata and properties associated with a hub.
+    """Metadata and properties associated with a node.
 
     Attributes:
-        zone: The zone type affecting hub behavior.
-        color: Optional color identifier for the hub.
-        max_drones: Maximum number of drones allowed in the hub simultaneously.
+        zone: The zone type affecting node behavior.
+        color: Optional color identifier for the node.
+        max_drones: Maximum number of drones allowed in the node simultaneously
     """
     zone: ZoneType = Field(default=ZoneType.NORMAL)
     color: str | None = Field(default=None, pattern=r'^[A-Za-z]+$')
@@ -59,7 +59,7 @@ class NodeMetadata(BaseModel):
         return super().model_post_init(context)
 
     def get_color(self) -> ColorMetadata:
-        """Get the color enumeration value for this hub's metadata.
+        """Get the color enumeration value for this node's metadata.
 
         Returns:
             The EColor enum value corresponding to the color, or EColor.NONE
@@ -71,7 +71,7 @@ class NodeMetadata(BaseModel):
             return ColorMetadata.NONE
 
     def get_travel_time(self) -> int:
-        """Get the travel time to traverse this hub based on its zone type.
+        """Get the travel time to traverse this node based on its zone type.
 
         Returns:
             Travel time in steps: 1 (normal, blocked, priority) or 2

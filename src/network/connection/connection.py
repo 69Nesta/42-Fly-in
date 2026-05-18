@@ -108,14 +108,15 @@ class Connection(NetworkObject):
         """Parse a connection from a formatted string line.
 
         Args:
-            line: String in format 'connection: hub1-hub2 [key=value ...]'.
-            hubs: Dictionary mapping hub IDs to Hub objects.
+            line: String in format 'connection: node1-node2 [key=value ...]'.
+            nodes: Dictionary mapping Node IDs to node objects.
+            logger: Logger for reporting parsing issues.
 
         Returns:
             A new Connection instance.
 
         Raises:
-            ValueError: If line format is invalid or references unknown hubs.
+            ValueError: If line format is invalid or references unknown nodes.
         """
         match: Match[str] | None = CONNECTION_PATTERN.match(line.strip())
         if not match:

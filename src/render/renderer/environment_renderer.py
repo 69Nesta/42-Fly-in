@@ -17,7 +17,7 @@ class EnvironmentRenderer:
         sky_model: The SkyBox renderer.
         environment: The Environment grid.
         platform: The PlatformModel.
-        sd_model: Start/end hub indicator model.
+        sd_model: Start/end node indicator model.
         environment_model: Environment object models.
     """
     network: Network

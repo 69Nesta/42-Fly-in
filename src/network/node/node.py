@@ -21,11 +21,11 @@ class Node(NetworkObject, BaseModel):
     """Represents a node (network node) in the delivery system.
 
     Attributes:
-        type: The type of hub (regular, start, or end).
-        name: Unique identifier/name for the hub.
-        x: X coordinate of the hub position.
-        y: Y coordinate of the hub position.
-        metadata: Hub metadata including zone type, color, and capacity.
+        type: The type of node (regular, start, or end).
+        name: Unique identifier/name for the node.
+        x: X coordinate of the node position.
+        y: Y coordinate of the node position.
+        metadata: Node metadata including zone type, color, and capacity.
     """
     type: NodeType = Field()
     name: str = Field()
@@ -92,74 +92,74 @@ class Node(NetworkObject, BaseModel):
         return connections
 
     def is_blocked(self) -> bool:
-        """Check if the hub is in a blocked zone.
+        """Check if the node is in a blocked zone.
 
         Returns:
-            True if hub is blocked, False otherwise.
+            True if node is blocked, False otherwise.
         """
         return self.metadata.zone == ZoneType.BLOCKED
 
     def is_priority(self) -> bool:
-        """Check if the hub is in a priority zone.
+        """Check if the node is in a priority zone.
 
         Returns:
-            True if hub is priority, False otherwise.
+            True if node is priority, False otherwise.
         """
         return self.metadata.zone == ZoneType.PRIORITY
 
     def is_restricted(self) -> bool:
-        """Check if the hub is in a restricted zone.
+        """Check if the node is in a restricted zone.
 
         Returns:
-            True if hub is restricted, False otherwise.
+            True if node is restricted, False otherwise.
         """
         return self.metadata.zone == ZoneType.RESTRICTED
 
     def is_start(self) -> bool:
-        """Check if this is a starting hub.
+        """Check if this is a starting node.
 
         Returns:
-            True if hub type is START_HUB, False otherwise.
+            True if node type is START_HUB, False otherwise.
         """
         return self.type == NodeType.START_NODE
 
     def is_end(self) -> bool:
-        """Check if this is an ending hub.
+        """Check if this is an ending node.
 
         Returns:
-            True if hub type is END_HUB, False otherwise.
+            True if node type is END_HUB, False otherwise.
         """
         return self.type == NodeType.END_NODE
 
     def get_position(self) -> Vector2:
-        """Get the hub's position in 2D space.
+        """Get the node's position in 2D space.
 
         Returns:
-            The hub's coordinates as a Vector2.
+            The node's coordinates as a Vector2.
         """
         return Vector2(self.x, self.y)
 
     def get_name(self) -> str:
-        """Get the hub's name/identifier.
+        """Get the node's name/identifier.
 
         Returns:
-            The hub's name.
+            The node's name.
         """
         return self.name
 
     def get_capacity(self) -> int:
-        """Get the hub's capacity for drone traffic.
+        """Get the node's capacity for drone traffic.
 
         Returns:
-            The hub's capacity as an integer.
+            The node's capacity as an integer.
         """
         return self.metadata.max_drones
 
     def __lt__(self, other: 'Node') -> bool:
-        """Check if this hub's name is lexicographically less than another.
+        """Check if this node's name is lexicographically less than another.
 
         Args:
-            other: Another Hub instance.
+            other: Another Node instance.
 
         Returns:
             True if self.name < other.name, False otherwise.
@@ -167,20 +167,20 @@ class Node(NetworkObject, BaseModel):
         return self.name < other.name
 
     def __eq__(self, other: object) -> bool:
-        """Check equality based on hub name.
+        """Check equality based on node name.
 
         Args:
             other: Another object.
 
         Returns:
-            True if other is a Hub with the same name, False otherwise.
+            True if other is a Node with the same name, False otherwise.
         """
         return isinstance(other, Node) and self.name == other.name
 
     def __hash__(self) -> int:
-        """Get hash based on hub name for use in sets and dicts.
+        """Get hash based on node name for use in sets and dicts.
 
         Returns:
-            Hash value of the hub's name.
+            Hash value of the node's name.
         """
         return hash(self.name)
