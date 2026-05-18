@@ -48,7 +48,7 @@ Design and implement an intelligent pathfinding algorithm that:
 
 #### Prerequisites
 - Python 3.13 or later
-- `uv` package manager (recommended) or `pip`
+- `uv` package manager
 
 #### Setup
 
@@ -62,7 +62,7 @@ Design and implement an intelligent pathfinding algorithm that:
    ```bash
    make install
    ```
-   
+
    This installs:
    - `pydantic>=2.12.5` - Data validation and settings management
    - `questionary>=2.1.1` - Interactive CLI prompts
@@ -131,51 +131,162 @@ make lint-strict   # Run mypy with strict mode enabled
 
 ## Algorithm Implementation
 
-### Pathfinding Strategy: Dinic's Algorithm on a Time-Expanded Graph
+### Overview: Max-Flow on a Time-Expanded Graph
 
-The project implements **Dinic’s algorithm** for solving the multi-drone routing as a max-flow problem over a time-expanded graph. This approach turns the scheduling and capacity constraints into network flow constraints, guaranteeing no conflicts and optimal throughput for the given time horizon.
+**Fly In** solves the multi-drone routing problem by reducing it to a **maximum flow** problem. Instead of planning drones greedily one at a time with local decision-making, the solver models the entire problem as a flow network where:
+- Each `(hub, time)` pair is a node in the graph
+- Edges between nodes represent valid moves (stay or traverse a connection)
+- Edge capacities encode constraints (max drones per hub, max capacity per connection)
+- Flow units represent individual drones moving through the network
 
-#### Algorithmic Approach
+This formulation guarantees **no conflicts, deadlocks, or capacity violations** while finding the optimal routing for all drones.
 
-- **Time-expanded Graph**: Each state is `(Hub, Time)`, and the edges represent possible drone moves per timestep.
-- **Max-flow with Dinic’s Algorithm**: 
-  - Uses BFS to build level graphs (efficiently finds shortest augmenting paths in layered fashion).
-  - Uses DFS to search for and augment along blocking flows at each BFS layer.
-- **BFS**: Rapidly identifies all shortest layers from source to sink (start hub/time to end hub/time).
-- **DFS**: Finds all possible augmenting paths within the level graph constructed by BFS.
+### Problem Formulation
 
-#### Why Max-Flow/Dinic?
-- Handles all drone movement, capacity, and scheduling constraints efficiently.
-- Finds the maximum possible number of drones delivered to the goal for a given time, given all bottlenecks.
-- Deadlocks and conflicts are encoded as flow bottlenecks.
+Given:
+- A network of hubs H and connections C
+- P drones starting at source hub at time 0
+- Capacity constraints: `max_drones` per hub, `max_capacity` per connection
+- Zone types with different traversal costs (Normal: 1, Priority: 1, Restricted: 2, Blocked: ∞)
+- Goal: Deliver all drones to the end hub in minimum time
 
-#### Algorithm Steps:
-1. **Initialization**: Create a time-expanded graph based on the current level state and reservations.
-2. **BFS Layering**: Build level graph from source (start hub at time 0) to sink (end hub at any time).
-3. **DFS Augmentation**: Search for augmenting paths in the level graph and update flows (reservations) accordingly.
-4. **Repeat**: Continue BFS + DFS until no more augmenting paths exist, indicating maximum flow achieved for the current time horizon.
-5. **Extract Paths**: Convert flow paths back into drone routes and apply flow as reservations for subsequent drones.
+**Solution Approach**: Find maximum flow from `(source, time=0)` to `(sink, any_time)` in a time-expanded network, where each unit of flow represents a drone taking one complete route.
 
-#### Time-expanded graph construction:
-We start from this graph:
+### Time-Expanded Graph Construction
+
+The time-expanded graph transforms a static network into a temporal dimension:
+
+#### Step 1: Base Network
+
+We start with the original network:
+
 ![Base Graph](assets/dinic/base_graph.svg)
 
-Then we expand it in time, creating a new layer for each time step:
+Each hub is a node; each connection is an edge with associated capacity.
+
+#### Step 2: Temporal Expansion
+
+For each time step `t` from 0 to T (time horizon):
+- Create a copy of each hub at time t: `(hub_i, t)`
+- Add transition edges:
+  - **Stay edges**: `(hub_i, t) → (hub_i, t+1)` with infinite capacity (drones can wait)
+  - **Movement edges**: `(hub_i, t) → (hub_j, t+cost)` for each connection with traversal cost
+
 ![Time-Expanded Graph](assets/dinic/time_graph.svg)
 
+#### Step 3: Capacity Modeling
 
-### Time Complexity
+Edge capacities encode problem constraints:
+- Hub nodes: Split into `in_node` and `out_node` with capacity equal to `max_drones` (bottleneck constraint)
+- Connection edges: Capacity equals `max_link_capacity` (shared bandwidth across all time steps)
+- Zone restrictions: Traversal cost or capacity reflects zone type (Blocked = 0 capacity, Restricted = 2 time steps, etc.)
 
-- **Map Parsing**: O(H + C) where H = hubs, C = connections
-- **Dinic**: normal dinic is O(V²E) but here we have to pass many drone so O(V²E+PN) where P is the number of drones and N is the number of nodes in the time-expanded graph
+### Dinic's Algorithm: BFS + DFS Framework
 
-### Dinic Design Diagram
+Dinic's algorithm efficiently computes maximum flow through two phases per iteration:
+
+#### Phase 1: BFS Level Graph Construction
+
+- **Goal**: Build a "level graph" showing all shortest paths from source to sink
+- **Process**: 
+  - Start BFS from `(source, t=0)`
+  - Assign level = distance for each reachable node
+  - Stop when sink is reached or no more augmenting paths exist
+- **Complexity**: O(V·E) per BFS pass
+- **Benefit**: Identifies optimal layers for flow augmentation
+
+#### Phase 2: DFS Blocking Flow Search
+
+- **Goal**: Find all augmenting paths within the level graph and saturate them
+- **Process**:
+  - Use DFS to find paths from source to sink using only forward edges in level graph
+  - For each path found, determine bottleneck capacity
+  - Augment flow by bottleneck amount (mark edges as saturated if full)
+  - Continue until no more augmenting paths exist in this level graph
+- **Complexity**: O(V²·E) for full blocking flow
+- **Benefit**: Multiple paths found per DFS iteration, more efficient than Ford-Fulkerson
+
+#### Combined Complexity
+
+- Standard Dinic: O(V²·E) for maximum flow
+- **Our variant**: O(V²·E + P·N) where:
+  - P = number of drones
+  - N = nodes in time-expanded graph
+  - We repeat BFS+DFS sequentially for each drone on residual graph
+
+### Sequential Drone Processing (Greedy Assignment)
+
+Rather than solving for all drones simultaneously (which would create a single massive flow value), drones are routed one-by-one:
+
+1. **Drone 1**: Solve max-flow (typically finds 1 unit of flow = 1 path)
+2. **Extract Path**: Convert flow unit to a concrete route
+3. **Reserve**: Mark all edges used as partially consumed (residual capacities reduced)
+4. **Drone 2+**: Repeat on residual graph with updated capacities
+
+**Why this works**:
+- Greedy assignment naturally spreads drones across diverse paths
+- Reservations guide later drones away from congested routes
+- Each drone sees a fresh BFS-constructed level graph, avoiding local deadlocks
+- Simpler than globally optimizing all P drones at once
+
+**Trade-off**: Not globally optimal on extremely constrained maps, but sufficient for well-designed levels.
+
+### Algorithm Execution Steps
+
+1. **Initialization**
+   - Parse map and create Network object
+   - Initialize TimeGraph with infinite time horizon
+   - Set initial capacities on all edges
+
+2. **For each drone (1 to P)**
+   - Run BFS to build level graph from source to sink
+   - Run DFS to find all blocking flows in level graph
+   - Extract one drone path from the flow
+   - Update residual capacities (reduce edge capacities)
+   - Log drone path and statistics
+
+3. **Output**
+   - Compute simulation length (max time reached by any drone)
+   - Generate solution file with all drone paths
+   - Prepare visualization state
+
+4. **Rendering**
+   - Display 3D network with computed drone paths
+   - Allow interactive step-through of simulation
+
+### Time Complexity Analysis
+
+| Component | Complexity | Notes |
+|-----------|-----------|-------|
+| **Map Parsing** | O(H + C) | H hubs, C connections |
+| **Network Init** | O(H + C) | Build graph structure |
+| **TimeGraph Build** | O(T·N) | T time steps, N base nodes; expanded to T·N nodes |
+| **Single BFS** | O(V·E) | V = T·N, E = expanded edges |
+| **Single DFS** | O(V²·E) | Dinic blocking flow within one level graph |
+| **Per Drone** | O(V²·E) | One BFS + DFS iteration |
+| **Total (P drones)** | O(P·V²·E) | Sequential processing of all drones |
+
+**Practical**: Most maps solve in seconds; bottleneck is usually the Restricted zone cost doubling time steps.
+
+### Dinic Algorithm Flow
+
 ```mermaid
-
+graph TD
+    A["Start<br/>(Initialize TimeGraph)"] --> B["BFS: Build Level Graph<br/>(Expand time layers until end reached)"]
+    B --> C{"Augmenting Path<br/>Found?"}
+    C -->|Yes| D["DFS: Find Blocking Flow<br/>(Update residual capacities)"]
+    D --> C
+    C -->|No| E["All Drones<br/>Processed?"]
+    E -->|No| F["Next Drone<br/>(Rerun BFS+DFS)"]
+    F --> B
+    E -->|Yes| G["Extract Routes<br/>(Convert flow to paths)"]
+    G --> H["Done"]
+    
+    style A fill:#ffd700,stroke:#333,stroke-width:2px
+    style B fill:#87ceeb,stroke:#333,stroke-width:2px
+    style D fill:#ffb6c1,stroke:#333,stroke-width:2px
+    style H fill:#90ee90,stroke:#333,stroke-width:2px
 ```
-<p style="color: red;">
-    Note: The solver design diagram is currently under development and will be added in the next iteration of the README.
-</p>
 
 ## Performance Benchmarks
 | Map | Map Path | Target Turns | Your Solution |
@@ -191,14 +302,41 @@ Then we expand it in time, creating a new layer for each time step:
 | Ultimate challenge (15 drones) | maps/hard/03_ultimate_challenge_15_drones.txt | ≤45 | None |
 | The Impossible Dream (25 drones, optional) | maps/challenger/01_the_impossible_dream_25_drones.txt | ≤45 | 43 |
 
-## Architecture Overview # to rework
-<p style="color: red;">
-    Change to only have main: -> map_loader -> network -> dinic -> output -> renderer
-</p>
+## Architecture Overview
+
+The application follows a streamlined pipeline for solving the drone routing problem:
 
 ```mermaid
-
+graph LR
+    A["📥 Input<br/>(Map File)"] --> B["🗺️ MapLoader<br/>(Parse & Validate)"]
+    B --> C["🌐 Network<br/>(Build Graph)"]
+    C --> D["⚡ Dinic<br/>(TimeGraph + BFS + DFS)"]
+    D --> E["📤 OutputFile<br/>(Generate Solution)"]
+    E --> F["🎨 CoreRender<br/>(3D Visualization)"]
+    
+    style A fill:#ffd700,stroke:#333,stroke-width:2px
+    style B fill:#87ceeb,stroke:#333,stroke-width:2px
+    style C fill:#90ee90,stroke:#333,stroke-width:2px
+    style D fill:#ffb6c1,stroke:#333,stroke-width:2px
+    style E fill:#dda0dd,stroke:#333,stroke-width:2px
+    style F fill:#f0e68c,stroke:#333,stroke-width:2px
 ```
+
+### Core Components
+
+**1. MapLoader**: Parses and validates the input map file, creating node and connection definitions with metadata.
+
+**2. Network**: Constructs the graph representation, initializes drones, and maintains state throughout solving.
+
+**3. Dinic (Main Algorithm)**:
+- **TimeGraph**: Expands the network into a time-layered graph where each `(node, time)` is a state
+- **BFS**: Builds level graphs, finding shortest paths from start to end in the time-expanded network
+- **DFS**: Computes blocking flows by finding augmenting paths within level graphs
+- Together they implement Dinic's max-flow algorithm to optimally route all drones
+
+**4. OutputFile**: Writes the computed drone paths to the solution file.
+
+**5. CoreRender**: Provides 3D visualization and interactive simulation replay.
 
 ## Visual Representation
 
@@ -290,19 +428,76 @@ graph LR
 - Debug information (if enabled)
 
 ## Project Structure
-<p style="color: red;">
-    Note: The project structure diagram is currently under development and will be added in the next iteration of the README.
-</p>
 
 ```
 fly-in/
 ├── src/
 │   ├── __main__.py                 # Application entry point
-...
-│   ├── render/
+│   ├── __init__.py
+│   ├── args_parser.py              # Command-line argument parsing
+│   ├── map_loader.py               # Map file parsing and validation
+│   ├── map_selector.py             # Interactive map selection UI
+│   ├── output_file.py              # Solution file generation
+│   ├── algo/                       # Dinic's Algorithm Implementation
+│   │   ├── dinic.py                # Main Dinic solver orchestrator
+│   │   ├── bfs/                    # BFS level graph construction
+│   │   │   ├── bfs.py
+│   │   │   ├── bfs_node.py
+│   │   │   ├── bfs_edge.py
+│   │   │   └── bfs_object.py
+│   │   ├── dfs/                    # DFS augmenting path search
+│   │   │   └── dfs.py
+│   │   └── time_graph/             # Time-expanded graph representation
+│   │       ├── time_graph.py
+│   │       ├── node.py
+│   │       ├── graph_node.py
+│   │       └── connection_node.py
+│   ├── network/                    # Network & Graph Data Structures
+│   │   ├── network.py              # Main network container
+│   │   ├── network_object.py
+│   │   ├── node/                   # Hub nodes
+│   │   │   ├── node.py
+│   │   │   └── node_type.py
+│   │   ├── connection/             # Network connections/edges
+│   │   │   ├── connection.py
+│   │   │   └── connection_manager.py
+│   │   ├── drone/                  # Drone entities
+│   │   │   └── drone.py
+│   │   └── metadata/               # Node & connection metadata
+│   │       ├── node_metadata.py
+│   │       ├── connection_metadata.py
+│   │       └── color_metadata.py
+│   ├── render/                     # 3D Visualization & Rendering
+│   │   ├── core_render.py          # Main rendering loop
+│   │   ├── environment.py
+│   │   ├── renderer/               # Specialized renderers
+│   │   │   ├── nodes_renderer.py
+│   │   │   ├── drones_renderer.py
+│   │   │   ├── connection_renderer.py
+│   │   │   ├── environment_renderer.py
+│   │   │   └── ui_renderer.py
+│   │   ├── models/                 # 3D model definitions
+│   │   │   ├── node_model.py
+│   │   │   ├── drone_model.py
+│   │   │   ├── connection_model.py
+│   │   │   └── collision_model.py
+│   │   ├── components/             # UI components
+│   │   │   ├── name_tag.py
+│   │   │   └── text_box.py
+│   │   ├── controller/             # Input handling
+│   │   │   └── input_controller.py
+│   │   ├── utils/                  # Rendering utilities
+│   │   │   ├── color_map.py
+│   │   │   └── ray_cast.py
 │   │   └── assets/                 # 3D assets
 │   │       ├── models/             # Model files
 │   │       └── skybox/             # Skybox textures
+│   ├── utils/                      # Utility functions
+│   │   ├── logger.py               # Logging system
+│   │   ├── color.py                # Color utilities
+│   │   ├── math_utils.py           # Mathematical helpers
+│   │   ├── bezier.py               # Bezier curve interpolation
+│   │   └── str_utils.py            # String utilities
 │   └── errors/                     # Custom exceptions
 │       ├── FlyInError.py           # Base exception
 │       ├── FileError.py            # File handling errors
@@ -311,7 +506,10 @@ fly-in/
 │   ├── easy/                       # Easy difficulty levels
 │   ├── medium/                     # Medium difficulty levels
 │   ├── hard/                       # Hard difficulty levels
-│   └── challenger/                 # Challenge levels
+│   └── challenger/                 # Challenge levels (optional)
+├── assets/                         # Project assets
+│   ├── preview/                    # README screenshots
+│   └── dinic/                      # Algorithm diagrams
 ├── Makefile                        # Build and task automation
 ├── pyproject.toml                  # Project metadata and dependencies
 └── README.md                       # This file
