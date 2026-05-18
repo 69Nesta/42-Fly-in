@@ -48,6 +48,16 @@ class NodeMetadata(BaseModel):
     color: str | None = Field(default=None, pattern=r'^[A-Za-z]+$')
     max_drones: int = Field(default=1, ge=0)
 
+    def model_post_init(self, context: Any) -> None:
+        if self.color is not None and not ColorMetadata.has_value(self.color):
+            Logger.warning_static(
+                name='NodeMetadata',
+                message=(
+                    f'Invalid color {self.color!r} for node, default to NONE'
+                )
+            )
+        return super().model_post_init(context)
+
     def get_color(self) -> ColorMetadata:
         """Get the color enumeration value for this hub's metadata.
 

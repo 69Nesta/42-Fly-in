@@ -53,6 +53,11 @@ class OutputFile:
 
                 if node is None:
                     continue
+
+                previous_node = drone.get_step_at_time(step - 1)
+                if (previous_node is None
+                   or previous_node.object == node.object):
+                    continue
                 self.lines[step].append(
                     f'{drone.get_name()}-{node.get_name()}'
                 )

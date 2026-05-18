@@ -10,6 +10,9 @@ from ...network.metadata import ColorMetadata as Color
 
 color_map: dict[Color, pr.Color] = {
     Color.NONE: pr.RAYWHITE,
+    Color.LIME: pr.Color(0, 255, 0, 255),
+    Color.MAGENTA: pr.Color(255, 0, 255, 255),
+    Color.CYAN: pr.Color(0, 255, 255, 255),
     Color.BLUE: pr.BLUE,
     Color.RED: pr.RED,
     Color.GREEN: pr.GREEN,

@@ -26,5 +26,8 @@ class BFSEdge(BFSObject):
         else:
             raise ValueError('Node not in edge')
 
+    def is_full(self) -> bool:
+        return super().is_full() or any(node.is_full() for node in self.nodes)
+
     def get_connection(self) -> Connection | None:
         return self.connection

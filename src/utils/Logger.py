@@ -1,9 +1,8 @@
 from .Color import Color
 import datetime
-from pydantic import BaseModel, Field
 
 
-class Logger(BaseModel):
+class Logger:
     """Lightweight logger for console output.
 
     Attributes:
@@ -11,9 +10,19 @@ class Logger(BaseModel):
         name (str): Name displayed in log messages.
         color (Color): Color used for the name tag.
     """
-    print_log: bool = False
-    name: str = Field(..., description='The name of the logger')
-    color: Color = Field(..., description='The color of the logger')
+    print_log: bool
+    name: str
+    color: Color
+
+    def __init__(
+                self,
+                print_log: bool = False,
+                name: str = 'Logger',
+                color: Color = Color.GRAY
+            ) -> None:
+        self.print_log = print_log
+        self.name = name
+        self.color = color
 
     def log(self, message: str, end: str | None = '\n') -> None:
         """Print a debug/info message when logging is enabled.
@@ -50,6 +59,27 @@ class Logger(BaseModel):
             end=end
         )
 
+    @staticmethod
+    def warning_static(
+                name: str,
+                message: str,
+                color: Color = Color.WHITE,
+                end: str | None = '\n'
+            ) -> None:
+        """Print a warning message from a static context (always shown).
+
+        Args:
+            name (str): Name to include in the log prefix.
+            message (str): Warning message to print.
+            color (Color): Color to use for the name tag in the log prefix.
+            end (str | None): End character appended to the message.
+        """
+        print(
+            f'{Logger.get_format_static(color, name)} {Color.YELLOW}[WARNING]'
+            f'{Color.RESET} {message}',
+            end=end
+        )
+
     def info(self, message: str, end: str | None = '\n') -> None:
         """Print an informational message (always shown).
 
@@ -68,10 +98,22 @@ class Logger(BaseModel):
         Returns:
             str: Formatted prefix including time and colored name tag.
         """
-        return f'{Color.GRAY}[{self.get_date_time()}] {self.color}[' +\
-               f'{self.name}]{Color.RESET}'
+        return self.get_format_static(self.color, self.name)
 
-    def get_date_time(self) -> str:
+    @staticmethod
+    def get_format_static(color: Color, name: str) -> str:
+        """Return the formatted prefix for static contexts.
+
+        Args:
+            name (str): Name to include in the prefix.
+        Returns:
+            str: Formatted prefix including time and colored name tag.
+        """
+        return f'{Color.GRAY}[{Logger.get_date_time()}] {color}[' +\
+               f'{name}]{Color.RESET}'
+
+    @staticmethod
+    def get_date_time() -> str:
         """Return the current time string used in the log prefix.
 
         Returns:
