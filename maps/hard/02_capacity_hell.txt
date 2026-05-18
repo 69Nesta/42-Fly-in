@@ -45,7 +45,7 @@ connection: priority_bypass2-convergence [max_link_capacity=2]
 
 # Final challenge
 connection: convergence-final_bottleneck [max_link_capacity=3]
-connection: final_bottleneck-goal
+connection: final_bottleneck-goal #[max_link_capacity=3]
 
 # Emergency overflow paths
 connection: waiting_area3-convergence

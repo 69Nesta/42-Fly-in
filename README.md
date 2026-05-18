@@ -22,7 +22,7 @@ Design and implement an intelligent pathfinding algorithm that:
 - **Advanced Zone System**: Normal, Restricted (2-turn cost), Priority (preferred 1-turn), and Blocked zones
 - **Capacity Management**: Constraints on maximum concurrent drones per zone and connection
 - **3D Visualization**: Real-time 3D rendering of drone movements and network topology
-- **Dijkstra-Based Routing**: Optimized shortest-path algorithm with temporal awareness and reservations
+- **Dinic's Algorithm Routing**: Max-flow over a time-expanded graph with full temporal awareness and capacity constraints
 - **Type-Safe Implementation**: Full type hints with mypy strict compliance
 - **Interactive CLI**: User-friendly command-line interface for map selection and configuration
 
@@ -41,280 +41,6 @@ Design and implement an intelligent pathfinding algorithm that:
 
 **3D Visualization**: The core rendering engine provides a dynamic view of the drone routing process, showing hubs, connections, and drone movements with clear visual indicators for zone types and capacities.
 ![Rendered Scene](assets/preview/rendered_scene.png)
-
-## Architecture Overview
-
-```mermaid
-graph TD
-
-    %% ===== INPUT =====
-    subgraph INPUT["🟦 Input Layer"]
-        MAP["Map File Parser<br/>LevelLoader"]
-    end
-
-    %% ===== CORE =====
-    subgraph CORE["🟨 Core Logic"]
-        LEVEL["Level<br/>Network State"]
-        SOLVER["Solver<br/>Dijkstra Engine"]
-    end
-
-    %% ===== DATA =====
-    subgraph DATA["🟩 Data Structures"]
-        HUB["Hub<br/>Network Nodes"]
-        CONN["Connection<br/>Network Edges"]
-        DRONE["Drone<br/>Route Plan"]
-    end
-
-    %% ===== VISUALIZATION =====
-    subgraph VIZ["🟪 Visualization Layer"]
-        RENDERER["CoreRenderer<br/>3D Graphics"]
-        HUB_R["HubRenderer"]
-        DRONE_R["DronesRenderer"]
-        CONN_R["ConnectionRenderer"]
-        UI_R["UIRenderer"]
-    end
-
-    %% ===== OUTPUT =====
-    subgraph OUT["🟥 Output"]
-        OUTPUT["OutputFile<br/>Solution Export"]
-    end
-
-    %% ===== FLOW =====
-    MAP --> LEVEL
-
-    LEVEL <--> SOLVER
-
-    LEVEL --> HUB
-    LEVEL --> CONN
-    LEVEL --> DRONE
-    SOLVER --> DRONE
-
-    LEVEL --> RENDERER
-
-    RENDERER --> HUB_R
-    RENDERER --> DRONE_R
-    RENDERER --> CONN_R
-    RENDERER --> UI_R
-
-    DRONE --> OUTPUT
-
-    %% ===== STYLING =====
-    style INPUT fill:#e3f2fd,stroke:#1e88e5,stroke-width:2px
-    style CORE fill:#fff8e1,stroke:#f9a825,stroke-width:2px
-    style DATA fill:#e8f5e9,stroke:#43a047,stroke-width:2px
-    style VIZ fill:#f3e5f5,stroke:#8e24aa,stroke-width:2px
-    style OUT fill:#ffebee,stroke:#e53935,stroke-width:2px
-
-    %% Node styling
-    classDef default fill:#ffffff,stroke:#333,stroke-width:1px,color:#111
-```
-
-## Solver Design
-```mermaid
-flowchart TD
-    A[Start Solver] --> B["reset_reservations()"]
-
-    B --> C["Check path exists (_static_path_exists)"]
-    C -->|No| X["Stop: No valid path"]
-    C -->|Yes| D["plan_all_drones()"]
-
-    D --> E["For each drone"]
-
-    E --> F["Find path (Dijkstra with reservations)"]
-    F -->|No path| Y["Stop: Error"]
-
-    F --> G["Assign path to drone"]
-    G --> H["Apply reservations"]
-    H --> I["Update hub usage over time"]
-    H --> J["Update connection usage over time"]
-
-    I --> K["Next drone"]
-    J --> K
-
-    K -->|More drones| E
-    K -->|Done| L["Update level steps"]
-
-    L --> M["Store reservations in level"]
-    M --> N["End"]
-
-    %% Colors
-    classDef init fill:#D6EAF8,stroke:#1B4F72,stroke-width:2px;
-    classDef check fill:#FCF3CF,stroke:#B7950B,stroke-width:2px;
-    classDef process fill:#D5F5E3,stroke:#1E8449,stroke-width:2px;
-    classDef reservation fill:#E8DAEF,stroke:#6C3483,stroke-width:2px;
-    classDef error fill:#FADBD8,stroke:#922B21,stroke-width:2px;
-
-    class A,B init;
-    class C check;
-    class D,E,F,G process;
-    class H,I,J reservation;
-    class K,L,M,N process;
-    class X,Y error;
-```
-
-## Algorithm Implementation
-
-### Pathfinding Strategy: Dijkstra with Temporal Reservations
-
-The project implements a **modified Dijkstra's algorithm** that considers both spatial and temporal constraints:
-
-#### Core Concept
-
-Traditional Dijkstra finds shortest paths in static graphs. Fly In extends this by:
-1. **Temporal State Space**: Each hub is represented as `(Hub, Time)` pairs, creating a time-expanded graph
-2. **Dynamic Reservations**: Track when drones occupy each hub and connection
-3. **Greedy Scheduling**: Process drones sequentially, reserving paths to guide future drones away from congestion
-
-#### Algorithm Flow
-
-```mermaid
-graph TD
-
-    %% ===== START =====
-    A["🟢 Start<br/>All Drones at Start Hub"]
-
-    %% ===== MAIN LOOP =====
-    subgraph LOOP["🟨 Drone Resolution Loop"]
-        B["Select Next Drone<br/>Find Optimal Path"]
-        C["Initialize Dijkstra<br/>State: Hub × Time"]
-        D["Build Time-Expanded Graph<br/>Capacity Constraints"]
-        E["Priority Queue<br/>Cost + Time"]
-        F["Explore Neighbors<br/>Check Availability"]
-        G{"Path Valid?"}
-        H["Reserve Path<br/>Update Reservations"]
-        I{"All Drones Solved?"}
-        K["Try Alternative<br/>or Backtrack"]
-    end
-
-    %% ===== END =====
-    J["🔵 Solution Complete"]
-
-    %% ===== FLOW =====
-    A --> B
-    B --> C
-    C --> D
-    D --> E
-    E --> F
-    F --> G
-
-    G -->|✅ Yes| H
-    G -->|❌ No| K
-
-    K --> E
-    H --> I
-
-    I -->|✅ Yes| J
-    I -->|❌ No| B
-
-    %% ===== STYLING =====
-    style A fill:#e8f5e9,stroke:#43a047,stroke-width:2px
-    style J fill:#e3f2fd,stroke:#1e88e5,stroke-width:2px
-
-    style LOOP fill:#fff8e1,stroke:#f9a825,stroke-width:2px
-
-    %% Decisions
-    style G fill:#fff3e0,stroke:#fb8c00,stroke-width:2px
-    style I fill:#fff3e0,stroke:#fb8c00,stroke-width:2px
-
-    %% Failure / backtrack
-    style K fill:#ffebee,stroke:#e53935,stroke-width:2px
-
-    %% Success step
-    style H fill:#e8f5e9,stroke:#43a047,stroke-width:2px
-
-    classDef default fill:#ffffff,stroke:#333,stroke-width:1px,color:#111
-```
-
-#### Key Components
-
-**1. State Representation**
-```
-State = (hub, current_time)
-Cost = base_path_cost + time_penalty
-```
-
-**2. Hub Availability**
-- A hub at time `t` is available if: `reservations[hub][t] < hub.max_drones`
-- For `start` and `end` hubs: unlimited capacity
-- For normal hubs: default max_drones = 1
-
-**3. Connection Availability**
-- A connection at time `t` is available if: `reservations_connection[conn][t] < conn.max_link_capacity`
-- Connections are bidirectional
-- Multi-turn traversals (restricted zones) block the connection during transit
-
-**4. Zone Type Costs**
-| Zone Type | Movement Cost | Behavior |
-|-----------|---------------|----------|
-| **normal** | 1 turn | Default traversal |
-| **restricted** | 2 turns | Occupies connection for 2 turns; must reach destination |
-| **priority** | 1 turn | Preferred path; lower cost prioritizes these routes |
-| **blocked** | ∞ | Inaccessible; cannot enter |
-
-#### Reservation System
-
-The solver maintains two reservation maps:
-
-```python
-reservations[hub][time] = drone_count
-reservations_connection[connection][time] = drone_count
-```
-
-This enables:
-- **Conflict Detection**: Identify capacity violations before assigning paths
-- **Path Guidance**: Influence pathfinding toward uncongested routes
-- **Deadlock Avoidance**: Prevent circular dependencies through sequential planning
-
-### Time Complexity
-
-- **Per Drone**: O((V + E) × log(V × T)) where T = simulation time
-- **Total**: O(D × (V + E) × log(V × T)) for D drones
-- Practical optimization: Time horizon limited by greedy sequential assignment
-
-## Input Format
-
-Map files define the drone routing problem with the following syntax:
-
-```
-nb_drones: <number>
-
-start_hub: <name> <x> <y> [metadata]
-end_hub: <name> <x> <y> [metadata]
-hub: <name> <x> <y> [metadata]
-
-connection: <hub1>-<hub2> [metadata]
-```
-
-### Hub Metadata
-
-```
-[zone=<type> color=<name> max_drones=<int>]
-```
-
-- **zone**: `normal` (default), `restricted`, `priority`, `blocked`
-- **color**: Any single-word string for visual identification
-- **max_drones**: Maximum concurrent drones (default: 1)
-
-### Connection Metadata
-
-```
-[max_link_capacity=<int>]
-```
-
-- **max_link_capacity**: Maximum concurrent drones on connection (default: 1)
-
-### Example
-
-```
-nb_drones: 3
-start_hub: hub 0 0 [color=green]
-end_hub: goal 10 10 [color=yellow]
-hub: roof1 3 4 [zone=priority color=blue max_drones=2]
-hub: restricted_zone 5 5 [zone=restricted color=red]
-connection: hub-roof1 [max_link_capacity=2]
-connection: roof1-restricted_zone
-connection: restricted_zone-goal
-```
 
 ## Instructions
 
@@ -349,18 +75,24 @@ connection: restricted_zone-goal
 #### Basic Execution
 ```bash
 make run
+# or
+uv run -m src
 ```
 
 This launches an interactive map selector to choose which level to solve (*by default the directory levels is `maps/` can be changed with `--maps-dir <path>`*).
 
 #### Specify Input Map
 ```bash
-make run ARGS="--input maps/easy/01_linear_path.txt"
+make run ARGS="--input <path_to_map_file>"
+# or
+uv run -m src --input <path_to_map_file>
 ```
 
 #### Verbose Logging
 ```bash
 make run ARGS="--verbose"
+# or
+uv run -m src --verbose # or -v
 ```
 
 #### Debug Mode
@@ -375,6 +107,15 @@ Launches the Python debugger for step-by-step execution.
 make run ARGS="--output solution.txt"
 ```
 
+#### Command-Line Options
+
+```
+--input, -i         Path to input map file
+--maps_dir, -m      Directory containing maps (default: maps/)
+--output, -o        Output file path (default: output.txt)
+--verbose, -v       Enable verbose logging
+```
+
 ### Available Make Targets
 
 ```bash
@@ -387,13 +128,62 @@ make lint          # Run flake8 + mypy with standard flags
 make lint-strict   # Run mypy with strict mode enabled
 ```
 
-### Command-Line Options
+
+## Algorithm Implementation
+
+### Pathfinding Strategy: Dinic's Algorithm on a Time-Expanded Graph
+
+The project implements **Dinic’s algorithm** for solving the multi-drone routing as a max-flow problem over a time-expanded graph. This approach turns the scheduling and capacity constraints into network flow constraints, guaranteeing no conflicts and optimal throughput for the given time horizon.
+
+#### Algorithmic Approach
+
+- **Time-expanded Graph**: Each state is `(Hub, Time)`, and the edges represent possible drone moves per timestep.
+- **Max-flow with Dinic’s Algorithm**: 
+  - Uses BFS to build level graphs (efficiently finds shortest augmenting paths in layered fashion).
+  - Uses DFS to search for and augment along blocking flows at each BFS layer.
+- **BFS**: Rapidly identifies all shortest layers from source to sink (start hub/time to end hub/time).
+- **DFS**: Finds all possible augmenting paths within the level graph constructed by BFS.
+
+#### Why Max-Flow/Dinic?
+- Handles all drone movement, capacity, and scheduling constraints efficiently.
+- Finds the maximum possible number of drones delivered to the goal for a given time, given all bottlenecks.
+- Deadlocks and conflicts are encoded as flow bottlenecks.
+
+#### Algorithm Steps:
+1. **Initialization**: Create a time-expanded graph based on the current level state and reservations.
+2. **BFS Layering**: Build level graph from source (start hub at time 0) to sink (end hub at any time).
+3. **DFS Augmentation**: Search for augmenting paths in the level graph and update flows (reservations) accordingly.
+4. **Repeat**: Continue BFS + DFS until no more augmenting paths exist, indicating maximum flow achieved for the current time horizon.
+5. **Extract Paths**: Convert flow paths back into drone routes and apply flow as reservations for subsequent drones.
+
+#### Time-expanded graph construction:
+We start from this graph:
+![Base Graph](assets/dinic/base_graph.svg)
+
+Then we expand it in time, creating a new layer for each time step:
+![Time-Expanded Graph](assets/dinic/time_graph.svg)
+
+
+### Time Complexity
+
+- **Map Parsing**: O(H + C) where H = hubs, C = connections
+- **Dinic**: normal dinic is O(V²E) but here we have to pass many drone so O(V²E+PN) where P is the number of drones and N is the number of nodes in the time-expanded graph
+
+### Dinic Design Diagram
+```mermaid
 
 ```
---input, -i         Path to input map file
---maps_dir, -m      Directory containing maps (default: maps/)
---output, -o        Output file path (default: output.txt)
---verbose, -v       Enable verbose logging
+<p style="color: red;">
+    Note: The solver design diagram is currently under development and will be added in the next iteration of the README.
+</p>
+
+## Architecture Overview # to rework
+<p style="color: red;">
+    Change to only have main: -> map_loader -> network -> dinic -> output -> renderer
+</p>
+
+```mermaid
+
 ```
 
 ## Visual Representation
@@ -486,49 +276,16 @@ graph LR
 - Debug information (if enabled)
 
 ## Project Structure
+<p style="color: red;">
+    Note: The project structure diagram is currently under development and will be added in the next iteration of the README.
+</p>
 
 ```
 fly-in/
 ├── src/
 │   ├── __main__.py                 # Application entry point
-│   ├── Solver.py                   # Dijkstra pathfinding engine
-│   ├── Level.py                    # Network state management
-│   ├── Drone.py                    # Drone representation
-│   ├── Hub.py                      # Hub/zone representation
-│   ├── Connections.py              # Connection/edge management
-│   ├── LevelLoader.py              # Map file parser
-│   ├── OutputFile.py               # Solution exporter
-│   ├── ArgsParser.py               # CLI argument parsing
-│   ├── MapSelector.py              # Interactive map selection
-│   ├── Enums.py                    # Type enumerations
-│   ├── utils/                      # Utility modules
-│   │   ├── Logger.py               # Logging with colors
-│   │   ├── Color.py                # Color definitions
-│   │   ├── MathUtils.py            # Mathematical utilities
-│   │   ├── Bezier.py               # Bezier curve calculations
-│   │   └── StrUtils.py             # String utilities
-│   ├── renderer/                   # 3D visualization system
-│   │   ├── CoreRenderer.py         # Main render engine
-│   │   ├── HubRenderer.py          # Hub rendering
-│   │   ├── DronesRenderer.py       # Drone rendering
-│   │   ├── ConnectionRenderer.py   # Connection rendering
-│   │   ├── UIRenderer.py           # HUD/UI overlay
-│   │   ├── EnvironmentRenderer.py  # 3D environment
-│   │   ├── InputController.py      # Camera/input control
-│   │   ├── RayCast.py              # Ray intersection detection
-│   │   ├── SkyBox.py               # Skybox rendering
-│   │   ├── ColorMap.py             # Color management
-│   │   ├── components/             # UI components
-│   │   │   ├── NameTag.py          # 3D text labels
-│   │   │   └── TextBox.py          # UI text elements
-│   │   ├── models/                 # 3D model management
-│   │   │   ├── HubModel.py         # Hub geometry
-│   │   │   ├── DroneModel.py       # Drone geometry
-│   │   │   ├── ConnectionModel.py  # Connection geometry
-│   │   │   ├── EnvironmentModel.py # World geometry
-│   │   │   ├── PlatformModel.py    # Platform geometry
-│   │   │   ├── CollisionModel.py   # Collision primitives
-│   │   │   └── SDModel.py          # Signed distance modeling
+...
+│   ├── render/
 │   │   └── assets/                 # 3D assets
 │   │       ├── models/             # Model files
 │   │       └── skybox/             # Skybox textures
@@ -548,14 +305,15 @@ fly-in/
 
 ## Technical Choices
 
-### 1. **Dijkstra's Algorithm with Reservations**
+### 1. **Dinic's Algorithm on a Time-Expanded Graph**
 
-**Why**: Traditional pathfinding algorithms don't consider temporal constraints or capacity. By extending Dijkstra to a time-expanded graph with reservation tracking:
-- Guarantees shortest paths in terms of simulation turns
-- Prevents conflicts through reservation system
-- Scales efficiently for moderate problem sizes
+**Why**: Classic single-agent pathfinding algorithms cannot model simultaneous multi-drone routing with shared capacity constraints. Casting the problem as a max-flow problem on a time-expanded graph solves this naturally:
+- Each `(hub, time)` pair is a node; edges encode capacity constraints directly as flow limits.
+- Dinic's BFS + DFS layering guarantees the maximum number of drones reach the goal within the time horizon.
+- Deadlocks and bottlenecks are resolved implicitly by the flow algorithm rather than requiring explicit detection.
+- Produces globally consistent routes rather than greedy per-drone plans.
 
-**Trade-off**: Sequential drone assignment (greedy) may not be globally optimal, but provides practical solutions quickly.
+**Trade-off**: Building the full time-expanded graph has higher upfront memory cost than single-agent search, but this is bounded by the simulation time horizon, which remains manageable for the target fleet sizes.
 
 ### 2. **Object-Oriented Architecture**
 
@@ -568,7 +326,7 @@ fly-in/
 ### 3. **Type-Safe Python with Pydantic**
 
 **Why**: Maximum reliability and IDE support:
-- Pydantic models for data validation (HubMetadata, Connection)
+- Pydantic models for data validation (`HubMetadata`, `Connection`)
 - Full type hints with mypy strict compliance
 - Runtime validation of map files
 - Reduces bugs from type mismatches
@@ -584,7 +342,7 @@ fly-in/
 ### 5. **Sequential Greedy Assignment**
 
 **Why**: Practical scheduling approach:
-- Process drones one by one, each finding best available path
+- Process drones one by one, each solved via a fresh Dinic pass on the residual graph
 - Reservations guide subsequent drones away from congestion
 - Reduces complexity while maintaining correctness
 - Works well for maps with multiple diverse paths
@@ -593,14 +351,15 @@ fly-in/
 
 ### References
 
-- **Graph Algorithms**
-  - [Dijkstra's Algorithm](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm)
-  - [Shortest Path in Weighted Graphs](https://www.geeksforgeeks.org/dsa/shortest-path-weighted-graph-weight-edge-1-2/)
+- **Max-Flow and Graph Algorithms**
+  - [Dinic's Algorithm](https://en.wikipedia.org/wiki/Dinic%27s_algorithm)
+  - [Maximum Flow Problem](https://en.wikipedia.org/wiki/Maximum_flow_problem)
   - [Time-Expanded Graphs](https://en.wikipedia.org/wiki/Space%E2%80%93time_trade-off)
+  - [Network Flow — Ford-Fulkerson Method](https://en.wikipedia.org/wiki/Ford%E2%80%93Fulkerson_algorithm)
 
-- **Pathfinding and AI**
-  - [A* Algorithm (related)](https://en.wikipedia.org/wiki/A*_search_algorithm)
-  - [Capacity Constraints in Networks](https://en.wikipedia.org/wiki/Maximum_flow_problem)
+- **Multi-Agent Pathfinding**
+  - [Conflict-Based Search (CBS)](https://www.sciencedirect.com/science/article/pii/S0004370214001386)
+  - [Capacity Constraints in Networks](https://en.wikipedia.org/wiki/Flow_network)
 
 - **Type Safety in Python**
   - [Python Type Hints](https://docs.python.org/3/library/typing.html)
@@ -628,30 +387,13 @@ This project utilized AI assistance for:
    - Method purpose descriptions
    - **Human review**: Verified accuracy, added domain-specific details
 
-3. **Dijkstra Algorithm Questions** (30%)
-   - Clarified temporal state space concepts
-   - Time-expanded graph methodology
+3. **Dinic's Algorithm Questions** (30%)
+   - Clarified time-expanded graph construction concepts
+   - Max-flow formulation for multi-agent routing
    - Reservation system design patterns
    - **Human implementation**: Built complete algorithm with custom optimizations
 
 **Key Principle**: All AI-generated content was reviewed, understood, tested, and integrated with substantial human modification. The implementation reflects deep understanding of the problem domain and constraint requirements.
-
-## Complexity Analysis
-
-### Time Complexity
-
-- **Map Parsing**: O(H + C) where H = hubs, C = connections
-- **Per Drone Pathfinding**: O((H × T + C × T) log(H × T)) using Dijkstra
-  - T = estimated simulation time
-- **Total Solve Time**: O(D × (H × T + C × T) log(H × T)) for D drones
-- **Rendering Loop**: O(H + C + D) per frame
-
-### Space Complexity
-
-- **Graph Storage**: O(H + C)
-- **Reservations**: O(H × T) for hub reservations, O(C × T) for connection reservations
-- **Drone Paths**: O(D × T) total path storage
-- **Renderer Data**: O(H × C + D) for model data
 
 ## Testing Levels
 
@@ -662,28 +404,19 @@ The project includes test maps at various difficulty levels:
 - **Hard**: Complex capacity constraints, maze-like topology
 - **Challenger**: Ultimate performance test
 
-Run these with:
-```bash
-make run ARGS="--input maps/easy/01_linear_path.txt --verbose"
-```
+*If you don't know how to launch the map selector or run the application, please refer to the Go to section "[Running the Application](#running-the-application)" section above.*
 
-## Performance Notes
-
-- **Optimization**: Path caching disabled by design to ensure correctness
-- **Scalability**: Handles 5-20 drones efficiently; performance degrades with very large fleets
-- **Memory**: Time-expanded graph size grows with simulation horizon; bounded by greedy assignment
 
 ## Known Limitations
 
-1. **Greedy Assignment**: Sequential drone processing may not yield globally optimal solutions on highly constrained maps
-2. **No Backtracking**: Once a drone's path is reserved, no rerouting occurs
+1. **Greedy Sequential Assignment**: Drones are planned one after another on the residual graph; this does not guarantee a globally optimal schedule on highly constrained maps
+2. **No Rerouting**: Once a drone's path is committed into the flow, no re-augmentation occurs
 3. **Static Graph**: Network topology cannot change during simulation
-4. **Time Horizon**: Dijkstra expands until end hub reached; no early termination
-
+4. **Fixed Time Horizon**: The time-expanded graph is built up to a finite T; if the required horizon exceeds T, the solver will not find a solution
 ---
 
 **Author**: Romeo Petit (rpetit)  
 **School**: 42 School  
 **Project**: Fly In (Autonomous Drone Routing System)  
-**Version**: 1.0  
+**Version**: 2.0  
 **Last Updated**: 2026
