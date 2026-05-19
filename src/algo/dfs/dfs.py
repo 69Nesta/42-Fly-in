@@ -1,4 +1,5 @@
 from ..bfs import BFSEdge, BFSNode, BFSObject, BFS
+from ..time_graph import ConnectionNode
 from ...utils import Logger, Color
 from ...errors import FlyInError
 from ...network import Network
@@ -72,7 +73,8 @@ class DFS:
         if not isinstance(start_node, BFSNode):
             return None
 
-        if start_node.node.object.is_end():
+        if (start_node.node.object.is_end()
+           and not isinstance(start_node.node, ConnectionNode)):
             return path
 
         visited.add(start_node)
@@ -92,7 +94,8 @@ class DFS:
             visited.add(edge)
             path.append(other_node)
 
-            if other_node.node.object.is_end():
+            if (other_node.node.object.is_end()
+               and not isinstance(other_node.node, ConnectionNode)):
                 return path
 
             result = self.generate_path(path, visited, deadlock)

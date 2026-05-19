@@ -1,6 +1,6 @@
 from ...network import Network, Connection, Node as NetworkNode
+from ..time_graph import TimeGraph, Node, ConnectionNode
 from ...utils import Logger, Color
-from ..time_graph import TimeGraph, Node
 from ...errors import FlyInError
 from . import BFSNode, BFSEdge
 
@@ -85,7 +85,8 @@ class BFS:
 
         for node in nodes:
             if not self.reached_end_node:
-                if node.node.object.is_end():
+                if (node.node.object.is_end() and
+                   not isinstance(node.node, ConnectionNode)):
                     self.reached_end_node = True
 
             for edge in node.edges:
