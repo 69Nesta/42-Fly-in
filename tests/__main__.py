@@ -30,7 +30,7 @@ def run_tests() -> None:
     )
 
     logger.info('Running all tests...')
-    run_all_map(args.maps_dir, args.verbose)
+    run_all_map(args.maps_dir, args.verbose, logger)
 
 
 if __name__ == '__main__':
