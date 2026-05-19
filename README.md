@@ -92,7 +92,7 @@ uv run -m src --input <path_to_map_file>
 ```bash
 make run ARGS="--verbose"
 # or
-uv run -m src --verbose # or -v
+uv run -m src --verbose
 ```
 
 #### Debug Mode
@@ -105,6 +105,8 @@ Launches the Python debugger for step-by-step execution.
 #### Custom Output Path
 ```bash
 make run ARGS="--output solution.txt"
+# or
+uv run -m src --output solution.txt
 ```
 
 #### Command-Line Options
@@ -621,10 +623,9 @@ The project includes test maps at various difficulty levels:
 
 ## Known Limitations
 
-1. **Greedy Sequential Assignment**: Drones are planned one after another on the residual graph; this does not guarantee a globally optimal schedule on highly constrained maps
-2. **No Rerouting**: Once a drone's path is committed into the flow, no re-augmentation occurs
-3. **Static Graph**: Network topology cannot change during simulation
-4. **Fixed Time Horizon**: The time-expanded graph is built up to a finite T; if the required horizon exceeds T, the solver will not find a solution
+- **Memory usage**: The time-expanded graph grows linearly with the time horizon and number of hubs; very large horizons or high drone counts can produce high memory usage.
+- **Rendering dependencies**: The 3D visualization relies on PyRay and a working graphics driver; in headless or resource-constrained environments (or when simulating extremely large numbers of drones — e.g. >10k), rendering may be slow or unstable.
+
 ---
 
 **Author**: Romeo Petit (rpetit)  
