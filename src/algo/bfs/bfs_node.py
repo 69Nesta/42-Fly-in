@@ -61,7 +61,10 @@ class BFSNode(BFSObject):
         """
         if self._need_to_be_sorted:
             self.edges.sort(
-                key=lambda edge: edge.get_other(self).node.object.is_priority()
+                key=(
+                    lambda edge: edge.get_other(self).node.object.is_priority()
+                ),
+                reverse=True
             )
             self._need_to_be_sorted = False
         return self.edges
