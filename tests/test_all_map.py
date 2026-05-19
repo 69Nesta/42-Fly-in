@@ -1,6 +1,7 @@
 from src.network import Network
 from src.map_loader import MapLoader
 from src.algo.dinic import Dinic
+from src.utils import Logger
 
 import os
 
@@ -33,7 +34,7 @@ def load_maps(maps_dir: str) -> dict[str, list[str]]:
     return maps
 
 
-def run_all_map(map_dir: str, verbose: bool) -> None:
+def run_all_map(map_dir: str, verbose: bool, logger: Logger) -> None:
     """
     Run all maps in the specified directory using the Dinic algorithm.
 
@@ -41,14 +42,20 @@ def run_all_map(map_dir: str, verbose: bool) -> None:
         map_dir: The directory containing map folders and files.
         verbose: Whether to enable verbose logging during execution.
     """
-    results: list[tuple[str, int]] = []
+    results: list[tuple[str, int | str]] = []
 
     for map_folder, map_files in load_maps(map_dir).items():
-        if map_folder == 'customs':
-            continue
         for map_file in map_files:
             file_path: str = os.path.join(map_dir, map_folder, map_file)
-            results.append((file_path, _run_map(file_path, verbose)))
+            try:
+                logger.info(f'Running map: {file_path}')
+                results.append((file_path, _run_map(file_path, verbose)))
+            except Exception as e:
+                logger.error(
+                    f'Error running map {file_path}: {e}'
+                )
+                results.append((file_path, 'Error'))
+            print('\n' * 1)
 
     w0, w1 = (
         max(len(r[0]) for r in results),
@@ -71,7 +78,6 @@ def _run_map(map_path: str, verbose: bool) -> int:
         map_path: The file path to the map to run.
         verbose: Whether to enable verbose logging during execution.
     """
-    print(f'Running map: {map_path}')
     loaded_map: MapLoader = MapLoader(filepath=map_path, verbose=verbose)
     network: Network = Network(loaded_map, verbose)
 

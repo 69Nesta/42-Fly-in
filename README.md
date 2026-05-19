@@ -504,6 +504,10 @@ fly-in/
 │       ├── FlyInError.py           # Base exception
 │       ├── FileError.py            # File handling errors
 │       └── ParseError.py           # Parsing errors
+├── tests                           # Unit and integration tests
+│   ├── __init__.py
+│   ├── __main__.py                 # Test suite entry point
+│   └── test_all_map.py             # Test suite for all maps
 ├── maps/                           # Test maps
 │   ├── easy/                       # Easy difficulty levels
 │   ├── medium/                     # Medium difficulty levels
