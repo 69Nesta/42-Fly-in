@@ -1,5 +1,6 @@
 from ..bfs import BFSEdge, BFSNode, BFSObject, BFS
 from ...utils import Logger, Color
+from ...errors import FlyInError
 from ...network import Network
 
 
@@ -83,6 +84,8 @@ class DFS:
             other_node: BFSNode = edge.get_other(start_node)
             if other_node in visited or other_node in deadlock:
                 continue
+            if other_node.is_full():
+                continue
 
             path_length: int = len(path)
             path.append(edge)
@@ -102,6 +105,19 @@ class DFS:
         visited.discard(start_node)
         deadlock.add(start_node)
         return None
+
+    def _debug_path(self, path: list[BFSObject]) -> None:
+        """Helper method to format a path for debugging.
+
+        Args:
+            path: List of BFSObjects representing the path.
+        """
+        self.logger.log('Current path:')
+        for obj in path:
+            self.logger.log(
+                f'  {obj.get_name():20} (remaining capacity:'
+                f' {obj.get_remaining_capacity()})'
+            )
 
     @staticmethod
     def get_blocking_flow(path: list[BFSObject]) -> int:
@@ -149,6 +165,10 @@ class DFS:
         self.logger.log('Running DFS...')
 
         total_flow: int = 0
+
+        max_retries: int = 1000
+        retries: int = 0
+
         while total_flow < self.network.nb_drones:
             path: list[BFSObject] | None = self.generate_path(
                 [self.bfs.start_node],
@@ -156,10 +176,20 @@ class DFS:
                 set()
             )
             if path is None:
+                retries += 1
+                if retries > max_retries:
+                    raise FlyInError(
+                        f'Exceeded maximum retries ({max_retries}) without'
+                        ' finding a path. Possible deadlock or unsolvable '
+                        'network.'
+                    )
                 self.bfs.expend()
                 continue
 
             flow: int = self.get_blocking_flow(path)
+            if flow == 0:
+                raise FlyInError('Found path with zero flow')
+
             self.apply_flow(path, flow)
             self.store_path(path, flow)
             total_flow += flow

@@ -67,6 +67,9 @@ class Dinic:
         self.network.update_simlation_length()
         self.network.create_load_map()
 
+        time_graph.unload()
+        bfs.unload()
+
     def print_stats(self) -> None:
         """Print statistics about the planned paths and reservations."""
         self.logger.info('--- Solver Statistics ---')

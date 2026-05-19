@@ -196,3 +196,11 @@ class Node(NetworkObject, BaseModel):
             Hash value of the node's name.
         """
         return hash(self.name)
+
+    def __del__(self) -> None:
+        """Destructor to clear cached connections when node is deleted."""
+        self.unload()
+
+    def unload(self) -> None:
+        """Clear cached connections to free memory."""
+        self._get_connections_cached.cache_clear()
