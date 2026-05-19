@@ -45,7 +45,7 @@ class ArgsParser(BaseModel):
         )
 
         self._parser.add_argument(
-            '--maps_dir', '-m',
+            '--maps-dir', '-m',
             help='Path to the maps directory',
             type=str,
             default='maps'
