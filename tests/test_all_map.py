@@ -5,10 +5,6 @@ from src.algo.dinic import Dinic
 import os
 
 
-# Collect results as (map_path, simulation_length)
-results: list[tuple[str, int]] = []
-
-
 def load_maps(maps_dir: str) -> dict[str, list[str]]:
     """
     Load maps from a directory and return a structured dictionary.
@@ -45,17 +41,26 @@ def run_all_map(map_dir: str, verbose: bool) -> None:
         map_dir: The directory containing map folders and files.
         verbose: Whether to enable verbose logging during execution.
     """
+    results: list[tuple[str, int]] = []
+
     for map_folder, map_files in load_maps(map_dir).items():
         if map_folder == 'customs':
             continue
         for map_file in map_files:
-            _run_map(os.path.join(map_dir, map_folder, map_file), verbose)
+            file_path: str = os.path.join(map_dir, map_folder, map_file)
+            results.append((file_path, _run_map(file_path, verbose)))
 
-    # Print summary table
-    print('\n| map_path | simulation_length |')
-    print('|---|---|')
+    w0, w1 = (
+        max(len(r[0]) for r in results),
+        max(len(str(r[1])) for r in results)
+    )
+    w1 = max(w1, len('sim_len'))
+
+    print('\n\nResults:')
+    print(f'\n| {"map_path":<{w0}} | {"sim_len":<{w1}} |')
+    print(f'|{"-" * (w0 + 2)}|{"-" * (w1 + 2)}|')
     for map_path, sim_len in results:
-        print(f'| {map_path} | {sim_len} |')
+        print(f'| {map_path:<{w0}} | {sim_len:<{w1}} |')
 
 
 def _run_map(map_path: str, verbose: bool) -> int:
