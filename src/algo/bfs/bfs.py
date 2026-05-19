@@ -214,3 +214,7 @@ class BFS:
                 to_node=bfs_connected_node,
                 connection=connection
             )
+
+    def unload(self) -> None:
+        """Clear cached nodes to free memory."""
+        self.create_node.cache_clear()

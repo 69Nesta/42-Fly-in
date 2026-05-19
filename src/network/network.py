@@ -164,3 +164,49 @@ class Network:
 
         self.width = int(self.max_pos.x - self.min_pos.x)
         self.height = int(self.max_pos.y - self.min_pos.y)
+
+    def unload(self) -> None:
+        """Clear caches and drop references to help GC between runs.
+
+        This clears per-node and per-drone caches and empties main lists so
+        subsequent map loads don't retain references to previous map objects.
+        """
+        try:
+            self.logger.log('Unloading network and clearing caches...')
+        except Exception:
+            pass
+
+        for node in list(getattr(self, 'nodes', []) or []):
+            try:
+                node.unload()
+            except Exception:
+                pass
+
+        for drone in list(getattr(self, 'drones', []) or []):
+            try:
+                drone._cached_positions.clear()
+            except Exception:
+                pass
+
+        if getattr(self, 'load_map', None) is not None:
+            try:
+                self.load_map.clear()
+            except Exception:
+                pass
+
+        try:
+            self.nodes.clear()
+        except Exception:
+            pass
+        try:
+            self.connections.clear()
+        except Exception:
+            pass
+        try:
+            self.drones.clear()
+        except Exception:
+            pass
+        try:
+            del self.loaded_map
+        except Exception:
+            pass

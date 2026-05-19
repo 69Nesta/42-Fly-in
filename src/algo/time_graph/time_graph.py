@@ -165,3 +165,8 @@ class TimeGraph:
                 self.step_dict.setdefault(new_step, set()).add(new_neighbor)
 
         self.step += 1
+
+    def unload(self) -> None:
+        """Clear cached nodes to free memory."""
+        self.create_node.cache_clear()
+        self.create_connection_node.cache_clear()
