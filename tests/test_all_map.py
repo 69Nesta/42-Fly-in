@@ -41,6 +41,7 @@ def run_all_map(map_dir: str, verbose: bool, logger: Logger) -> None:
     Args:
         map_dir: The directory containing map folders and files.
         verbose: Whether to enable verbose logging during execution.
+        logger: Logger instance used for progress/error reporting
     """
     results: list[tuple[str, int | str]] = []
 
@@ -55,7 +56,7 @@ def run_all_map(map_dir: str, verbose: bool, logger: Logger) -> None:
                     f'Error running map {file_path}: {e}'
                 )
                 results.append((file_path, 'Error'))
-            print('\n' * 1)
+            print()
 
     w0, w1 = (
         max(len(r[0]) for r in results),

@@ -13,7 +13,7 @@ def run_tests() -> None:
         '-m',
         type=str,
         default='maps',
-        help='Directory containing map files for testing'
+        help='Directory containing map subfolders for testing'
     )
     argparse.add_argument(
         '--verbose',
